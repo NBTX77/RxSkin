@@ -100,15 +100,23 @@ export default function TicketsPage() {
           <div className="text-center text-gray-400">No tickets found</div>
         ) : (
           <div className="hidden lg:block bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-            <table className="w-full">
+            <table className="w-full table-fixed">
+              <colgroup>
+                <col className="w-[100px]" />
+                <col />
+                <col className="w-[160px]" />
+                <col className="w-[110px]" />
+                <col className="w-[90px]" />
+                <col className="w-[130px]" />
+              </colgroup>
               <thead>
                 <tr className="border-b border-gray-800">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Ticket #</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Summary</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Company</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Status</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Priority</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300 whitespace-nowrap">Updated</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Ticket #</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Summary</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Company</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Status</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Priority</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Updated</th>
                 </tr>
               </thead>
               <tbody>
@@ -117,24 +125,24 @@ export default function TicketsPage() {
                     key={ticket.id}
                     className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
                   >
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-2.5 align-top">
                       <Link
                         href={`/tickets/${ticket.id}`}
-                        className="text-blue-400 hover:text-blue-300 font-medium"
+                        className="text-blue-400 hover:text-blue-300 font-medium text-sm"
                       >
                         #{ticket.id}
                       </Link>
                     </td>
-                    <td className="px-6 py-3 text-white">{ticket.summary}</td>
-                    <td className="px-6 py-3 text-gray-400">{ticket.company}</td>
-                    <td className="px-6 py-3">
-                      <span className="px-2 py-1 bg-gray-800 text-gray-300 rounded text-xs font-medium">
+                    <td className="px-4 py-2.5 align-top text-white text-sm truncate">{ticket.summary}</td>
+                    <td className="px-4 py-2.5 align-top text-gray-400 text-sm truncate">{ticket.company}</td>
+                    <td className="px-4 py-2.5 align-top">
+                      <span className="px-2 py-0.5 bg-gray-800 text-gray-300 rounded text-xs font-medium whitespace-nowrap">
                         {ticket.status}
                       </span>
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-2.5 align-top">
                       <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
+                        className={`px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${
                           ticket.priority === 'high'
                             ? 'bg-red-950 text-red-400'
                             : ticket.priority === 'medium'
@@ -145,7 +153,7 @@ export default function TicketsPage() {
                         {ticket.priority}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-gray-400 text-sm">{new Date(ticket.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</td>
+                    <td className="px-4 py-2.5 align-top text-gray-400 text-sm whitespace-nowrap">{new Date(ticket.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</td>
                   </tr>
                 ))}
               </tbody>
