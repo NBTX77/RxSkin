@@ -24,9 +24,9 @@ const TECHS: Member[] = [
 
 const SUMMARIES = [
   'Outlook not syncing emails on new laptop',
-  'VPN connection drops intermittently',  'Printer jam - HP LaserJet Pro M404',
-  'New employee onboarding - John Davis',
-  'Server 2019 - high CPU usage on DC01',
+  'VPN connection drops intermittently',
+  'Printer jam - HP LaserJet Pro M404',
+  'New employee onboarding - John Davis',  'Server 2019 - high CPU usage on DC01',
   'Firewall rule change request - allow port 8443',
   'Microsoft Teams audio issues in conference room',
   'Backup job failed - Datto SIRIS',
@@ -51,17 +51,16 @@ const SUMMARIES = [
 const STATUSES = ['New', 'In Progress', 'Waiting on Client', 'Scheduled', 'Resolved']
 const PRIORITIES = ['Critical', 'High', 'Medium', 'Low']
 const BOARDS = ['Service Board', 'Projects', 'Internal']
+
 function hoursAgo(h: number): string {
   return new Date(Date.now() - h * 3600 * 1000).toISOString()
 }
 
-function todayAt(hour: number, min = 0): string {
-  const d = new Date()
+function todayAt(hour: number, min = 0): string {  const d = new Date()
   d.setHours(hour, min, 0, 0)
   return d.toISOString()
 }
 
-// Seed a deterministic set so data is consistent across renders
 let seed = 42
 function seededRandom(): number {
   seed = (seed * 16807 + 0) % 2147483647
@@ -77,24 +76,17 @@ export function getMockTickets(): Ticket[] {
     const id = 100200 + i
     const status = seededFrom(STATUSES)
     const priority = seededFrom(PRIORITIES)
-    const tech = seededFrom(TECHS)    const company = seededFrom(COMPANIES)
+    const tech = seededFrom(TECHS)
+    const company = seededFrom(COMPANIES)
     const hoursBack = Math.floor(seededRandom() * 72) + 1
-
     return {
-      id,
-      summary,
-      status,
+      id, summary, status,
       statusId: STATUSES.indexOf(status) + 1,
       priority,
       priorityId: PRIORITIES.indexOf(priority) + 1,
-      board: seededFrom(BOARDS),
-      boardId: 1,
-      company,
-      companyId: i + 1,
-      contact: seededFrom(CONTACTS),
-      contactId: i + 1,
-      assignedTo: tech.name,
-      assignedToId: tech.identifier,
+      board: seededFrom(BOARDS), boardId: 1,      company, companyId: i + 1,
+      contact: seededFrom(CONTACTS), contactId: i + 1,
+      assignedTo: tech.name, assignedToId: tech.identifier,
       budgetHours: Math.floor(seededRandom() * 4) + 1,
       actualHours: parseFloat((seededRandom() * 3).toFixed(1)),
       createdAt: hoursAgo(hoursBack),
@@ -104,6 +96,7 @@ export function getMockTickets(): Ticket[] {
     }
   })
 }
+
 export function getMockTicketById(id: number): Ticket | undefined {
   return getMockTickets().find(t => t.id === id)
 }
@@ -114,35 +107,15 @@ export function getMockMembers(): Member[] {
 
 export function getMockNotes(ticketId: number): TicketNote[] {
   return [
-    {
-      id: 1, ticketId,
-      text: 'Reached out to the client for more details. They said it started after the last Windows update.',
-      isInternal: false, createdBy: 'Travis Brown', createdAt: hoursAgo(4),
-    },
-    {
-      id: 2, ticketId,
-      text: 'Checked event logs — found repeated errors in Application log. Likely related to the .NET runtime update.',
-      isInternal: true, createdBy: 'Jake Smith', createdAt: hoursAgo(2),
-    },
-    {
-      id: 3, ticketId,
-      text: 'Applied KB5034441 fix and rebooted. Monitoring for recurrence.',
-      isInternal: false, createdBy: 'Travis Brown', createdAt: hoursAgo(1),
-    },
+    { id: 1, ticketId, text: 'Reached out to the client for more details. They said it started after the last Windows update.', isInternal: false, createdBy: 'Travis Brown', createdAt: hoursAgo(4) },
+    { id: 2, ticketId, text: 'Checked event logs — found repeated errors in Application log. Likely related to the .NET runtime update.', isInternal: true, createdBy: 'Jake Smith', createdAt: hoursAgo(2) },
+    { id: 3, ticketId, text: 'Applied KB5034441 fix and rebooted. Monitoring for recurrence.', isInternal: false, createdBy: 'Travis Brown', createdAt: hoursAgo(1) },
   ]
 }
-export function getMockTimeEntries(ticketId: number): TimeEntry[] {
-  return [
-    {
-      id: 1, ticketId, memberId: 1, memberName: 'Travis Brown',
-      hoursWorked: 0.5, workType: 'Remote', notes: 'Initial triage and client call',
-      billable: true, date: hoursAgo(4),
-    },
-    {
-      id: 2, ticketId, memberId: 2, memberName: 'Jake Smith',
-      hoursWorked: 1.0, workType: 'Remote', notes: 'Log analysis and patch research',
-      billable: true, date: hoursAgo(2),
-    },
+
+export function getMockTimeEntries(ticketId: number): TimeEntry[] {  return [
+    { id: 1, ticketId, memberId: 1, memberName: 'Travis Brown', hoursWorked: 0.5, workType: 'Remote', notes: 'Initial triage and client call', billable: true, date: hoursAgo(4) },
+    { id: 2, ticketId, memberId: 2, memberName: 'Jake Smith', hoursWorked: 1.0, workType: 'Remote', notes: 'Log analysis and patch research', billable: true, date: hoursAgo(2) },
   ]
 }
 
