@@ -41,8 +41,8 @@ export default function TicketsPage() {
     <div className="min-h-screen bg-gray-950 lg:ml-64 pb-20 lg:pb-0">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-gray-900 border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
             <h1 className="text-2xl font-bold text-white">Tickets</h1>
             <Link
               href="/tickets/new"
@@ -53,7 +53,7 @@ export default function TicketsPage() {
             </Link>
           </div>
           {/* Search and Filters */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
               <input
@@ -91,7 +91,7 @@ export default function TicketsPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-3">
         {isLoading && <div className="text-gray-400">Loading tickets...</div>}
         {error && <div className="text-red-400">Error loading tickets</div>}
 
