@@ -116,8 +116,8 @@ export default function LoginPage() {
         {/* Demo info */}
         <div className="mt-8 p-4 rounded-lg bg-gray-900 border border-gray-800">
           <p className="text-xs text-gray-400 mb-2">Demo credentials:</p>
-          <p className="text-xs text-gray-300 font-mono">Email: demo@example.com</p>
-          <p className="text-xs text-gray-300 font-mono">Password: demo</p>
+          <p className="text-xs text-gray-300 font-mono">Email: admin@rxtech.app</p>
+          <p className="text-xs text-gray-300 font-mono">Password: RxSkin2026!</p>
         </div>
       </div>
     </div>

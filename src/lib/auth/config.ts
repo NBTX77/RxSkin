@@ -32,8 +32,12 @@ declare module 'next-auth' {
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string().min(1),
 })
+
+// Phase 1 demo credentials — replaced by env vars + real auth in Phase 2
+const DEMO_EMAIL = process.env.DEV_ADMIN_EMAIL || 'admin@rxtech.app'
+const DEMO_PASSWORD = process.env.DEV_ADMIN_PASSWORD || 'RxSkin2026!'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
@@ -50,13 +54,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!parsed.success) return null
 
         if (
-          parsed.data.email === process.env.DEV_ADMIN_EMAIL &&
-          parsed.data.password === process.env.DEV_ADMIN_PASSWORD
+          parsed.data.email === DEMO_EMAIL &&
+          parsed.data.password === DEMO_PASSWORD
         ) {
           return {
             id: 'dev-user-1',
             email: parsed.data.email,
-            name: 'Dev Admin',
+            name: 'Travis Brown',
             tenantId: process.env.DEV_TENANT_ID ?? 'rx-technology',
             role: 'ADMIN' as UserRole,
             cwMemberId: process.env.DEV_CW_MEMBER_ID,
