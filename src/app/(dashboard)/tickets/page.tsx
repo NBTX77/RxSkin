@@ -6,14 +6,13 @@ import { Search, Filter, Plus } from 'lucide-react'
 import Link from 'next/link'
 
 interface Ticket {
-  id: string
-  number: string
+  id: number
   summary: string
   status: string
   priority: string
   company: string
   assignedTo?: string
-  updatedDate: string
+  updatedAt: string
 }
 
 export default function TicketsPage() {
@@ -24,7 +23,8 @@ export default function TicketsPage() {
   })
 
   const { data: tickets = [], isLoading, error } = useQuery<Ticket[]>({
-    queryKey: ['tickets', filters, search],    queryFn: async () => {
+    queryKey: ['tickets', filters, search],
+    queryFn: async () => {
       const params = new URLSearchParams({
         search,
         status: filters.status,
@@ -102,12 +102,13 @@ export default function TicketsPage() {
           <div className="hidden lg:block bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-800">                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Ticket #</th>
+                <tr className="border-b border-gray-800">
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Ticket #</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Summary</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Company</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Status</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Priority</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Updated</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300 whitespace-nowrap">Updated</th>
                 </tr>
               </thead>
               <tbody>
@@ -121,7 +122,7 @@ export default function TicketsPage() {
                         href={`/tickets/${ticket.id}`}
                         className="text-blue-400 hover:text-blue-300 font-medium"
                       >
-                        {ticket.number}
+                        #{ticket.id}
                       </Link>
                     </td>
                     <td className="px-6 py-3 text-white">{ticket.summary}</td>
@@ -130,7 +131,8 @@ export default function TicketsPage() {
                       <span className="px-2 py-1 bg-gray-800 text-gray-300 rounded text-xs font-medium">
                         {ticket.status}
                       </span>
-                    </td>                    <td className="px-6 py-3">
+                    </td>
+                    <td className="px-6 py-3">
                       <span
                         className={`px-2 py-1 rounded text-xs font-medium ${
                           ticket.priority === 'high'
@@ -143,7 +145,7 @@ export default function TicketsPage() {
                         {ticket.priority}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-gray-400 text-sm">{ticket.updatedDate}</td>
+                    <td className="px-6 py-3 text-gray-400 text-sm">{new Date(ticket.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</td>
                   </tr>
                 ))}
               </tbody>
@@ -159,14 +161,15 @@ export default function TicketsPage() {
                 key={ticket.id}
                 href={`/tickets/${ticket.id}`}
                 className="block p-4 bg-gray-900 border border-gray-800 rounded-lg hover:bg-gray-800 transition-colors"
-              >                <div className="flex items-start justify-between mb-2">
-                  <span className="text-blue-400 font-semibold">{ticket.number}</span>
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <span className="text-blue-400 font-semibold">#{ticket.id}</span>
                   <span className="text-xs px-2 py-1 bg-gray-800 text-gray-300 rounded">{ticket.status}</span>
                 </div>
                 <p className="text-white font-medium mb-2">{ticket.summary}</p>
                 <div className="flex items-center justify-between text-sm text-gray-400">
                   <span>{ticket.company}</span>
-                  <span>{ticket.updatedDate}</span>
+                  <span>{new Date(ticket.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                 </div>
               </Link>
             ))}

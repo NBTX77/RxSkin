@@ -7,16 +7,14 @@ import Link from 'next/link'
 
 interface ScheduleEntry {
   id: number
-  title: string
-  summary?: string
-  objectId?: string
-  dateStart: string
-  dateEnd: string
+  ticketId?: number
+  ticketSummary?: string
+  memberName: string
+  start: string
+  end: string
   type?: string
   status?: string
-  resource?: {
-    identifier: string
-  }
+  companyName?: string
 }
 
 export default function SchedulePage() {
@@ -160,20 +158,22 @@ export default function SchedulePage() {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-white mb-1 truncate">{entry.title}</h3>
-                      {entry.summary && (
-                        <p className="text-sm text-gray-400 mb-2">{entry.summary}</p>
+                      <h3 className="font-semibold text-white mb-1 truncate">
+                        {entry.ticketId ? `#${entry.ticketId} — ` : ''}{entry.ticketSummary || 'Untitled'}
+                      </h3>
+                      {entry.companyName && (
+                        <p className="text-sm text-gray-400 mb-2">{entry.companyName}</p>
                       )}
                       <div className="flex flex-wrap items-center gap-3 text-sm">
                         <div className="flex items-center gap-1.5 text-gray-400">
                           <Clock size={14} />
                           <span>
-                            {formatTime(entry.dateStart)} – {formatTime(entry.dateEnd)}
+                            {formatTime(entry.start)} – {formatTime(entry.end)}
                           </span>
                         </div>
-                        {entry.resource && (
+                        {entry.memberName && (
                           <span className="text-gray-400">
-                            {entry.resource.identifier}
+                            {entry.memberName}
                           </span>
                         )}
                         {entry.type && (
