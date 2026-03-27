@@ -64,7 +64,6 @@ export default function TicketsPage() {
                 className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
             <div className="flex gap-2">
               <select
                 value={filters.status}
@@ -102,12 +101,12 @@ export default function TicketsPage() {
           <div className="hidden lg:block bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
             <table className="w-full table-fixed">
               <colgroup>
-                <col className="w-[100px]" />
+                <col style={{ width: '80px' }} />
                 <col />
-                <col className="w-[160px]" />
-                <col className="w-[110px]" />
-                <col className="w-[90px]" />
-                <col className="w-[130px]" />
+                <col style={{ width: '140px' }} />
+                <col style={{ width: '110px' }} />
+                <col style={{ width: '80px' }} />
+                <col style={{ width: '130px' }} />
               </colgroup>
               <thead>
                 <tr className="border-b border-gray-800">
