@@ -24,7 +24,6 @@ interface TicketsResponse {
 
 const statusFilters = ['All', 'Open', 'In Progress', 'Closed', 'On Hold']
 const priorityFilters = ['All', 'Critical', 'High', 'Medium', 'Low']
-
 async function fetchTickets(search?: string, status?: string, priority?: string) {
   const params = new URLSearchParams()
   if (search) params.append('search', search)
@@ -53,8 +52,7 @@ export function TicketListClient() {
 
   // API returns { data: [...], pagination: {...} } — handle both shapes
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const raw = response as any
-  const tickets: Ticket[] = raw?.tickets ?? raw?.data ?? []
+  const raw = response as any  const tickets: Ticket[] = raw?.tickets ?? raw?.data ?? []
 
   return (
     <div className="flex flex-col gap-4 h-full">
@@ -81,8 +79,7 @@ export function TicketListClient() {
             className="w-full px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/50 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {statusFilters.map(status => (
-              <option key={status} value={status}>
-                {status}
+              <option key={status} value={status}>                {status}
               </option>
             ))}
           </select>
@@ -110,8 +107,7 @@ export function TicketListClient() {
         {isLoading ? (
           <div className="space-y-2">
             {[...Array(8)].map((_, i) => (
-              <Skeleton key={i} className="h-16" />
-            ))}
+              <Skeleton key={i} className="h-16" />            ))}
           </div>
         ) : error ? (
           <div className="text-center text-gray-400 py-8">

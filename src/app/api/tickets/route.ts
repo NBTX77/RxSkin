@@ -17,18 +17,17 @@ export async function GET(req: NextRequest) {
 
     let tickets = getMockTickets()
 
-    // Apply filters
-    if (status) {
+    // Apply filters — "all" or empty means no filter
+    if (status && status.toLowerCase() !== 'all') {
       tickets = tickets.filter(t => t.status.toLowerCase() === status.toLowerCase())
     }
-    if (priority) {
+    if (priority && priority.toLowerCase() !== 'all') {
       tickets = tickets.filter(t => t.priority.toLowerCase() === priority.toLowerCase())
     }
-    if (search) {
+    if (search && search.trim()) {
       const q = search.toLowerCase()
       tickets = tickets.filter(t =>
-        t.summary.toLowerCase().includes(q) ||
-        t.company?.toLowerCase().includes(q) ||
+        t.summary.toLowerCase().includes(q) ||        t.company?.toLowerCase().includes(q) ||
         String(t.id).includes(q)
       )
     }

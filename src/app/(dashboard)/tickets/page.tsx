@@ -24,8 +24,7 @@ export default function TicketsPage() {
   })
 
   const { data: tickets = [], isLoading, error } = useQuery<Ticket[]>({
-    queryKey: ['tickets', filters, search],
-    queryFn: async () => {
+    queryKey: ['tickets', filters, search],    queryFn: async () => {
       const params = new URLSearchParams({
         search,
         status: filters.status,
@@ -53,7 +52,6 @@ export default function TicketsPage() {
               New Ticket
             </Link>
           </div>
-
           {/* Search and Filters */}
           <div className="space-y-3">
             <div className="relative">
@@ -78,7 +76,6 @@ export default function TicketsPage() {
                 <option value="in-progress">In Progress</option>
                 <option value="closed">Closed</option>
               </select>
-
               <select
                 value={filters.priority}
                 onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
@@ -105,8 +102,7 @@ export default function TicketsPage() {
           <div className="hidden lg:block bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-800">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Ticket #</th>
+                <tr className="border-b border-gray-800">                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Ticket #</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Summary</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Company</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Status</th>
@@ -134,8 +130,7 @@ export default function TicketsPage() {
                       <span className="px-2 py-1 bg-gray-800 text-gray-300 rounded text-xs font-medium">
                         {ticket.status}
                       </span>
-                    </td>
-                    <td className="px-6 py-3">
+                    </td>                    <td className="px-6 py-3">
                       <span
                         className={`px-2 py-1 rounded text-xs font-medium ${
                           ticket.priority === 'high'
@@ -164,8 +159,7 @@ export default function TicketsPage() {
                 key={ticket.id}
                 href={`/tickets/${ticket.id}`}
                 className="block p-4 bg-gray-900 border border-gray-800 rounded-lg hover:bg-gray-800 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-2">
+              >                <div className="flex items-start justify-between mb-2">
                   <span className="text-blue-400 font-semibold">{ticket.number}</span>
                   <span className="text-xs px-2 py-1 bg-gray-800 text-gray-300 rounded">{ticket.status}</span>
                 </div>
