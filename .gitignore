@@ -1,0 +1,15 @@
+node_modules/
+.next/
+.env
+.env.local
+.env.production.local
+.env.development.local
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vercel
+out/
+build/
+coverage/
+push.bat

@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Theme system for RX Skin
+ * Dark mode is the default. Light mode remaps gray scale + text colors.
+ * We override Tailwind's gray utility classes in light mode via CSS
+ * so existing components work without changing every className.
+ */
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+/* ── Light mode overrides ── */
+html.light {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/*
+ * Light-mode color remaps
+ * Maps the dark-theme grays to light equivalents so every component
+ * that uses bg-gray-950, bg-gray-900, text-gray-400 etc. looks correct.
+ */
+html.light {
+  /* Background surfaces */
+  & .bg-gray-950 { background-color: #f8fafc !important; } /* slate-50 */
+  & .bg-gray-900 { background-color: #ffffff !important; }  /* white */
+  & .bg-gray-800 { background-color: #f1f5f9 !important; } /* slate-100 */
+  & .bg-gray-800\/50 { background-color: rgb(241 245 249 / 0.5) !important; }
+  & .bg-gray-800\/60 { background-color: rgb(241 245 249 / 0.6) !important; }
+  & .bg-gray-700 { background-color: #e2e8f0 !important; } /* slate-200 */
+
+  /* Borders */
+  & .border-gray-800 { border-color: #e2e8f0 !important; } /* slate-200 */
+  & .border-gray-700 { border-color: #cbd5e1 !important; } /* slate-300 */
+  & .border-gray-700\/50 { border-color: rgb(203 213 225 / 0.5) !important; }
+  & .border-gray-600 { border-color: #94a3b8 !important; } /* slate-400 */
+
+  /* Text colors */
+  & .text-white { color: #0f172a !important; }               /* slate-900 */
+  & .text-gray-100 { color: #1e293b !important; }            /* slate-800 */
+  & .text-gray-200 { color: #334155 !important; }            /* slate-700 */
+  & .text-gray-300 { color: #475569 !important; }            /* slate-600 */
+  & .text-gray-400 { color: #64748b !important; }            /* slate-500 */
+  & .text-gray-500 { color: #94a3b8 !important; }            /* slate-400 */
+  & .text-gray-600 { color: #94a3b8 !important; }            /* slate-400 */
+  & .text-gray-700 { color: #cbd5e1 !important; }            /* slate-300 */
+
+  /* Hover states */
+  & .hover\:bg-gray-800:hover { background-color: #f1f5f9 !important; }
+  & .hover\:bg-gray-800\/50:hover { background-color: rgb(241 245 249 / 0.5) !important; }
+  & .hover\:text-white:hover { color: #0f172a !important; }
+  & .hover\:text-gray-300:hover { color: #475569 !important; }
+  & .hover\:text-gray-400:hover { color: #64748b !important; }
+  & .hover\:border-gray-700:hover { border-color: #cbd5e1 !important; }
+
+  /* Focus states */
+  & .focus\:ring-blue-500:focus { --tw-ring-color: #3b82f6; }
+
+  /* Placeholder */
+  & .placeholder-gray-500::placeholder { color: #94a3b8 !important; }
+
+  /* Backdrop / overlay */
+  & .bg-black\/60 { background-color: rgb(0 0 0 / 0.3) !important; }
+
+  /* Skeleton / pulse animations */
+  & .animate-pulse { background-color: #e2e8f0 !important; }
+
+  /* Subtle card backgrounds (used in stat cards) */
+  & .bg-blue-500\/5 { background-color: rgb(59 130 246 / 0.08) !important; }
+  & .bg-purple-500\/5 { background-color: rgb(168 85 247 / 0.08) !important; }
+  & .bg-green-500\/5 { background-color: rgb(34 197 94 / 0.08) !important; }
+  & .bg-red-500\/5 { background-color: rgb(239 68 68 / 0.08) !important; }
+
+  /* Active nav state */
+  & .bg-blue-600\/15 { background-color: rgb(37 99 235 / 0.1) !important; }
+  & .bg-blue-600\/20 { background-color: rgb(37 99 235 / 0.12) !important; }
+  & .border-blue-500\/20 { border-color: rgb(59 130 246 / 0.3) !important; }
+
+  /* Progress bars */
+  & .bg-gray-800 .rounded-full, & .h-1.bg-gray-800 { background-color: #e2e8f0 !important; }
+
+  /* Login specific */
+  & .bg-red-950 { background-color: #fef2f2 !important; }
+  & .border-red-800 { border-color: #fca5a5 !important; }
+
+  /* Scrollbar */
+  & ::-webkit-scrollbar { width: 8px; }
+  & ::-webkit-scrollbar-track { background: #f1f5f9; }
+  & ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+  /* Shadow for elevated surfaces */
+  & .shadow-2xl { box-shadow: 0 4px 24px rgb(0 0 0 / 0.08) !important; }
+
+  /* KBD elements */
+  & kbd, & .bg-gray-800.border.border-gray-700 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #64748b !important;
+  }
+
+  /* Status badge dark backgrounds → lighter */
+  & .bg-blue-950 { background-color: rgb(219 234 254) !important; }   /* blue-100 */
+  & .bg-yellow-950 { background-color: rgb(254 249 195) !important; } /* yellow-100 */
+  & .bg-purple-950 { background-color: rgb(243 232 255) !important; } /* purple-100 */
+  & .bg-cyan-950 { background-color: rgb(207 250 254) !important; }   /* cyan-100 */
+  & .bg-green-950 { background-color: rgb(220 252 231) !important; }  /* green-100 */
+
+  /* Status badge border overrides for light */
+  & .border-blue-800 { border-color: rgb(191 219 254) !important; }
+  & .border-yellow-800 { border-color: rgb(253 224 71) !important; }
+  & .border-purple-800 { border-color: rgb(216 180 254) !important; }
+  & .border-cyan-800 { border-color: rgb(165 243 252) !important; }
+  & .border-green-800 { border-color: rgb(187 247 208) !important; }
+
+  /* Status text → darker for contrast in light mode */
+  & .text-blue-400 { color: #2563eb !important; }     /* blue-600 */
+  & .text-yellow-400 { color: #ca8a04 !important; }   /* yellow-600 */
+  & .text-purple-400 { color: #9333ea !important; }    /* purple-600 */
+  & .text-cyan-400 { color: #0891b2 !important; }      /* cyan-600 */
+  & .text-green-400 { color: #16a34a !important; }     /* green-600 */
+  & .text-red-400 { color: #dc2626 !important; }       /* red-600 */
+  & .text-orange-400 { color: #ea580c !important; }    /* orange-600 */
+
+  /* Hover text overrides for colored text */
+  & .hover\:text-blue-300:hover { color: #3b82f6 !important; }
+
+  /* Semi-transparent status badge backgrounds */
+  & .bg-blue-500\/10 { background-color: rgb(219 234 254 / 0.6) !important; }
+  & .bg-yellow-500\/10 { background-color: rgb(254 249 195 / 0.6) !important; }
+  & .bg-purple-500\/10 { background-color: rgb(243 232 255 / 0.6) !important; }
+  & .bg-cyan-500\/10 { background-color: rgb(207 250 254 / 0.6) !important; }
+  & .bg-green-500\/10 { background-color: rgb(220 252 231 / 0.6) !important; }
+  & .bg-gray-500\/10 { background-color: rgb(241 245 249 / 0.6) !important; }
+  & .bg-yellow-500\/5 { background-color: rgb(254 249 195 / 0.3) !important; }
+  & .border-yellow-500\/20 { border-color: rgb(253 224 71 / 0.4) !important; }
+  & .bg-yellow-500\/20 { background-color: rgb(253 224 71 / 0.2) !important; }
+
+  /* Quick close panel green */
+  & .bg-green-600\/20 { background-color: rgb(34 197 94 / 0.1) !important; }
+  & .bg-green-600\/30 { background-color: rgb(34 197 94 / 0.15) !important; }
+  & .border-green-500\/20 { border-color: rgb(34 197 94 / 0.3) !important; }
+  & .hover\:bg-green-600\/30:hover { background-color: rgb(34 197 94 / 0.15) !important; }
+
+  /* Quick action hover states */
+  & .hover\:bg-blue-500\/10:hover { background-color: rgb(59 130 246 / 0.08) !important; }
+  & .hover\:bg-purple-500\/10:hover { background-color: rgb(168 85 247 / 0.08) !important; }
+  & .hover\:bg-orange-500\/10:hover { background-color: rgb(249 115 22 / 0.08) !important; }
+
+  /* Avatar stays white text on blue */
+  & .bg-blue-600 .text-white { color: #ffffff !important; }
+  & .bg-blue-600.text-white { color: #ffffff !important; }
+
+  /* Button text that should stay white */
+  & .bg-blue-600 { color: #ffffff !important; }
+  & button.bg-blue-600 { color: #ffffff !important; }
+  & button.bg-green-600 { color: #ffffff !important; }
+  & .bg-blue-600 span, & .bg-blue-600 svg { color: #ffffff !important; }
+}
