@@ -19,16 +19,16 @@ export async function GET(req: NextRequest) {
 
     // Apply filters
     if (status) {
-      tickets = tickets.filter(t => t.status?.name?.toLowerCase() === status.toLowerCase())
+      tickets = tickets.filter(t => t.status.toLowerCase() === status.toLowerCase())
     }
     if (priority) {
-      tickets = tickets.filter(t => t.priority?.name?.toLowerCase() === priority.toLowerCase())
+      tickets = tickets.filter(t => t.priority.toLowerCase() === priority.toLowerCase())
     }
     if (search) {
       const q = search.toLowerCase()
       tickets = tickets.filter(t =>
         t.summary.toLowerCase().includes(q) ||
-        t.company?.name?.toLowerCase().includes(q) ||
+        t.company?.toLowerCase().includes(q) ||
         String(t.id).includes(q)
       )
     }
