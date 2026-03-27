@@ -33,7 +33,8 @@ export default function TicketsPage() {
       })
       const res = await fetch(`/api/tickets?${params}`)
       if (!res.ok) throw new Error('Failed to fetch tickets')
-      return res.json()
+      const json = await res.json()
+      return json.data ?? json
     },
   })
 

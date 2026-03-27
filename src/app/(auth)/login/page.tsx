@@ -1,18 +1,46 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { signIn, useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { AlertCircle, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <Loader2 size={24} className="animate-spin text-blue-500" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { data: session, status } = useSession()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [ssoLoading, setSsoLoading] = useState(false)
+
+  // Show error from NextAuth callback (e.g. OAuthCallbackError)
+  useEffect(() => {
+    const errorParam = searchParams.get('error')
+    if (errorParam) {
+      if (errorParam === 'OAuthAccountNotLinked') {
+        setError('This email is already associated with another sign-in method.')
+      } else if (errorParam === 'AccessDenied') {
+        setError('Access denied. Your account may not be authorized.')
+      } else {
+        setError(`Sign-in error: ${errorParam}`)
+      }
+    }
+  }, [searchParams])
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
@@ -38,11 +66,16 @@ export default function LoginPage() {
       } else if (result?.ok) {
         router.push('/dashboard')
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleMicrosoftSignIn = () => {
+    setSsoLoading(true)
+    signIn('microsoft-entra-id', { callbackUrl: '/dashboard' })
   }
 
   return (
@@ -69,6 +102,35 @@ export default function LoginPage() {
           </div>
         )}
 
+        {/* Microsoft SSO button */}
+        <button
+          onClick={handleMicrosoftSignIn}
+          disabled={ssoLoading || loading}
+          className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 font-medium hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-3 mb-6"
+        >
+          {ssoLoading ? (
+            <Loader2 size={18} className="animate-spin" />
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+              <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+              <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+              <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+            </svg>
+          )}
+          {ssoLoading ? 'Redirecting...' : 'Sign in with Microsoft'}
+        </button>
+
+        {/* Divider */}
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-800" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-gray-950 px-3 text-gray-500">or sign in with email</span>
+          </div>
+        </div>
+
         {/* Login form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -82,7 +144,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               className="w-full px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              disabled={loading}
+              disabled={loading || ssoLoading}
               required
             />
           </div>
@@ -98,27 +160,20 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              disabled={loading}
+              disabled={loading || ssoLoading}
               required
             />
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || ssoLoading}
             className="w-full px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
-
-        {/* Demo info */}
-        <div className="mt-8 p-4 rounded-lg bg-gray-900 border border-gray-800">
-          <p className="text-xs text-gray-400 mb-2">Demo credentials:</p>
-          <p className="text-xs text-gray-300 font-mono">Email: admin@rxtech.app</p>
-          <p className="text-xs text-gray-300 font-mono">Password: RxSkin2026!</p>
-        </div>
       </div>
     </div>
   )

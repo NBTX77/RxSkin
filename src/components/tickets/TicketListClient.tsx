@@ -51,7 +51,10 @@ export function TicketListClient() {
     staleTime: 30 * 1000,
   })
 
-  const tickets = response?.tickets ?? []
+  // API returns { data: [...], pagination: {...} } — handle both shapes
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = response as any
+  const tickets: Ticket[] = raw?.tickets ?? raw?.data ?? []
 
   return (
     <div className="flex flex-col gap-4 h-full">
