@@ -13,10 +13,13 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const page = parseInt(searchParams.get('page') || '1', 10)
-    const pageSize = parseInt(searchParams.get('pageSize') || '25', 10)
+    const pageSize = parseInt(searchParams.get('pageSize') || '50', 10)
     const status = searchParams.get('status')
     const priority = searchParams.get('priority')
     const search = searchParams.get('search')
+    const board = searchParams.get('board')
+    const company = searchParams.get('company')
+    const assignedTo = searchParams.get('assignedTo')
 
     let tickets: Ticket[]
 
@@ -29,12 +32,21 @@ export async function GET(req: NextRequest) {
         pageSize,
       })
 
-      // Client-side filters for status/priority (CW conditions syntax differs)
+      // Client-side filters (CW conditions syntax differs per field)
       if (status && status.toLowerCase() !== 'all') {
         tickets = tickets.filter(t => t.status.toLowerCase().includes(status.toLowerCase()))
       }
       if (priority && priority.toLowerCase() !== 'all') {
-        tickets = tickets.filter(t => t.priority.toLowerCase().includes(priority.toLowerCase()))
+        tickets = tickets.filter(t => t.priority.toLowerCase() === priority.toLowerCase())
+      }
+      if (board && board !== 'all') {
+        tickets = tickets.filter(t => t.board === board)
+      }
+      if (company && company !== 'all') {
+        tickets = tickets.filter(t => t.company === company)
+      }
+      if (assignedTo && assignedTo !== 'all') {
+        tickets = tickets.filter(t => t.assignedTo === assignedTo)
       }
 
       return Response.json({
@@ -51,6 +63,15 @@ export async function GET(req: NextRequest) {
       }
       if (priority && priority.toLowerCase() !== 'all') {
         tickets = tickets.filter(t => t.priority.toLowerCase() === priority.toLowerCase())
+      }
+      if (board && board !== 'all') {
+        tickets = tickets.filter(t => t.board === board)
+      }
+      if (company && company !== 'all') {
+        tickets = tickets.filter(t => t.company === company)
+      }
+      if (assignedTo && assignedTo !== 'all') {
+        tickets = tickets.filter(t => t.assignedTo === assignedTo)
       }
       if (search && search.trim()) {
         const q = search.toLowerCase()
