@@ -199,7 +199,7 @@ function DayView({ selectedDate, entries }: { selectedDate: Date; entries: Sched
         {HOURS.map((hour) => (
           <div key={hour} className="absolute w-full border-b border-gray-800/50" style={{ top: `${(hour - 6) * 64}px`, height: '64px' }}>
             <span className="absolute -top-2.5 left-2 text-[10px] text-gray-600 w-12">
-              {hour === 0 ? '12 AM' : hour <= 12 ? `${hour} AM` : `${hour - 12} PM`}
+              {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
             </span>
           </div>
         ))}
@@ -249,7 +249,7 @@ function WeekView({ selectedDate, entries }: { selectedDate: Date; entries: Sche
           {HOURS.map((hour) => (
             <div key={hour} className="absolute w-full" style={{ top: `${(hour - 6) * 64}px` }}>
               <span className="absolute -top-2.5 left-2 text-[10px] text-gray-600">
-                {hour === 0 ? '12 AM' : hour <= 12 ? `${hour} AM` : `${hour - 12} PM`}
+                {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
               </span>
             </div>
           ))}
