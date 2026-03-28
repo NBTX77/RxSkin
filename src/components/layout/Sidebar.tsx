@@ -127,7 +127,7 @@ export function Sidebar() {
         <button
           data-sidebar-toggle
           onClick={() => setOpen(true)}
-          className="hidden lg:flex fixed top-3 left-3 z-50 items-center justify-center w-9 h-9 rounded-lg bg-gray-900/80 backdrop-blur-md border border-gray-700/40 text-gray-400 hover:text-white hover:bg-gray-800/90 transition-all shadow-lg"
+          className="hidden lg:flex fixed top-3 left-3 z-[1100] items-center justify-center w-9 h-9 rounded-lg bg-gray-900/80 backdrop-blur-md border border-gray-700/40 text-gray-400 hover:text-white hover:bg-gray-800/90 transition-all shadow-lg"
           title="Show navigation"
         >
           <Menu size={16} />
@@ -142,7 +142,7 @@ export function Sidebar() {
           top: position.y,
           cursor: isDragging ? 'grabbing' : undefined,
         }}
-        className={`hidden lg:flex flex-col fixed z-40 w-48 max-h-[calc(100vh-24px)] bg-gray-900/90 backdrop-blur-xl border border-gray-700/40 rounded-xl shadow-2xl transition-opacity duration-200 ${
+        className={`hidden lg:flex flex-col fixed z-[1100] w-48 max-h-[calc(100vh-24px)] bg-gray-900/90 backdrop-blur-xl border border-gray-700/40 rounded-xl shadow-2xl transition-opacity duration-200 ${
           open
             ? 'opacity-100'
             : 'opacity-0 pointer-events-none'
