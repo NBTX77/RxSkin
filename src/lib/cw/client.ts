@@ -104,7 +104,7 @@ export async function getTickets(
   params.set('orderBy', 'lastUpdated desc')
   params.set('pageSize', String(filters.pageSize ?? 50))
   params.set('page', String(filters.page ?? 1))
-  params.set('fields', 'id,summary,status,priority,board,company,contact,owner,dateEntered,lastUpdated,closedDate,budgetHours,actualHours,resources')
+  params.set('fields', 'id,summary,status,priority,board,company,contact,owner,dateEntered,lastUpdated,closedDate,budgetHours,actualHours,resources,_info')
 
   const raw = await cwFetch<Record<string, unknown>[]>(creds, `/service/tickets?${params}`)
   return raw.map(normalizeTicket)
