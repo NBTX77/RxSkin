@@ -283,12 +283,12 @@ export default function TicketsPage() {
           </div>
         ) : (
           /* Desktop table */
-          <div className="hidden lg:block bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-            <table className="w-full">
+          <div className="hidden lg:block bg-gray-900 border border-gray-800 rounded-lg overflow-x-auto">
+            <table className="w-full ">
               <thead>
                 <tr className="border-b border-gray-800">
                   <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300 w-[70px]">Ticket</th>
-                  <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300">Summary</th>
+                  <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300 max-w-[300px]">Summary</th>
                   <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300 w-[120px]">Board</th>
                   <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300 w-[140px]">Company</th>
                   <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300 w-[130px]">Assignee</th>
@@ -311,7 +311,7 @@ export default function TicketsPage() {
                         #{ticket.id}
                       </Link>
                     </td>
-                    <td className="px-3 py-2.5 align-middle text-white text-sm">
+                    <td className="px-3 py-2.5 align-middle text-white text-sm max-w-0">
                       <div className="truncate">{ticket.summary}</div>
                     </td>
                     <td className="px-3 py-2.5 align-middle text-gray-400 text-sm">
