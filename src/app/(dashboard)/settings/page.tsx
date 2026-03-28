@@ -3,182 +3,253 @@
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useTheme } from '@/components/theme/ThemeProvider'
-import { Settings, Bell, Lock, User, LogOut, Moon, Sun } from 'lucide-react'
+import { User, Palette, Link2, Bell, Moon, Sun, LogOut, Monitor, Smartphone, ExternalLink } from 'lucide-react'
+
+const TABS = [
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'appearance', label: 'Appearance', icon: Palette },
+  { id: 'connections', label: 'Connections', icon: Link2 },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+] as const
+
+type TabId = typeof TABS[number]['id']
 
 export default function SettingsPage() {
   const { data: session } = useSession()
-  const { theme } = useTheme()
+  const { theme, setTheme } = useTheme()
+  const [activeTab, setActiveTab] = useState<TabId>('profile')
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+  const [desktopPush, setDesktopPush] = useState(false)
+  const [soundAlerts, setSoundAlerts] = useState(true)
   const [emailDigest, setEmailDigest] = useState('daily')
+  const [compactMode, setCompactMode] = useState(false)
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/login' })
-  }
+  const Toggle = ({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean) => void }) => (
+    <button
+      onClick={() => onChange(!enabled)}
+      className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors ${enabled ? 'bg-blue-600' : 'bg-gray-700'}`}
+    >
+      <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${enabled ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
+    </button>
+  )
 
   return (
-    <main className="flex-1 overflow-auto">
-      {/* Header */}
-      <div className="sticky top-0 z-30 bg-gray-900 border-b border-gray-800 px-4 sm:px-6 py-4">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold text-white">Settings</h1>
-        </div>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-white">Settings</h1>
+
+      {/* Tab bar */}
+      <div className="flex gap-1 border-b border-gray-800 overflow-x-auto">
+        {TABS.map((tab) => {
+          const Icon = tab.icon
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-400'
+                  : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'
+              }`}
+            >
+              <Icon size={16} />
+              {tab.label}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Content */}
-      <div className="px-4 sm:px-6 py-6">
-        <div className="max-w-3xl mx-auto space-y-6">
-          {/* Account Section */}
-          <div>
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <User size={20} />
-              Account
-            </h2>
+      {/* Tab content */}
+      <div className="max-w-2xl">
+        {activeTab === 'profile' && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-800 border border-gray-700">
+              <div className="h-16 w-16 rounded-full bg-blue-600 flex items-center justify-center text-xl font-bold text-white">
+                {session?.user?.name?.split(' ').map(n => n[0]).join('') || 'TB'}
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-white">{session?.user?.name || 'Not set'}</p>
+                <p className="text-sm text-gray-400">{session?.user?.email}</p>
+                <p className="text-xs text-gray-500 mt-1">IT Department</p>
+              </div>
+            </div>
 
             <div className="space-y-4">
-              {/* Email display */}
               <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Email Address
-                </label>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Email Address</label>
                 <p className="text-white">{session?.user?.email}</p>
               </div>
-
-              {/* Name display */}
               <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Full Name
-                </label>
-                <p className="text-white">{session?.user?.name || 'Not set'}</p>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Role</label>
+                <p className="text-white">Administrator</p>
               </div>
-
-              {/* Change password link */}
-              <button className="w-full p-4 rounded-lg bg-gray-800 border border-gray-700 text-white hover:bg-gray-700 transition-colors text-left">
-                <span className="text-sm font-medium">Change Password</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Preferences Section */}
-          <div>
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Settings size={20} />
-              Preferences
-            </h2>
-
-            <div className="space-y-4">
-              {/* Theme toggle */}
-              <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {theme === 'dark' ? (
-                    <Moon size={16} className="text-gray-400" />
-                  ) : (
-                    <Sun size={16} className="text-gray-400" />
-                  )}
-                  <span className="text-sm font-medium text-gray-300">
-                    Theme: {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-                  </span>
-                </div>
-                <span className="text-xs text-gray-500">
-                  Toggle in sidebar or mobile nav
-                </span>
-              </div>
-
-              {/* Email digest frequency */}
               <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-                <label className="block text-sm font-medium text-gray-300 mb-3">
-                  Email Digest Frequency
-                </label>
-                <select
-                  value={emailDigest}
-                  onChange={(e) => setEmailDigest(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="off">Off</option>
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                </select>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Department</label>
+                <p className="text-white">IT</p>
+              </div>
+              <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
+                <label className="block text-sm font-medium text-gray-400 mb-1">ConnectWise Status</label>
+                <p className="text-green-400 font-medium">Connected</p>
               </div>
             </div>
-          </div>
 
-          {/* Notifications Section */}
-          <div>
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Bell size={20} />
-              Notifications
-            </h2>
-
-            <div className="space-y-4">
-              {/* Notifications toggle */}
-              <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-300">Browser Notifications</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Receive alerts for ticket updates and schedule changes
-                  </p>
-                </div>
-                <button
-                  onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                  className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors ${
-                    notificationsEnabled ? 'bg-blue-600' : 'bg-gray-700'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                      notificationsEnabled ? 'translate-x-4.5' : 'translate-x-0.5'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {notificationsEnabled && (
-                <div className="p-4 rounded-lg bg-gray-900 border border-gray-700 text-sm text-gray-400">
-                  <p>Notification preferences:</p>
-                  <ul className="list-disc list-inside mt-2 space-y-1 text-xs">
-                    <li>New ticket assignments</li>
-                    <li>Status updates on your tickets</li>
-                    <li>Upcoming scheduled appointments</li>
-                    <li>Team member mentions</li>
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Security Section */}
-          <div>
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Lock size={20} />
-              Security
-            </h2>
-
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-                <p className="text-sm text-gray-300">
-                  Session: <span className="text-green-400 font-medium">Active</span>
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Your session will expire after 30 days of inactivity.
-                </p>
-              </div>
-
+            <div className="pt-4 border-t border-gray-800 space-y-3">
+              <div className="text-sm text-gray-500">Session: <span className="text-green-400 font-medium">Active</span></div>
               <button
-                onClick={handleSignOut}
-                className="w-full p-4 rounded-lg bg-red-900/20 border border-red-800/50 text-red-400 hover:bg-red-900/30 transition-colors flex items-center justify-center gap-2"
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-900/20 border border-red-800/50 text-red-400 hover:bg-red-900/30 transition-colors text-sm"
               >
                 <LogOut size={16} />
                 Sign Out
               </button>
             </div>
           </div>
+        )}
 
-          {/* Footer info */}
-          <div className="p-4 rounded-lg bg-gray-900 border border-gray-700 text-xs text-gray-500">
-            <p>RX Skin v0.1.0 — ConnectWise Modern Portal</p>
-            <p className="mt-1">Additional settings and administration features coming soon.</p>
+        {activeTab === 'appearance' && (
+          <div className="space-y-6">
+            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
+              <h3 className="text-sm font-medium text-white mb-3">Theme</h3>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setTheme('light')}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
+                    theme === 'light'
+                      ? 'bg-blue-600/20 border-blue-500 text-blue-400'
+                      : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-600'
+                  }`}
+                >
+                  <Sun size={16} />
+                  Light
+                </button>
+                <button
+                  onClick={() => setTheme('dark')}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
+                    theme === 'dark'
+                      ? 'bg-blue-600/20 border-blue-500 text-blue-400'
+                      : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-600'
+                  }`}
+                >
+                  <Moon size={16} />
+                  Dark
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-white">Compact Mode</h3>
+                <p className="text-xs text-gray-500 mt-1">Reduce spacing and use smaller text throughout the UI</p>
+              </div>
+              <Toggle enabled={compactMode} onChange={setCompactMode} />
+            </div>
+
+            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
+              <h3 className="text-sm font-medium text-white mb-3">Default Ticket View</h3>
+              <select className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="table">Table View</option>
+                <option value="cards">Card View</option>
+                <option value="kanban">Kanban View</option>
+              </select>
+            </div>
           </div>
-        </div>
+        )}
+
+        {activeTab === 'connections' && (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-400">Connect your accounts to enable integrations across RX Skin.</p>
+
+            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-blue-600/20 flex items-center justify-center">
+                  <Monitor size={20} className="text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">Microsoft 365</p>
+                  <p className="text-xs text-gray-500">Email, calendar, presence, Teams chat</p>
+                </div>
+              </div>
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">
+                <ExternalLink size={14} />
+                Connect
+              </button>
+            </div>
+
+            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-green-600/20 flex items-center justify-center">
+                  <Smartphone size={20} className="text-green-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">Webex</p>
+                  <p className="text-xs text-gray-500">Calling, messaging, queue stats</p>
+                </div>
+              </div>
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">
+                <ExternalLink size={14} />
+                Connect
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-600 mt-2">OAuth2 connections are per-user. Your tokens are stored encrypted and auto-refreshed.</p>
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div className="space-y-4">
+            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
+              <h3 className="text-sm font-medium text-white mb-3">Email Notifications</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-300">New ticket assignments</span>
+                  <Toggle enabled={notificationsEnabled} onChange={setNotificationsEnabled} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-300">Ticket status updates</span>
+                  <Toggle enabled={notificationsEnabled} onChange={setNotificationsEnabled} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-300">Schedule reminders</span>
+                  <Toggle enabled={notificationsEnabled} onChange={setNotificationsEnabled} />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
+              <h3 className="text-sm font-medium text-white mb-3">Email Digest</h3>
+              <select
+                value={emailDigest}
+                onChange={(e) => setEmailDigest(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="off">Off</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+              </select>
+            </div>
+
+            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-white">Desktop Push Notifications</h3>
+                <p className="text-xs text-gray-500 mt-1">Get browser notifications for urgent tickets</p>
+              </div>
+              <Toggle enabled={desktopPush} onChange={setDesktopPush} />
+            </div>
+
+            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-white">Sound Alerts</h3>
+                <p className="text-xs text-gray-500 mt-1">Play a sound for new notifications</p>
+              </div>
+              <Toggle enabled={soundAlerts} onChange={setSoundAlerts} />
+            </div>
+          </div>
+        )}
       </div>
-    </main>
+
+      {/* Footer */}
+      <div className="text-xs text-gray-600 max-w-2xl">
+        RX Skin v0.1.0 — ConnectWise Modern Portal
+      </div>
+    </div>
   )
 }
