@@ -250,7 +250,7 @@ export function Sidebar() {
       </nav>
       {/* Department Switcher (if user can switch) */}
       {canSwitch && (
-        <div className="px-3 py-3 border-t border-gray-800">
+        <div className="px-3 py-3 border-t border-gray-700">
           <button
             onClick={() => setDeptSwitcherOpen(!deptSwitcherOpen)}
             className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
@@ -285,7 +285,7 @@ export function Sidebar() {
       )}
 
       {/* Bottom: minimal branding */}
-      <div className={`px-3 py-3 ${canSwitch ? 'border-t' : 'border-t'} border-gray-800`}>
+      <div className={`px-3 py-3border-t border-gray-700}>
         <p className="text-[10px] text-gray-600 text-center tracking-wider uppercase">RX Skin v0.1</p>
       </div>
     </aside>
