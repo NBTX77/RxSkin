@@ -9,7 +9,7 @@ interface PriorityDonutProps {
 export function PriorityDonut({ data }: PriorityDonutProps) {
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500 text-sm">
+      <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
         No data available
       </div>
     )
@@ -28,6 +28,8 @@ export function PriorityDonut({ data }: PriorityDonutProps) {
             dataKey="count"
             nameKey="priority"
             paddingAngle={2}
+            stroke="#fff"
+            strokeWidth={2}
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
@@ -35,11 +37,12 @@ export function PriorityDonut({ data }: PriorityDonutProps) {
           </Pie>
           <Tooltip
             contentStyle={{
-              backgroundColor: '#161b22',
-              border: '1px solid #30363d',
+              backgroundColor: '#ffffff',
+              border: '1px solid #e5e7eb',
               borderRadius: '8px',
-              color: '#e6edf3',
+              color: '#111827',
               fontSize: '13px',
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
             }}
             formatter={(value, name) => [`${value} tickets`, String(name)]}
           />
@@ -47,7 +50,7 @@ export function PriorityDonut({ data }: PriorityDonutProps) {
       </ResponsiveContainer>
       <div className="flex flex-wrap gap-3 justify-center mt-2">
         {data.map((entry) => (
-          <div key={entry.priority} className="flex items-center gap-1.5 text-xs text-gray-400">
+          <div key={entry.priority} className="flex items-center gap-1.5 text-xs text-gray-600">
             <span
               className="w-2.5 h-2.5 rounded-full"
               style={{ backgroundColor: entry.color }}

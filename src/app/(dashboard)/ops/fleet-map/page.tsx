@@ -12,8 +12,8 @@ import type { FleetTech } from '@/types/ops'
 const FleetMap = dynamic(() => import('@/components/ops/FleetMap').then((mod) => ({ default: mod.FleetMap })), {
   ssr: false,
   loading: () => (
-    <div className="flex-1 bg-gray-950 rounded-xl flex items-center justify-center">
-      <div className="text-gray-500 text-sm">Loading map...</div>
+    <div className="flex-1 bg-gray-100 rounded-xl flex items-center justify-center">
+      <div className="text-gray-400 text-sm">Loading map...</div>
     </div>
   ),
 })
@@ -27,8 +27,8 @@ export default function FleetMapPage() {
       <div className="space-y-4">
         <OpsHeader title="Fleet Map" subtitle="Real-time vehicle tracking" />
         <div className="flex gap-0 h-[calc(100vh-180px)]">
-          <div className="hidden lg:block w-[280px] bg-gray-900 border border-gray-800 rounded-xl animate-pulse" />
-          <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl animate-pulse" />
+          <div className="hidden lg:block w-[280px] bg-white border border-gray-200 rounded-xl animate-pulse" />
+          <div className="flex-1 bg-gray-100 rounded-xl animate-pulse" />
         </div>
       </div>
     )
@@ -46,7 +46,7 @@ export default function FleetMapPage() {
         isRefreshing={isFetching}
       />
 
-      <div className="flex h-[calc(100vh-180px)] gap-0 overflow-hidden rounded-xl border border-gray-800">
+      <div className="flex h-[calc(100vh-180px)] gap-0 overflow-hidden rounded-xl border border-gray-200 shadow-sm">
         {/* Tech sidebar (view-specific, not the app sidebar) */}
         <TechSidebar
           techs={techs}

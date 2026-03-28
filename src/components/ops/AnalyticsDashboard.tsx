@@ -17,12 +17,12 @@ export function AnalyticsDashboard() {
         <OpsHeader title="Analytics" subtitle="Ticket analytics and team workload" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4 animate-pulse h-24" />
+            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 animate-pulse h-24" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 animate-pulse h-80" />
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 animate-pulse h-80" />
+          <div className="bg-white border border-gray-200 rounded-xl p-4 animate-pulse h-80" />
+          <div className="bg-white border border-gray-200 rounded-xl p-4 animate-pulse h-80" />
         </div>
       </div>
     )
@@ -84,19 +84,19 @@ export function AnalyticsDashboard() {
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-          <h3 className="text-sm font-semibold text-white mb-3">Status Breakdown</h3>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Status Breakdown</h3>
           <StatusDonut data={data.statusBreakdown} />
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-          <h3 className="text-sm font-semibold text-white mb-3">Priority Distribution</h3>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Priority Distribution</h3>
           <PriorityDonut data={data.priorityBreakdown} />
         </div>
       </div>
 
       {/* Workload chart */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-white mb-3">Tech Workload (Top 8)</h3>
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Tech Workload (Top 8)</h3>
         <WorkloadBars data={data.techWorkload} />
       </div>
     </div>

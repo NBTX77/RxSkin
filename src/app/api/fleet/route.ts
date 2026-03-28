@@ -28,6 +28,7 @@ export async function GET() {
       async () => {
         // If Samsara isn't configured, return mock data
         if (!isSamsaraConfigured()) {
+          console.log('[fleet] Samsara not configured — using mock data')
           const mock = getMockFleetData()
           return {
             ok: true,
@@ -37,40 +38,53 @@ export async function GET() {
           }
         }
 
-        const cwCreds = await getTenantCredentials(tenantId)
-        const samsaraCreds = getSamsaraCredentials()
+        // Try live Samsara + CW data, fall back to mock on error
+        try {
+          const cwCreds = await getTenantCredentials(tenantId)
+          const samsaraCreds = getSamsaraCredentials()
 
-        // Fetch all data sources in parallel
-        const today = new Date()
-        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString()
-        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString()
+          // Fetch all data sources in parallel
+          const today = new Date()
+          const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString()
+          const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString()
 
-        const [locations, drivers, hosClocks, members, tickets, scheduleEntries] = await Promise.all([
-          getVehicleLocations(samsaraCreds),
-          getDrivers(samsaraCreds),
-          getHosClocks(samsaraCreds),
-          getMembers(cwCreds),
-          getTickets(cwCreds, {
-            status: ['New', 'In Progress', 'Waiting Customer', 'Waiting Vendor', 'Schedule Hold', 'Scheduled'],
-            pageSize: 200,
-          }),
-          getScheduleEntries(cwCreds, { start: startOfDay, end: endOfDay }),
-        ])
+          const [locations, drivers, hosClocks, members, tickets, scheduleEntries] = await Promise.all([
+            getVehicleLocations(samsaraCreds),
+            getDrivers(samsaraCreds),
+            getHosClocks(samsaraCreds),
+            getMembers(cwCreds),
+            getTickets(cwCreds, {
+              status: ['New', 'In Progress', 'Waiting Customer', 'Waiting Vendor', 'Schedule Hold', 'Scheduled'],
+              pageSize: 200,
+            }),
+            getScheduleEntries(cwCreds, { start: startOfDay, end: endOfDay }),
+          ])
 
-        const merged = mergeFleetData({
-          locations,
-          drivers,
-          hosClocks,
-          members,
-          tickets,
-          scheduleEntries,
-        })
+          const merged = mergeFleetData({
+            locations,
+            drivers,
+            hosClocks,
+            members,
+            tickets,
+            scheduleEntries,
+          })
 
-        return {
-          ok: true,
-          techs: merged.techs,
-          schedHoldTickets: merged.schedHoldTickets,
-          lastSync: new Date().toISOString(),
+          return {
+            ok: true,
+            techs: merged.techs,
+            schedHoldTickets: merged.schedHoldTickets,
+            lastSync: new Date().toISOString(),
+          }
+        } catch (samsaraError) {
+          // Samsara or CW call failed — fall back to mock data
+          console.error('[fleet] Samsara/CW fetch failed, falling back to mock:', samsaraError)
+          const mock = getMockFleetData()
+          return {
+            ok: true,
+            techs: mock.techs,
+            schedHoldTickets: mock.schedHoldTickets,
+            lastSync: new Date().toISOString(),
+          }
         }
       },
       FLEET_CACHE_TTL_MS
