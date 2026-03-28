@@ -253,7 +253,7 @@ AZURE_AD_TENANT_ID=
 - [ ] Real ConnectWise API credentials configured
 - [ ] Supabase database created + Prisma migrations run
 - [ ] ConnectWise API connection tested with live data
-- [ ] Ticket detail page (`/tickets/[id]`)
+- [x] Ticket detail page (`/tickets/[id]`) — notes, time entries, mobile-responsive
 - [ ] Schedule / calendar view (FullCalendar + drag-drop)
 
 ## Known Dev Environment Issues
