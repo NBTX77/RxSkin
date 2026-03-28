@@ -1,28 +1,16 @@
-import { Sidebar } from '@/components/layout/Sidebar'
-import { MobileNav } from '@/components/layout/MobileNav'
-import { GlobalSearch } from '@/components/layout/GlobalSearch'
+import { auth } from '@/lib/auth/config'
+import { redirect } from 'next/navigation'
+import { DashboardShell } from '@/components/layout/DashboardShell'
 
 export const dynamic = 'force-dynamic'
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col lg:flex-row h-screen bg-gray-950">
-      {/* Desktop sidebar (floating overlay — no margin needed) */}
-      <Sidebar />
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const session = await auth()
+  if (!session?.user) redirect('/login')
 
-      {/* Main content area — full width, sidebar floats over it */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Page content with padding for mobile nav */}
-        <div className="flex-1 overflow-y-auto pb-20 lg:pb-0">
-          <div className="h-full w-full">{children}</div>
-        </div>
-      </main>
-
-      {/* Mobile nav */}
-      <MobileNav />
-
-      {/* Global search */}
-      <GlobalSearch />
-    </div>
-  )
+  return <DashboardShell>{children}</DashboardShell>
 }
