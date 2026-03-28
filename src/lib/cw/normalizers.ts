@@ -36,6 +36,12 @@ function nestedNum(obj: unknown, key: string): number | undefined {
 // ── Ticket ────────────────────────────────────────────────────
 
 export function normalizeTicket(raw: Record<string, unknown>): Ticket {
+  // CW API stores lastUpdated and dateEntered inside the _info object,
+  // not as top-level fields. Fall back to top-level for safety.
+  const info = (raw._info && typeof raw._info === 'object')
+    ? raw._info as Record<string, unknown>
+    : {} as Record<string, unknown>
+
   return {
     id: num(raw.id) ?? 0,
     summary: str(raw.summary),
@@ -53,8 +59,8 @@ export function normalizeTicket(raw: Record<string, unknown>): Ticket {
     assignedToId: nested(raw.owner, 'identifier') || undefined,
     budgetHours: num(raw.budgetHours),
     actualHours: num(raw.actualHours),
-    createdAt: str(raw.dateEntered),
-    updatedAt: str(raw.lastUpdated),
+    createdAt: str(raw.dateEntered) || str(info.dateEntered),
+    updatedAt: str(raw.lastUpdated) || str(info.lastUpdated),
     closedAt: str(raw.closedDate) || undefined,
     resources: Array.isArray(raw.resources)
       ? raw.resources.map((r: Record<string, unknown>) => ({
