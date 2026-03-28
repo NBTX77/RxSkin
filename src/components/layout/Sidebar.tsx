@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import {
   Sun,
   Moon,
@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { useTheme } from '@/components/theme/ThemeProvider'
+import { useDraggable } from '@/hooks/useDraggable'
 
 const navItems = [
   { href: '/dashboard', label: 'My Day', icon: Sun },
@@ -37,22 +38,6 @@ const opsSubItems = [
   { href: '/ops/holds', label: 'Schedule Holds', icon: Clock },
 ]
 
-const STORAGE_KEY = 'rx-sidebar-pos'
-
-function loadPosition(): { x: number; y: number } | null {
-  try {
-    const raw = typeof window !== 'undefined' ? sessionStorage.getItem(STORAGE_KEY) : null
-    if (raw) return JSON.parse(raw)
-  } catch {}
-  return null
-}
-
-function savePosition(pos: { x: number; y: number }) {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(pos))
-  } catch {}
-}
-
 export function Sidebar() {
   const pathname = usePathname()
   const { theme, toggleTheme } = useTheme()
@@ -60,65 +45,12 @@ export function Sidebar() {
   const [open, setOpen] = useState(true)
   const sidebarRef = useRef<HTMLElement>(null)
 
-  // Drag state
-  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 12, y: 12 })
-  const [isDragging, setIsDragging] = useState(false)
-  const dragOffset = useRef({ x: 0, y: 0 })
-
-  // Load saved position on mount
-  useEffect(() => {
-    const saved = loadPosition()
-    if (saved) setPosition(saved)
-  }, [])
+  const { position, isDragging, onDragStart } = useDraggable({
+    storageKey: 'rx-sidebar-pos',
+    defaultPosition: { x: 12, y: 12 },
+  })
 
   const isOpsActive = pathname.startsWith('/ops')
-
-  // Drag handlers
-  const onDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    dragOffset.current = {
-      x: clientX - position.x,
-      y: clientY - position.y,
-    }
-    setIsDragging(true)
-  }, [position])
-
-  useEffect(() => {
-    if (!isDragging) return
-
-    function onMove(e: MouseEvent | TouchEvent) {
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-
-      const newX = Math.max(0, Math.min(window.innerWidth - 200, clientX - dragOffset.current.x))
-      const newY = Math.max(0, Math.min(window.innerHeight - 100, clientY - dragOffset.current.y))
-
-      setPosition({ x: newX, y: newY })
-    }
-
-    function onEnd() {
-      setIsDragging(false)
-      setPosition(prev => {
-        savePosition(prev)
-        return prev
-      })
-    }
-
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onEnd)
-    window.addEventListener('touchmove', onMove, { passive: false })
-    window.addEventListener('touchend', onEnd)
-
-    return () => {
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onEnd)
-      window.removeEventListener('touchmove', onMove)
-      window.removeEventListener('touchend', onEnd)
-    }
-  }, [isDragging])
 
   return (
     <>
