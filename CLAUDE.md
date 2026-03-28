@@ -456,7 +456,7 @@ Interactive React mockups in `rx-skin/docs/mockups/`: `mockup-IT-Dashboard.jsx`,
 - [x] Vercel build passing — `force-dynamic` fix applied to all 18 API routes + dashboard layout (commits c16ab15, ccf0033)
 - [x] Notion project hub updated — status, roadmap, accounts registry all current
 - [ ] Supabase database created + Prisma migrations run
-- [ ] ConnectWise API connection tested with live data
+- [x] ConnectWise API connection tested with live data — validated CW v2025.1 cloud (NA region), 46 active members, 667 projects, live tickets flowing
 - [x] Department routing — DepartmentProvider, dept-aware sidebar with per-dept nav, department switcher
 - [x] Projects Board — API routes (`/api/projects`, `/api/projects/[id]`), kanban, financial table, portfolio, read-only list, detail overlay
 - [x] Department-aware Projects page — renders kanban (IT/SI), financial table (GA), portfolio heatmap (LT), read-only list (AM)
@@ -479,4 +479,4 @@ Interactive React mockups in `rx-skin/docs/mockups/`: `mockup-IT-Dashboard.jsx`,
 
 ---
 
-*Last updated: 2026-03-28 (Phase 1A complete + Vercel env vars configured + build fix deployed + Notion synced) — Travis Brown / Claude*
+*Last updated: 2026-03-28 (Phase 1A complete + CW API live validated + Vercel env vars configured + build fix deployed + Notion synced) — Travis Brown / Claude*
