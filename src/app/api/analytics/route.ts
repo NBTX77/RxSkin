@@ -11,6 +11,8 @@ import { getMockTickets } from '@/lib/mock-data'
 import type { AnalyticsData } from '@/types/ops'
 import type { Ticket } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 const ANALYTICS_CACHE_TTL_MS = 60 * 1000 // 60 seconds
 
 function isCWConfigured(): boolean {

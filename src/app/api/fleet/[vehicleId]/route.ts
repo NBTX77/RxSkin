@@ -7,6 +7,8 @@ import { apiErrors, handleApiError } from '@/lib/api/errors'
 import { cachedFetch } from '@/lib/cache/bff-cache'
 import type { FleetData } from '@/types/ops'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   _request: Request,
   { params }: { params: { vehicleId: string } }

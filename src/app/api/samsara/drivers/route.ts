@@ -7,6 +7,8 @@ import { getDrivers, getSamsaraCredentials, isSamsaraConfigured } from '@/lib/sa
 import { cachedFetch } from '@/lib/cache/bff-cache'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const session = await auth()

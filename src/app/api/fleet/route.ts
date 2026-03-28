@@ -11,6 +11,8 @@ import { cachedFetch } from '@/lib/cache/bff-cache'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 import type { FleetData } from '@/types/ops'
 
+export const dynamic = 'force-dynamic'
+
 const FLEET_CACHE_TTL_MS = 30 * 1000 // 30 seconds
 
 export async function GET() {
