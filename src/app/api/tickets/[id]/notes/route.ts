@@ -2,7 +2,25 @@
 
 import { auth } from '@/lib/auth/config'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
+import { getCWCredentials } from '@/lib/cw/credentials'
+import { getTicketNotes } from '@/lib/cw/client'
 import { getMockNotes } from '@/lib/mock-data'
+import type { TicketNote } from '@/types'
+
+function normalizeNote(raw: Record<string, unknown>, ticketId: number): TicketNote {
+  return {
+    id: typeof raw.id === 'number' ? raw.id : 0,
+    ticketId,
+    text: String(raw.text ?? ''),
+    isInternal: Boolean(raw.internalAnalysisFlag),
+    createdBy: raw.member && typeof raw.member === 'object'
+      ? String((raw.member as Record<string, unknown>).name ?? '')
+      : String(raw.createdBy ?? ''),
+    createdAt: String(raw._info && typeof raw._info === 'object'
+      ? (raw._info as Record<string, unknown>).lastUpdated ?? ''
+      : raw.dateCreated ?? ''),
+  }
+}
 
 export async function GET(
   request: Request,
@@ -15,9 +33,15 @@ export async function GET(
     const ticketId = parseInt(params.id, 10)
     if (isNaN(ticketId)) return apiErrors.badRequest('Invalid ticket ID')
 
-    // TODO: Replace with real CW API call when credentials configured
-    const notes = getMockNotes(ticketId)
-    return Response.json(notes)
+    const creds = getCWCredentials()
+    if (creds) {
+      const raw = await getTicketNotes(creds, ticketId)
+      const notes = raw.map(r => normalizeNote(r, ticketId))
+      return Response.json(notes)
+    } else {
+      const notes = getMockNotes(ticketId)
+      return Response.json(notes)
+    }
   } catch (error) {
     return handleApiError(error)
   }
