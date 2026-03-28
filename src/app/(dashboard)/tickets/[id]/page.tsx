@@ -84,7 +84,8 @@ function renderNoteText(raw: string): React.ReactNode {
 
   // Step 3: tokenize into segments — images, links, bold, raw URLs, and plain text
   // Order matters: images before links (both use [ ] syntax)
-  const tokenRegex = /!\[([^\]]*)\]\(([^)]+)\)|\[([^\]]*)\]\(([^)]+)\)|(\*\*(.+?)\*\*)|(https?:\/\/[^\s<>)\]]+)/g
+  // CW sometimes uses double-bracket images: ![[alt]](url) — handle both patterns
+  const tokenRegex = /!\[\[([^\]]*)\]\]\(([^)]+)\)|!\[([^\]]*)\]\(([^)]+)\)|\[([^\]]*)\]\(([^)]+)\)|(\*\*(.+?)\*\*)|(https?:\/\/[^\s<>)\]]+)/g
 
   const segments: React.ReactNode[] = []
   let lastIndex = 0
@@ -97,21 +98,57 @@ function renderNoteText(raw: string): React.ReactNode {
       segments.push(text.slice(lastIndex, match.index))
     }
 
-    if (match[1] !== undefined && match[2]) {
-      // Image: ![alt](url)
-      // Skip rendering inline images from CW (often logos / tracking pixels)
-      // Just show alt text or skip if empty
-      const alt = match[1].trim()
-      if (alt) {
-        segments.push(<span key={key++} className="text-gray-500 italic text-xs">[image: {alt}]</span>)
+    // Determine which pattern matched — groups shift due to double-bracket image at front
+    // Groups: 1,2 = ![[alt]](url) | 3,4 = ![alt](url) | 5,6 = [text](url) | 7,8 = **bold** | 9 = raw URL
+    const imgAlt = match[1] ?? match[3]
+    const imgUrl = match[2] ?? match[4]
+    const isDoubleBracketImg = match[1] !== undefined
+    const isSingleBracketImg = match[3] !== undefined
+
+    if ((isDoubleBracketImg || isSingleBracketImg) && imgUrl) {
+      // Image: ![alt](url) or ![[alt]](url)
+      const alt = (imgAlt ?? '').trim()
+      const url = imgUrl.trim()
+      // Filter out known logo / tracking pixel patterns
+      const isLogo = /logo|tracking|pixel|beacon|spacer|1x1/i.test(alt + url)
+      if (isLogo) {
+        // Skip logos and tracking pixels entirely
+      } else {
+        // Render real diagnostic / screenshot images
+        segments.push(
+          <span key={key++} className="block my-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt={alt || 'Attached image'}
+              className="max-w-full rounded-lg border border-gray-700"
+              loading="lazy"
+              onError={(e) => {
+                // If image fails to load, replace with a text link
+                const target = e.currentTarget
+                const parent = target.parentElement
+                if (parent) {
+                  target.style.display = 'none'
+                  const fallback = document.createElement('a')
+                  fallback.href = url
+                  fallback.target = '_blank'
+                  fallback.rel = 'noopener noreferrer'
+                  fallback.className = 'text-blue-400 hover:text-blue-300 underline text-xs'
+                  fallback.textContent = alt ? `[image: ${alt}]` : '[attached image]'
+                  parent.appendChild(fallback)
+                }
+              }}
+            />
+          </span>
+        )
       }
-    } else if (match[3] !== undefined && match[4]) {
+    } else if (match[5] !== undefined && match[6]) {
       // Link: [text](url)
-      const linkText = match[3].trim() || match[4]
+      const linkText = match[5].trim() || match[6]
       segments.push(
         <a
           key={key++}
-          href={match[4]}
+          href={match[6]}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-400 hover:text-blue-300 underline underline-offset-2 break-all"
@@ -119,20 +156,20 @@ function renderNoteText(raw: string): React.ReactNode {
           {linkText}
         </a>
       )
-    } else if (match[5] && match[6]) {
+    } else if (match[7] && match[8]) {
       // Bold: **text**
-      segments.push(<strong key={key++} className="font-semibold text-white">{match[6]}</strong>)
-    } else if (match[7]) {
+      segments.push(<strong key={key++} className="font-semibold text-white">{match[8]}</strong>)
+    } else if (match[9]) {
       // Raw URL
       segments.push(
         <a
           key={key++}
-          href={match[7]}
+          href={match[9]}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-400 hover:text-blue-300 underline underline-offset-2 break-all"
         >
-          {match[7].length > 60 ? match[7].slice(0, 60) + '…' : match[7]}
+          {match[9].length > 60 ? match[9].slice(0, 60) + '…' : match[9]}
         </a>
       )
     }
