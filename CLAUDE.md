@@ -254,7 +254,7 @@ AZURE_AD_TENANT_ID=
 - [ ] Supabase database created + Prisma migrations run
 - [ ] ConnectWise API connection tested with live data
 - [x] Ticket detail page (`/tickets/[id]`) — notes, time entries, mobile-responsive
-- [ ] Schedule / calendar view (FullCalendar + drag-drop)
+- [x] Schedule / calendar view — custom day/week/month grid with member color coding
 
 ## Known Dev Environment Issues
 
