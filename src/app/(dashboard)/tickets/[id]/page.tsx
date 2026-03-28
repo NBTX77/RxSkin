@@ -65,6 +65,89 @@ function fmtShortDate(iso: string) {
   })
 }
 
+/* ---------- note text renderer ---------- */
+/**
+ * Converts CW note text (which may contain markdown-style links, images,
+ * bold markers, HTML entities, and raw URLs) into clean rendered JSX.
+ */
+function renderNoteText(raw: string): React.ReactNode {
+  // Step 1: decode HTML entities (&amp; → &, etc.)
+  let text = raw
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+
+  // Step 2: unescape markdown-escaped parens and brackets
+  text = text.replace(/\\\(/g, '(').replace(/\\\)/g, ')').replace(/\\\[/g, '[').replace(/\\\]/g, ']')
+
+  // Step 3: tokenize into segments — images, links, bold, raw URLs, and plain text
+  // Order matters: images before links (both use [ ] syntax)
+  const tokenRegex = /!\[([^\]]*)\]\(([^)]+)\)|\[([^\]]*)\]\(([^)]+)\)|(\*\*(.+?)\*\*)|(https?:\/\/[^\s<>)\]]+)/g
+
+  const segments: React.ReactNode[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+  let key = 0
+
+  while ((match = tokenRegex.exec(text)) !== null) {
+    // Push plain text before this match
+    if (match.index > lastIndex) {
+      segments.push(text.slice(lastIndex, match.index))
+    }
+
+    if (match[1] !== undefined && match[2]) {
+      // Image: ![alt](url)
+      // Skip rendering inline images from CW (often logos / tracking pixels)
+      // Just show alt text or skip if empty
+      const alt = match[1].trim()
+      if (alt) {
+        segments.push(<span key={key++} className="text-gray-500 italic text-xs">[image: {alt}]</span>)
+      }
+    } else if (match[3] !== undefined && match[4]) {
+      // Link: [text](url)
+      const linkText = match[3].trim() || match[4]
+      segments.push(
+        <a
+          key={key++}
+          href={match[4]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:text-blue-300 underline underline-offset-2 break-all"
+        >
+          {linkText}
+        </a>
+      )
+    } else if (match[5] && match[6]) {
+      // Bold: **text**
+      segments.push(<strong key={key++} className="font-semibold text-white">{match[6]}</strong>)
+    } else if (match[7]) {
+      // Raw URL
+      segments.push(
+        <a
+          key={key++}
+          href={match[7]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:text-blue-300 underline underline-offset-2 break-all"
+        >
+          {match[7].length > 60 ? match[7].slice(0, 60) + '…' : match[7]}
+        </a>
+      )
+    }
+
+    lastIndex = match.index + match[0].length
+  }
+
+  // Remaining plain text
+  if (lastIndex < text.length) {
+    segments.push(text.slice(lastIndex))
+  }
+
+  return segments.length > 0 ? segments : text
+}
+
 /* ---------- unified badge helper ---------- */
 function badgeClasses(variant: 'priority' | 'status' | 'type', value: string) {
   const v = value.toLowerCase()
@@ -403,7 +486,7 @@ export default function TicketDetailPage() {
                     </div>
                     <span className="text-xs text-gray-500">{fmtShortDate(note.createdAt)}</span>
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{note.text}</p>
+                  <div className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{renderNoteText(note.text)}</div>
                 </div>
               ))
             )}
