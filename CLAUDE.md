@@ -115,42 +115,61 @@ Full integration details: `docs/INTEGRATIONS.md`
 
 ---
 
-## Project Structure (Target)
+## Project Structure (Current)
 
 ```
 rx-skin/
-├── app/                          # Next.js App Router
-│   ├── (auth)/                   # Auth pages (login, etc.)
-│   ├── (dashboard)/              # Protected app pages
-│   │   ├── tickets/              # Ticket list + detail
-│   │   ├── schedule/             # Calendar scheduler views
-│   │   ├── companies/            # Client company views
-│   │   └── settings/             # User & tenant settings
-│   └── api/                      # BFF API routes
-│       ├── auth/                 # NextAuth endpoints
-│       ├── tickets/              # Ticket CRUD
-│       ├── schedule/             # Schedule entries
-│       └── companies/            # Company data
-├── components/                   # Shared UI components
-│   ├── ui/                       # shadcn/ui components
-│   ├── tickets/                  # Ticket-specific components
-│   └── schedule/                 # Schedule/calendar components├── lib/                          # Utilities and core logic
-│   ├── cw/                       # ConnectWise API client
-│   ├── cache/                    # BFF cache utilities
-│   ├── auth/                     # Auth helpers
-│   └── db/                       # Prisma client
-├── prisma/                       # Database schema + migrations
-├── hooks/                        # Custom React hooks
-├── types/                        # TypeScript types
-├── docs/                         # Project documentation
+├── src/
+│   ├── app/                          # Next.js App Router
+│   │   ├── (auth)/login/             # Login page
+│   │   ├── (dashboard)/              # Protected app pages
+│   │   │   ├── tickets/              # Ticket list + [id] detail
+│   │   │   ├── schedule/             # Calendar scheduler
+│   │   │   ├── companies/            # Client company list
+│   │   │   ├── dashboard/            # My Day dashboard
+│   │   │   ├── ops/                  # Fleet map, analytics, schedule holds
+│   │   │   ├── settings/             # User settings (tabbed)
+│   │   │   └── layout.tsx            # Dashboard shell
+│   │   ├── api/                      # BFF API routes
+│   │   │   ├── auth/[...nextauth]/   # NextAuth
+│   │   │   ├── tickets/              # CRUD + filters + notes + time entries
+│   │   │   ├── fleet/                # Merged fleet data + trails
+│   │   │   ├── samsara/              # Raw Samsara (vehicles, drivers, HOS)
+│   │   │   ├── analytics/            # Ops analytics
+│   │   │   ├── schedule/             # Schedule entries
+│   │   │   ├── companies/            # Companies
+│   │   │   ├── members/              # CW members
+│   │   │   └── search/               # Global search
+│   │   ├── globals.css               # Tailwind + light/dark CSS remaps
+│   │   └── providers.tsx             # Session + QueryClient providers
+│   ├── components/
+│   │   ├── layout/                   # Sidebar, MobileNav, GlobalSearch
+│   │   ├── ops/                      # FleetMap, TechSidebar, TechProfilePanel, charts
+│   │   ├── dashboard/                # MyDayClient, StatCard
+│   │   ├── tickets/                  # TicketCard, QuickClosePanel
+│   │   ├── theme/                    # ThemeProvider
+│   │   └── ui/                       # shadcn/ui (skeleton)
+│   ├── hooks/                        # useDraggable, useFleetData, useVehicleTrails, etc.
+│   ├── lib/
+│   │   ├── cw/                       # ConnectWise client + normalizers
+│   │   ├── samsara/                  # Samsara API client
+│   │   ├── fleet/                    # Fleet data merge logic
+│   │   ├── cache/                    # BFF cache + request dedup
+│   │   ├── auth/                     # NextAuth config
+│   │   └── api/                      # Error response helpers
+│   └── types/                        # TypeScript types (index.ts, ops.ts)
+├── docs/
 │   ├── ARCHITECTURE.md
+│   ├── AUTH_ARCHITECTURE.md
 │   ├── INTEGRATIONS.md
-│   ├── ROADMAP.md
-│   ├── CONTRIBUTING.md
 │   └── API_STRATEGY.md
-├── .env.example                  # Template — never commit .env
-├── CLAUDE.md                     # THIS FILE
-└── INSTRUCTIONS.md               # AI session instructions
+├── .env.example
+├── CLAUDE.md                         # THIS FILE
+├── next.config.js
+├── tailwind.config.js
+├── postcss.config.js
+├── tsconfig.json
+└── package.json
 ```
 
 ---
@@ -234,27 +253,34 @@ AZURE_AD_TENANT_ID=
 
 ## Status
 
+### Completed
 - [x] Project defined and scoped
-- [x] Architecture documented
-- [x] Integration research complete
-- [x] GitHub repository created — https://github.com/NBTX77/RxSkin
-- [x] Next.js project scaffolded — `C:\Users\TBrown\Desktop\rx-skin\`
-- [x] Login page built and working (stub credentials)
-- [x] Dashboard, tickets, schedule, companies, settings page shells
-- [x] Full ticket list UI (search, desktop table, mobile cards)
-- [x] BFF API routes wired to ConnectWise
-- [x] Production build clean (`next build` passes, TypeScript clean)
-- [x] Vercel MCP connected
-- [x] Supabase MCP connected
-- [x] Git installed on Windows dev machine
-- [x] Code pushed to GitHub (NBTX77/RxSkin)
+- [x] Architecture documented (docs/ARCHITECTURE.md, AUTH_ARCHITECTURE.md, INTEGRATIONS.md, API_STRATEGY.md)
+- [x] GitHub repository — https://github.com/NBTX77/RxSkin
 - [x] Deployed to Vercel — https://rxtech.app (production)
-- [x] Login working with Phase 1 demo credentials (admin@rxtech.app / RxSkin2026!)
+- [x] Login working with Phase 1 demo credentials
+- [x] Full ticket list UI with column filtering (board, company, status, priority, assignee)
+- [x] Ticket detail page — notes with markdown/HTML rendering, inline images, time entries
+- [x] BFF API routes wired to ConnectWise and Samsara
+- [x] Fleet Map — Leaflet with real-time markers, GPS trails, 10s polling
+- [x] Ops Analytics — KPI cards, status/priority donuts, workload bars
+- [x] Floating glass card UI pattern — draggable sidebar, fleet map cards, tech profile
+- [x] Reusable useDraggable hook (drag-to-reposition, sessionStorage persistence)
+- [x] Light/dark mode — CSS remap approach (no dark: Tailwind prefix)
+- [x] Admin panel — integrations, users, tenant settings, AI bots, analytics, audit log
+- [x] Settings page — profile, appearance, connections, notifications
+- [x] Repo cleaned — removed batch scripts, stray files, orphaned components
+- [x] Documentation complete — 4 docs in docs/
+
+### Next Up
 - [ ] Real ConnectWise API credentials configured
 - [ ] Supabase database created + Prisma migrations run
 - [ ] ConnectWise API connection tested with live data
-- [x] Ticket detail page (`/tickets/[id]`) — notes, time entries, mobile-responsive
-- [x] Schedule / calendar view — custom day/week/month grid with member color coding
+- [ ] Schedule / calendar view with FullCalendar + drag-drop
+- [ ] Credential Vault — migrate env var creds to encrypted DB
+- [ ] Azure AD multi-tenant app + NextAuth provider
+- [ ] Microsoft Graph BFF routes (mail, calendar, presence)
+- [ ] Webex BFF routes (messaging, call history, click-to-call)
 
 ## Known Dev Environment Issues
 
@@ -265,4 +291,4 @@ AZURE_AD_TENANT_ID=
 
 ---
 
-*Last updated: 2026-03-27 — Travis Brown / Claude*
+*Last updated: 2026-03-28 — Travis Brown / Claude*
