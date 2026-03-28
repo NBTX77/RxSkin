@@ -15,6 +15,8 @@ import { deduplicatedFetch } from '@/lib/cache/dedup'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const SCRIPT_LIST_TTL_MS = 5 * 60 * 1000 // 5 minutes (scripts don't change often)
 
 export async function GET(request: Request) {

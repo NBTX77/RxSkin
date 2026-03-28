@@ -8,6 +8,8 @@ import { cachedFetch } from '@/lib/cache/bff-cache'
 import { deduplicatedFetch } from '@/lib/cache/dedup'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 
+export const dynamic = 'force-dynamic'
+
 const SESSION_TTL_MS = 30 * 1000 // 30 seconds
 
 export async function GET(request: Request) {

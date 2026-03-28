@@ -13,6 +13,8 @@ import { z } from 'zod'
 import type { Project, ProjectFilters, DepartmentCode } from '@/types'
 import { DEPARTMENTS } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 const PROJECTS_LIST_TTL_MS = 60 * 1000 // 60 seconds
 
 function isCWConfigured(): boolean {

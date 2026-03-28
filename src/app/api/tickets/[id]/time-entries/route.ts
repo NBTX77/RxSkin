@@ -7,6 +7,8 @@ import { getMockTimeEntries } from '@/lib/mock-data'
 import type { CWCredentials } from '@/lib/cw/client'
 import type { TimeEntry } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 function str(val: unknown): string {
   return typeof val === 'string' ? val : ''
 }

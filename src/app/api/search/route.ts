@@ -4,6 +4,8 @@ import { auth } from '@/lib/auth/config'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 import { getMockTickets, getMockMembers } from '@/lib/mock-data'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
   try {
     const session = await auth()

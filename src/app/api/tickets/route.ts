@@ -6,6 +6,8 @@ import { getTickets } from '@/lib/cw/client'
 import { getMockTickets } from '@/lib/mock-data'
 import type { Ticket } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth()

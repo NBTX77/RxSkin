@@ -4,6 +4,8 @@ import { getMembers } from '@/lib/cw/client'
 import { cachedFetch } from '@/lib/cache/bff-cache'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 
+export const dynamic = 'force-dynamic'
+
 const MEMBERS_TTL_MS = 10 * 60 * 1000
 
 export async function GET() {

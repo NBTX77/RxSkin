@@ -7,6 +7,8 @@ import { getTicketNotes, addTicketNote } from '@/lib/cw/client'
 import { getMockNotes } from '@/lib/mock-data'
 import type { TicketNote } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 function normalizeNote(raw: Record<string, unknown>, ticketId: number): TicketNote {
   return {
     id: typeof raw.id === 'number' ? raw.id : 0,

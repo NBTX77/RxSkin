@@ -7,6 +7,8 @@ import { getCWCredentials } from '@/lib/cw/credentials'
 import { getScheduleEntries } from '@/lib/cw/client'
 import { getMockScheduleEntries } from '@/lib/mock-data'
 
+export const dynamic = 'force-dynamic'
+
 function computeDateRange(date: string, view: string): { start: string; end: string } {
   const d = new Date(date + 'T00:00:00')
   if (view === 'day') {

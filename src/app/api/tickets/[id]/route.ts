@@ -6,6 +6,8 @@ import { getCWCredentials } from '@/lib/cw/credentials'
 import { getTicket, updateTicket } from '@/lib/cw/client'
 import { getMockTicketById } from '@/lib/mock-data'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
