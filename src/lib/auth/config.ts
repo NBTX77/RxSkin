@@ -1,9 +1,14 @@
+// ============================================================
+// NextAuth v5 Configuration — RX Skin
+// Handles authentication with JWT session containing tenantId + role.
+// ============================================================
+
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
-import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
 import { z } from 'zod'
-import type { UserRole } from '@/types'
+import type { UserRole, DepartmentCode } from '@/types'
 
+// Extend NextAuth types to include our custom fields
 declare module 'next-auth' {
   interface Session {
     user: {
@@ -13,8 +18,10 @@ declare module 'next-auth' {
       tenantId: string
       role: UserRole
       cwMemberId?: string
+      department: DepartmentCode
     }
   }
+
   interface User {
     id: string
     email: string
@@ -22,54 +29,26 @@ declare module 'next-auth' {
     tenantId: string
     role: UserRole
     cwMemberId?: string
+    department: DepartmentCode
   }
+
   interface JWT {
     id: string
     tenantId: string
     role: UserRole
     cwMemberId?: string
+    department: DepartmentCode
   }
 }
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(1),
+  password: z.string().min(8),
 })
 
-// Phase 1 member lookup — maps @rx-tech.com emails to CW member IDs + roles
-// Replace with database lookup in Phase 2
-const MEMBER_MAP: Record<string, { cwMemberId: string; role: UserRole; name: string }> = {
-  'tbrown@rx-tech.com': { cwMemberId: '280', role: 'ADMIN', name: 'Travis Brown' },
-  // Add more team members here as needed
-}
-
-function lookupMember(email: string) {
-  const key = email.toLowerCase()
-  return MEMBER_MAP[key] ?? null
-}
-
-// Build providers array
-const providers = []
-
-// Microsoft Entra ID — only added when env vars are present
-if (process.env.AZURE_AD_CLIENT_ID && process.env.AZURE_AD_CLIENT_SECRET && process.env.AZURE_AD_TENANT_ID) {
-  providers.push(
-    MicrosoftEntraID({
-      clientId: process.env.AZURE_AD_CLIENT_ID,
-      clientSecret: process.env.AZURE_AD_CLIENT_SECRET,
-      issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/v2.0`,
-      authorization: {
-        params: {
-          scope: 'openid profile email User.Read',
-        },
-      },
-    })
-  )
-}
-
-// Admin credentials provider — only active when ADMIN_EMAIL + ADMIN_PASSWORD are set in env
-if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
-  providers.push(
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
+  providers: [
     Credentials({
       name: 'credentials',
       credentials: {
@@ -80,64 +59,56 @@ if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
         const parsed = loginSchema.safeParse(credentials)
         if (!parsed.success) return null
 
+        // Phase 1 credentials — will be replaced by Azure AD SSO in Phase 2
+        const adminEmail = process.env.ADMIN_EMAIL ?? process.env.DEV_ADMIN_EMAIL
+        const adminPassword = process.env.ADMIN_PASSWORD ?? process.env.DEV_ADMIN_PASSWORD
         if (
-          parsed.data.email === process.env.ADMIN_EMAIL &&
-          parsed.data.password === process.env.ADMIN_PASSWORD
+          adminEmail &&
+          adminPassword &&
+          parsed.data.email === adminEmail &&
+          parsed.data.password === adminPassword
         ) {
-          const member = lookupMember(parsed.data.email)
           return {
-            id: 'admin-1',
+            id: 'dev-user-1',
             email: parsed.data.email,
-            name: member?.name ?? 'Admin',
-            tenantId: 'rx-technology',
+            name: 'Travis Brown',
+            tenantId: process.env.TENANT_ID ?? process.env.DEV_TENANT_ID ?? 'rx-technology',
             role: 'ADMIN' as UserRole,
-            cwMemberId: member?.cwMemberId,
+            cwMemberId: process.env.CW_MEMBER_ID ?? process.env.DEV_CW_MEMBER_ID ?? 'TBrown',
+            department: (process.env.DEPARTMENT as DepartmentCode) || (process.env.DEV_DEPARTMENT as DepartmentCode) || 'SI',
           }
         }
 
         return null
       },
-    })
-  )
-}
-
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  trustHost: true,
-
-  providers,
+    }),
+  ],
 
   session: {
     strategy: 'jwt',
-    maxAge: 8 * 60 * 60,
+    maxAge: 8 * 60 * 60, // 8 hours
   },
 
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async jwt({ token, user, account }: any) {
+    async jwt({ token, user }: any) {
       if (user) {
         token.id = user.id
-
-        if (account?.provider === 'microsoft-entra-id') {
-          const email = user.email || ''
-          const member = lookupMember(email)
-          token.tenantId = 'rx-technology'
-          token.role = member?.role ?? ('TECHNICIAN' as UserRole)
-          token.cwMemberId = member?.cwMemberId
-          if (member?.name) token.name = member.name
-        } else {
-          token.tenantId = user.tenantId
-          token.role = user.role
-          token.cwMemberId = user.cwMemberId
-        }
+        token.tenantId = user.tenantId
+        token.role = user.role
+        token.cwMemberId = user.cwMemberId
+        token.department = user.department
       }
       return token
     },
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session, token }: any) {
-      session.user.id = token.id ?? token.sub
-      session.user.tenantId = token.tenantId
-      session.user.role = token.role
-      session.user.cwMemberId = token.cwMemberId
+      session.user.id = token.id as string
+      session.user.tenantId = token.tenantId as string
+      session.user.role = token.role as UserRole
+      session.user.cwMemberId = token.cwMemberId as string | undefined
+      session.user.department = (token.department as DepartmentCode) || 'IT'
       return session
     },
   },
