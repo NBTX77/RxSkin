@@ -2,12 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-<<<<<<< HEAD
-import { useState, useRef } from 'react'
-=======
 import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
->>>>>>> 292fbbe (chore: delete stale config duplicates, fix TypeScript errors)
 import {
   Sun,
   Ticket,
@@ -21,14 +17,6 @@ import {
   Map,
   BarChart3,
   Clock,
-<<<<<<< HEAD
-  Menu,
-  GripVertical,
-} from 'lucide-react'
-import { signOut } from 'next-auth/react'
-import { useTheme } from '@/components/theme/ThemeProvider'
-import { useDraggable } from '@/hooks/useDraggable'
-=======
   FolderKanban,
   FileCheck,
   TrendingUp,
@@ -41,7 +29,6 @@ import { useDraggable } from '@/hooks/useDraggable'
 } from 'lucide-react'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 import type { DepartmentCode } from '@/types'
->>>>>>> 292fbbe (chore: delete stale config duplicates, fix TypeScript errors)
 
 interface NavItem {
   href: string
@@ -49,199 +36,6 @@ interface NavItem {
   icon: LucideIcon
   badge?: string
 }
-
-<<<<<<< HEAD
-const opsSubItems = [
-  { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
-  { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/ops/holds', label: 'Schedule Holds', icon: Clock },
-]
-
-export function Sidebar() {
-  const pathname = usePathname()
-  const { theme, toggleTheme } = useTheme()
-  const [opsExpanded, setOpsExpanded] = useState(pathname.startsWith('/ops'))
-  const [open, setOpen] = useState(true)
-  const sidebarRef = useRef<HTMLElement>(null)
-
-  const { position, isDragging, onDragStart } = useDraggable({
-    storageKey: 'rx-sidebar-pos',
-    defaultPosition: { x: 12, y: 12 },
-  })
-
-  const isOpsActive = pathname.startsWith('/ops')
-
-  return (
-    <>
-      {/* Single Menu toggle button — fixed top-left, always visible on desktop */}
-      {!open && (
-        <button
-          data-sidebar-toggle
-          onClick={() => setOpen(true)}
-          className="hidden lg:flex fixed top-3 left-3 z-[1100] items-center justify-center w-9 h-9 rounded-lg bg-gray-900/80 backdrop-blur-md border border-gray-700/40 text-gray-400 hover:text-white hover:bg-gray-800/90 transition-all shadow-lg"
-          title="Show navigation"
-        >
-          <Menu size={16} />
-        </button>
-      )}
-
-      {/* Floating, draggable sidebar card */}
-      <aside
-        ref={sidebarRef}
-        style={{
-          left: position.x,
-          top: position.y,
-          cursor: isDragging ? 'grabbing' : undefined,
-        }}
-        className={`hidden lg:flex flex-col fixed z-[1100] w-48 max-h-[calc(100vh-24px)] bg-gray-900/90 backdrop-blur-xl border border-gray-700/40 rounded-xl shadow-2xl transition-opacity duration-200 ${
-          open
-            ? 'opacity-100'
-            : 'opacity-0 pointer-events-none'
-        } ${isDragging ? 'select-none' : ''}`}
-      >
-        {/* Drag handle header with integrated menu toggle */}
-        <div className="flex items-center gap-1 px-1.5 py-1.5 border-b border-gray-700/30">
-          {/* Drag grip */}
-          <div
-            onMouseDown={onDragStart}
-            onTouchStart={onDragStart}
-            className="flex items-center justify-center w-6 h-6 rounded cursor-grab active:cursor-grabbing text-gray-600 hover:text-gray-400 transition-colors"
-            title="Drag to reposition"
-          >
-            <GripVertical size={12} />
-          </div>
-
-          {/* Logo */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-[10px]" style={{ color: '#fff' }}>RX</span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-white font-semibold text-[11px] leading-tight">RX Skin</p>
-              <p className="text-gray-500 text-[9px] leading-tight truncate">ConnectWise Portal</p>
-            </div>
-          </div>
-
-          {/* Close / collapse button (Menu icon) */}
-          <button
-            onClick={() => setOpen(false)}
-            className="flex items-center justify-center w-6 h-6 rounded text-gray-500 hover:text-white hover:bg-gray-800/50 transition-colors"
-            title="Hide navigation"
-          >
-            <Menu size={13} />
-          </button>
-        </div>
-
-        {/* Search shortcut */}
-        <div className="px-2.5 pt-2 pb-1">
-          <button
-            onClick={() => {
-              document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }))
-            }}
-            className="flex items-center gap-1.5 w-full px-2.5 py-1.5 rounded-lg bg-gray-800/40 border border-gray-700/30 text-gray-500 text-xs hover:bg-gray-800/60 hover:text-gray-400 transition-colors"
-          >
-            <Search size={12} />
-            <span className="flex-1 text-left">Search...</span>
-            <kbd className="text-[9px] px-1 py-0.5 rounded bg-gray-800/60 border border-gray-700/30 text-gray-600">
-              ⌘K
-            </kbd>
-          </button>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 px-2.5 py-1.5 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(href + '/')
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors ${
-                  active
-                    ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                }`}
-              >
-                <Icon size={15} />
-                {label}
-              </Link>
-            )
-          })}
-          {/* Ops expandable section */}
-          <div>
-            <button
-              onClick={() => setOpsExpanded(!opsExpanded)}
-              className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-lg text-xs font-medium transition-colors ${
-                isOpsActive
-                  ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-              }`}
-            >
-              <Radar size={15} />
-              <span className="flex-1 text-left">Ops</span>
-              {opsExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-            </button>
-
-            {opsExpanded && (
-              <div className="ml-3 mt-0.5 space-y-0.5">
-                {opsSubItems.map(({ href, label, icon: Icon }) => {
-                  const active = pathname === href
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
-                        active
-                          ? 'text-blue-400 bg-blue-600/10'
-                          : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/30'
-                      }`}
-                    >
-                      <Icon size={13} />
-                      {label}
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Settings */}
-          <Link
-            href="/settings"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors ${
-              pathname === '/settings'
-                ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-            }`}
-          >
-            <Settings size={15} />
-            Settings
-          </Link>
-        </nav>
-
-        {/* Bottom section: theme toggle + sign out */}
-        <div className="px-2.5 py-2.5 border-t border-gray-700/30 space-y-0.5">
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
-          >
-            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-          </button>
-
-          <button
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
-          >
-            <LogOut size={15} />
-            Sign out
-          </button>
-        </div>
-      </aside>
-    </>
-  )
-}
-=======
 type DepartmentNavConfig = {
   [key in DepartmentCode]?: {
     dashboardLabel: string
@@ -255,6 +49,7 @@ type DepartmentNavConfig = {
     }
   }
 }
+
 const departmentNav: DepartmentNavConfig = {
   IT: {
     dashboardLabel: 'My Day',
@@ -270,8 +65,7 @@ const departmentNav: DepartmentNavConfig = {
       Ops: {
         icon: Radar,
         items: [
-          { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
-          { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
+          { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },          { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
           { href: '/ops/holds', label: 'Schedule Holds', icon: Clock },
         ],
       },
@@ -300,8 +94,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/opportunities', label: 'Opportunities', icon: TrendingUp },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
-  },
-  GA: {
+  },  GA: {
     dashboardLabel: 'My Day',
     dashboardIcon: Sun,
     items: [
@@ -327,4 +120,131 @@ const departmentNav: DepartmentNavConfig = {
     ],
   },
 }
->>>>>>> 292fbbe (chore: delete stale config duplicates, fix TypeScript errors)
+
+export function Sidebar() {
+  const pathname = usePathname()
+  const { department, config, canSwitch, switchDepartment, allDepartments } = useDepartment()
+  const [expandedSection, setExpandedSection] = useState<string | null>(pathname.startsWith('/ops') ? 'Ops' : null)
+  const [deptSwitcherOpen, setDeptSwitcherOpen] = useState(false)
+  const deptConfig = departmentNav[department]
+  const navItems = deptConfig?.items || []
+  const expandableSections = deptConfig?.expandableSections || {}
+
+  const getColorBg = (color: string): string => {
+    const colorMap: { [key: string]: string } = {
+      blue: 'bg-blue-600',
+      cyan: 'bg-cyan-600',
+      green: 'bg-green-600',
+      orange: 'bg-orange-600',
+      purple: 'bg-purple-600',
+    }
+    return colorMap[color] || 'bg-blue-600'
+  }
+
+  const isNavItemActive = (href: string): boolean => {
+    return pathname === href || pathname.startsWith(href + '/')
+  }
+
+  return (
+    <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-64 bg-gray-900 border-r border-gray-800 z-40">
+      {/* Logo + Department Badge */}
+      <div className="flex flex-col px-5 py-5 border-b border-gray-800">
+        <div className="flex items-center gap-3 mb-3">
+          <div className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center flex-shrink-0`}>
+            <span className="text-white font-bold text-sm">RX</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-white font-semibold text-sm">RX Skin</p>
+            <p className="text-gray-500 text-xs">ConnectWise Portal</p>
+          </div>
+        </div>        <div className="pl-0.5">
+          <p className={`text-xs font-medium px-2 py-1 rounded w-fit text-${config.color}-300 bg-${config.color}-900/40`}>
+            {config.name} Department
+          </p>
+        </div>
+      </div>
+
+      {/* Search shortcut */}
+      <div className="px-3 pt-4 pb-2">
+        <button
+          onClick={() => {
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }))
+          }}
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700/50 text-gray-500 text-sm hover:bg-gray-800 hover:text-gray-400 transition-colors"
+        >
+          <Search size={14} />
+          <span className="flex-1 text-left">Search...</span>
+          <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-gray-600">
+            Ctrl K
+          </kbd>
+        </button>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+        {navItems.map(({ href, label, icon: Icon, badge }) => {
+          const active = isNavItemActive(href)
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                active
+                  ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              }`}
+            >
+              <Icon size={18} />
+              <span className="flex-1 text-left">
+                {label}
+                {badge && <span className="text-xs text-gray-500 ml-1">{badge}</span>}
+              </span>
+            </Link>
+          )
+        })}
+        {/* Expandable sections (e.g., Ops for IT) */}
+        {Object.entries(expandableSections).map(([sectionName, section]) => {
+          const isExpanded = expandedSection === sectionName
+          const isSectionActive = section.items.some(item => isNavItemActive(item.href))
+          const SectionIcon = section.icon
+
+          return (
+            <div key={sectionName}>
+              <button
+                onClick={() => setExpandedSection(isExpanded ? null : sectionName)}
+                className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  isSectionActive
+                    ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                }`}
+              >
+                <SectionIcon size={18} />
+                <span className="flex-1 text-left">{sectionName}</span>
+                {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              </button>
+
+              {isExpanded && (
+                <div className="ml-4 mt-1 space-y-0.5">
+                  {section.items.map(({ href, label, icon: Icon }) => {
+                    const active = isNavItemActive(href)
+                    return (
+                      <Link
+                        key={href}
+                        href={href}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                          active
+                            ? 'text-blue-400 bg-blue-600/10'
+                            : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                        }`}
+                      >
+                        <Icon size={15} />
+                        {label}
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </nav>
