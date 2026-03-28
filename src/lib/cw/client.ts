@@ -58,6 +58,11 @@ async function cwFetch<T>(creds: CWCredentials, path: string, options: RequestIn
   return response.json() as Promise<T>
 }
 
+// Debug helper — raw CW fetch (remove after debugging)
+export async function cwFetchRaw(creds: CWCredentials, path: string): Promise<unknown> {
+  return cwFetch(creds, path)
+}
+
 export async function getTickets(creds: CWCredentials, filters: TicketFilters = {}): Promise<Ticket[]> {
   const params = new URLSearchParams()
   const conditions: string[] = []
@@ -70,7 +75,7 @@ export async function getTickets(creds: CWCredentials, filters: TicketFilters = 
   params.set('orderBy', 'lastUpdated desc')
   params.set('pageSize', String(filters.pageSize ?? 50))
   params.set('page', String(filters.page ?? 1))
-  params.set('fields', 'id,summary,status,priority,board,company,contact,owner,dateEntered,lastUpdated,closedDate,budgetHours,actualHours,resources')
+  params.set('fields', 'id,summary,status,priority,board,company,contact,owner,dateEntered,lastUpdated,closedDate,budgetHours,actualHours,resources,_info')
   const raw = await cwFetch<Record<string, unknown>[]>(creds, `/service/tickets?${params}`)
   return raw.map(normalizeTicket)
 }
