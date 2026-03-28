@@ -248,3 +248,46 @@ export function Sidebar() {
           )
         })}
       </nav>
+      {/* Department Switcher (if user can switch) */}
+      {canSwitch && (
+        <div className="px-3 py-3 border-t border-gray-800">
+          <button
+            onClick={() => setDeptSwitcherOpen(!deptSwitcherOpen)}
+            className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+          >
+            <div className={`w-3 h-3 rounded-full ${getColorBg(config.color)}`} />
+            <span className="flex-1 text-left">{config.name}</span>
+            {deptSwitcherOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+
+          {deptSwitcherOpen && (
+            <div className="mt-2 space-y-1 bg-gray-800/50 rounded-lg p-2">
+              {allDepartments.map(dept => (
+                <button
+                  key={dept.code}
+                  onClick={() => {
+                    switchDepartment(dept.code)
+                    setDeptSwitcherOpen(false)
+                  }}
+                  className={`flex items-center gap-2 w-full px-3 py-2 rounded text-sm transition-colors ${
+                    dept.code === department
+                      ? 'bg-blue-600/20 text-blue-400 font-medium'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  }`}
+                >
+                  <div className={`w-2 h-2 rounded-full ${getColorBg(dept.color)}`} />
+                  {dept.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Bottom: minimal branding */}
+      <div className={`px-3 py-3 ${canSwitch ? 'border-t' : 'border-t'} border-gray-800`}>
+        <p className="text-[10px] text-gray-600 text-center tracking-wider uppercase">RX Skin v0.1</p>
+      </div>
+    </aside>
+  )
+}
