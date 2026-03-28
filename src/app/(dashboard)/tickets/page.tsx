@@ -330,7 +330,7 @@ export default function TicketsPage() {
                       <span className={badgeClasses('priority', ticket.priority)}>{ticket.priority}</span>
                     </td>
                     <td className="px-3 py-2.5 align-middle text-gray-400 text-sm whitespace-nowrap">
-                      {new Date(ticket.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      {(!ticket.updatedAt ? '\u2014' : new Date(ticket.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))}
                     </td>
                   </tr>
                 ))}
@@ -358,7 +358,7 @@ export default function TicketsPage() {
                 <p className="text-white font-medium mb-1">{ticket.summary}</p>
                 <div className="flex items-center justify-between text-sm text-gray-400">
                   <span className="truncate mr-2">{ticket.company}</span>
-                  <span className="whitespace-nowrap">{new Date(ticket.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                  <span className="whitespace-nowrap">{(!ticket.updatedAt ? '\u2014' : new Date(ticket.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))}</span>
                 </div>
                 {(ticket.board || ticket.assignedTo) && (
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
