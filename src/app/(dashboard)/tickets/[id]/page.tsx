@@ -53,14 +53,20 @@ interface TimeEntry {
 
 /* ---------- helpers ---------- */
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
+  if (!iso) return '\u2014'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '\u2014'
+  return d.toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
     hour: 'numeric', minute: '2-digit',
   })
 }
 
 function fmtShortDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
+  if (!iso) return '\u2014'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '\u2014'
+  return d.toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
   })
 }
@@ -71,7 +77,7 @@ function fmtShortDate(iso: string) {
  * bold markers, HTML entities, and raw URLs) into clean rendered JSX.
  */
 function renderNoteText(raw: string): React.ReactNode {
-  // Step 1: decode HTML entities (&amp; → &, etc.)
+  // Step 1: decode HTML entities (&amp; â &, etc.)
   let text = raw
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
@@ -82,9 +88,9 @@ function renderNoteText(raw: string): React.ReactNode {
   // Step 2: unescape markdown-escaped parens and brackets
   text = text.replace(/\\\(/g, '(').replace(/\\\)/g, ')').replace(/\\\[/g, '[').replace(/\\\]/g, ']')
 
-  // Step 3: tokenize into segments — images, links, bold, raw URLs, and plain text
+  // Step 3: tokenize into segments â images, links, bold, raw URLs, and plain text
   // Order matters: images before links (both use [ ] syntax)
-  // CW sometimes uses double-bracket images: ![[alt]](url) — handle both patterns
+  // CW sometimes uses double-bracket images: ![[alt]](url) â handle both patterns
   const tokenRegex = /!\[\[([^\]]*)\]\]\(([^)]+)\)|!\[([^\]]*)\]\(([^)]+)\)|\[([^\]]*)\]\(([^)]+)\)|(\*\*(.+?)\*\*)|(https?:\/\/[^\s<>)\]]+)/g
 
   const segments: React.ReactNode[] = []
@@ -98,7 +104,7 @@ function renderNoteText(raw: string): React.ReactNode {
       segments.push(text.slice(lastIndex, match.index))
     }
 
-    // Determine which pattern matched — groups shift due to double-bracket image at front
+    // Determine which pattern matched â groups shift due to double-bracket image at front
     // Groups: 1,2 = ![[alt]](url) | 3,4 = ![alt](url) | 5,6 = [text](url) | 7,8 = **bold** | 9 = raw URL
     const imgAlt = match[1] ?? match[3]
     const imgUrl = match[2] ?? match[4]
@@ -169,7 +175,7 @@ function renderNoteText(raw: string): React.ReactNode {
           rel="noopener noreferrer"
           className="text-blue-400 hover:text-blue-300 underline underline-offset-2 break-all"
         >
-          {match[9].length > 60 ? match[9].slice(0, 60) + '…' : match[9]}
+          {match[9].length > 60 ? match[9].slice(0, 60) + 'â¦' : match[9]}
         </a>
       )
     }
@@ -228,7 +234,7 @@ export default function TicketDetailPage() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [showActions])
 
-  /* ── data fetching ── */
+  /* ââ data fetching ââ */
   const { data: ticket, isLoading, error } = useQuery<Ticket>({
     queryKey: ['ticket', ticketId],
     queryFn: async () => {
@@ -261,12 +267,12 @@ export default function TicketDetailPage() {
 
   const totalHours = timeEntries.reduce((s, e) => s + e.hoursWorked, 0)
 
-  /* ── sort notes oldest first ── */
+  /* ââ sort notes oldest first ââ */
   const sortedNotes = [...notes].sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   )
 
-  /* ── mutations ── */
+  /* ââ mutations ââ */
   const addNoteMutation = useMutation({
     mutationFn: async ({ text, isInternal }: { text: string; isInternal: boolean }) => {
       const res = await fetch(`/api/tickets/${ticketId}/notes`, {
@@ -426,7 +432,7 @@ export default function TicketDetailPage() {
             <User size={18} className="text-gray-500 mt-0.5 shrink-0" />
             <div>
               <div className="text-xs text-gray-500 mb-0.5">Contact</div>
-              <div className="text-sm text-white">{ticket.contact || '—'}</div>
+              <div className="text-sm text-white">{ticket.contact || 'â'}</div>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-gray-900 border border-gray-800 rounded-lg">
@@ -561,8 +567,8 @@ export default function TicketDetailPage() {
                           <td className="px-4 py-2.5 text-sm text-white">{entry.memberName}</td>
                           <td className="px-4 py-2.5 text-sm text-gray-400">{fmtShortDate(entry.date)}</td>
                           <td className="px-4 py-2.5 text-sm text-white font-medium">{entry.hoursWorked}h</td>
-                          <td className="px-4 py-2.5 text-sm text-gray-400">{entry.workType || '—'}</td>
-                          <td className="px-4 py-2.5 text-sm text-gray-400">{entry.notes || '—'}</td>
+                          <td className="px-4 py-2.5 text-sm text-gray-400">{entry.workType || 'â'}</td>
+                          <td className="px-4 py-2.5 text-sm text-gray-400">{entry.notes || 'â'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -586,7 +592,7 @@ export default function TicketDetailPage() {
                         <span className="text-sm font-medium text-white">{entry.memberName}</span>
                         <span className="text-sm font-semibold text-white">{entry.hoursWorked}h</span>
                       </div>
-                      <div className="text-xs text-gray-400">{fmtShortDate(entry.date)} · {entry.workType || 'General'}</div>
+                      <div className="text-xs text-gray-400">{fmtShortDate(entry.date)} Â· {entry.workType || 'General'}</div>
                       {entry.notes && <p className="text-xs text-gray-500 mt-1">{entry.notes}</p>}
                     </div>
                   ))}
