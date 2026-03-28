@@ -77,6 +77,15 @@ export async function GET() {
           }),
         ])
 
+        // Debug: log what each source returned
+        console.log(`[fleet] Data: ${drivers.length} drivers, ${locations.length} locations, ${hosClocks.length} HOS, ${members.length} members, ${tickets.length} tickets, ${scheduleEntries.length} schedEntries`)
+        if (drivers.length > 0) {
+          console.log(`[fleet] Sample driver: ${JSON.stringify({ name: drivers[0].name, vehicleId: drivers[0].vehicleId, vehicleName: drivers[0].vehicleName })}`)
+        }
+        if (locations.length > 0) {
+          console.log(`[fleet] Sample location: ${JSON.stringify({ id: locations[0].id, name: locations[0].name, lat: locations[0].latitude, lng: locations[0].longitude })}`)
+        }
+
         // If we got zero drivers AND zero locations, nothing to merge — fall back to mock
         if (drivers.length === 0 && locations.length === 0) {
           console.warn('[fleet] No Samsara data returned — falling back to mock')

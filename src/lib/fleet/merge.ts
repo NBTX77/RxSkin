@@ -122,48 +122,119 @@ export function mergeFleetData(input: MergeInput): MergeOutput {
     }
   }
 
-  // Build FleetTech array from Samsara drivers
-  const techs: FleetTech[] = drivers.map((driver) => {
-    const location = driver.vehicleId
-      ? locationByVehicleId.get(driver.vehicleId)
-      : undefined
-    const hos = hosByDriverId.get(driver.id)
+  // Check if any drivers have vehicle assignments
+  const driversHaveVehicles = drivers.some((d) => !!d.vehicleId)
 
-    // Find CW member matching this Samsara driver
-    const cwMember = memberByName.get(driver.name.toLowerCase())
-    const memberSchedule = cwMember
-      ? scheduleByMember.get(cwMember.id) ?? []
-      : []
-    const memberTickets = cwMember
-      ? ticketsByMember.get(cwMember.identifier) ?? []
-      : []
+  let techs: FleetTech[]
 
-    // Find active/current ticket (first in-progress or today's first dispatch)
-    const activeTicket = memberTickets.find(
-      (t) => t.status === 'In Progress'
-    )
+  if (driversHaveVehicles || locations.length === 0) {
+    // Standard path: build from drivers, look up their vehicle locations
+    techs = drivers.map((driver) => {
+      const location = driver.vehicleId
+        ? locationByVehicleId.get(driver.vehicleId)
+        : undefined
+      const hos = hosByDriverId.get(driver.id)
 
-    return {
-      id: driver.id,
-      name: driver.name,
-      memberId: cwMember?.id ?? 0,
-      memberIdentifier: cwMember?.identifier ?? '',
-      truckName: driver.vehicleName ?? location?.name ?? 'Unknown',
-      vehicleId: driver.vehicleId ?? '',
-      lat: location?.latitude ?? 0,
-      lng: location?.longitude ?? 0,
-      speed: location ? Math.round(location.speed) : 0,
-      heading: location?.heading,
-      hosPct: hos ? hosPct(hos.driveTimeRemainingMs) : 100,
-      hosRemaining: hos ? msToHoursMinutes(hos.driveTimeRemainingMs) : 'N/A',
-      hosColor: hos ? hosColor(hos.driveTimeRemainingMs) : 'green',
-      currentTicket: activeTicket ? toTicketRef(activeTicket) : undefined,
-      dispatch: memberSchedule.map(toDispatchEntry),
-      scheduledHold: memberTickets
-        .filter((t) => t.status === 'Schedule Hold' || t.status === 'Scheduled')
-        .map(toTicketRef),
-    }
-  })
+      const cwMember = memberByName.get(driver.name.toLowerCase())
+      const memberSchedule = cwMember
+        ? scheduleByMember.get(cwMember.id) ?? []
+        : []
+      const memberTickets = cwMember
+        ? ticketsByMember.get(cwMember.identifier) ?? []
+        : []
+
+      const activeTicket = memberTickets.find(
+        (t) => t.status === 'In Progress'
+      )
+
+      return {
+        id: driver.id,
+        name: driver.name,
+        memberId: cwMember?.id ?? 0,
+        memberIdentifier: cwMember?.identifier ?? '',
+        truckName: driver.vehicleName ?? location?.name ?? 'Unknown',
+        vehicleId: driver.vehicleId ?? '',
+        lat: location?.latitude ?? 0,
+        lng: location?.longitude ?? 0,
+        speed: location ? Math.round(location.speed) : 0,
+        heading: location?.heading,
+        hosPct: hos ? hosPct(hos.driveTimeRemainingMs) : 100,
+        hosRemaining: hos ? msToHoursMinutes(hos.driveTimeRemainingMs) : 'N/A',
+        hosColor: hos ? hosColor(hos.driveTimeRemainingMs) : 'green',
+        currentTicket: activeTicket ? toTicketRef(activeTicket) : undefined,
+        dispatch: memberSchedule.map(toDispatchEntry),
+        scheduledHold: memberTickets
+          .filter((t) => t.status === 'Schedule Hold' || t.status === 'Scheduled')
+          .map(toTicketRef),
+      }
+    })
+  } else {
+    // Fallback path: drivers have no vehicle assignments.
+    // Build from vehicle locations and try to match drivers/members by name.
+    const driverByNameLower = new Map(drivers.map((d) => [d.name.toLowerCase(), d]))
+
+    techs = locations
+      .filter((loc) => loc.latitude !== 0 || loc.longitude !== 0)
+      .map((loc) => {
+        // Try to find a CW member whose name appears in the vehicle name
+        // or match a Samsara driver to this vehicle by name heuristic
+        let matchedMember: Member | undefined
+        let matchedDriver: SamsaraDriver | undefined
+
+        // Try direct member match by vehicle name (e.g. vehicle "Jason Smith" or "JSmith-Van")
+        const locNameLower = loc.name.toLowerCase()
+        const memberEntries = Array.from(memberByName.entries())
+        for (let mi = 0; mi < memberEntries.length; mi++) {
+          const [mName, member] = memberEntries[mi]
+          const nameParts = mName.split(' ')
+          if (nameParts.some((part: string) => part.length > 2 && locNameLower.includes(part))) {
+            matchedMember = member
+            break
+          }
+        }
+
+        // Try matching a Samsara driver to this vehicle
+        const driverEntries = Array.from(driverByNameLower.entries())
+        for (let di = 0; di < driverEntries.length; di++) {
+          const [dName, driver] = driverEntries[di]
+          const driverParts = dName.split(' ')
+          if (driverParts.some((part: string) => part.length > 2 && locNameLower.includes(part))) {
+            matchedDriver = driver
+            break
+          }
+        }
+
+        const hos = matchedDriver ? hosByDriverId.get(matchedDriver.id) : undefined
+        const memberSchedule = matchedMember
+          ? scheduleByMember.get(matchedMember.id) ?? []
+          : []
+        const memberTickets = matchedMember
+          ? ticketsByMember.get(matchedMember.identifier) ?? []
+          : []
+        const activeTicket = memberTickets.find((t) => t.status === 'In Progress')
+
+        return {
+          id: matchedDriver?.id ?? loc.id,
+          name: matchedDriver?.name ?? matchedMember?.name ?? loc.name,
+          memberId: matchedMember?.id ?? 0,
+          memberIdentifier: matchedMember?.identifier ?? '',
+          truckName: loc.name,
+          vehicleId: loc.id,
+          lat: loc.latitude,
+          lng: loc.longitude,
+          speed: Math.round(loc.speed),
+          heading: loc.heading,
+          hosPct: hos ? hosPct(hos.driveTimeRemainingMs) : 100,
+          hosRemaining: hos ? msToHoursMinutes(hos.driveTimeRemainingMs) : 'N/A',
+          hosColor: hos ? hosColor(hos.driveTimeRemainingMs) : ('green' as const),
+          currentTicket: activeTicket ? toTicketRef(activeTicket) : undefined,
+          dispatch: memberSchedule.map(toDispatchEntry),
+          scheduledHold: memberTickets
+            .filter((t) => t.status === 'Schedule Hold' || t.status === 'Scheduled')
+            .map(toTicketRef),
+        }
+      })
+  }
 
   // Build Schedule Hold tickets list
   const schedHoldTickets: ScheduleHoldTicket[] = tickets
