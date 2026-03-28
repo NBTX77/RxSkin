@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { PieChart, Pie, Cell, Tooltip } from 'recharts'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { PieChart, Pie, Tooltip } from 'recharts'
 
 interface StatusDonutProps {
   data: Array<{ status: string; count: number }>
@@ -24,17 +24,21 @@ function getColor(status: string): string {
 
 export function StatusDonut({ data }: StatusDonutProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [dims, setDims] = useState({ width: 0, height: 0 })
+  const [width, setWidth] = useState(400)
+
+  const measure = useCallback(() => {
+    if (containerRef.current) {
+      const w = containerRef.current.offsetWidth
+      if (w > 0) setWidth(w)
+    }
+  }, [])
 
   useEffect(() => {
-    if (!containerRef.current) return
-    const ro = new ResizeObserver((entries) => {
-      const { width, height } = entries[0].contentRect
-      if (width > 0 && height > 0) setDims({ width: Math.floor(width), height: Math.floor(height) })
-    })
-    ro.observe(containerRef.current)
+    measure()
+    const ro = new ResizeObserver(() => measure())
+    if (containerRef.current) ro.observe(containerRef.current)
     return () => ro.disconnect()
-  }, [])
+  }, [measure])
 
   if (!data.length) {
     return (
@@ -44,32 +48,30 @@ export function StatusDonut({ data }: StatusDonutProps) {
     )
   }
 
-  const outerR = Math.min(dims.width / 2, dims.height / 2) * 0.8
+  // Embed fill color directly in data so Recharts can use it without Cell
+  const coloredData = data.map((d) => ({ ...d, fill: getColor(d.status) }))
+
+  const chartHeight = 220
+  const outerR = Math.min(width / 2, chartHeight / 2) * 0.75
   const innerR = outerR * 0.65
 
   return (
     <div>
-      <div ref={containerRef} style={{ width: '100%', height: 220 }}>
-        {dims.width > 0 && dims.height > 0 && (
-          <PieChart width={dims.width} height={dims.height}>
-            <Pie
-              data={data}
-              cx={dims.width / 2}
-              cy={dims.height / 2}
-              innerRadius={innerR}
-              outerRadius={outerR}
-              dataKey="count"
-              nameKey="status"
-              paddingAngle={2}
-              stroke="none"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={getColor(entry.status)} />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value, name) => [`${value} tickets`, String(name)]} />
-          </PieChart>
-        )}
+      <div ref={containerRef} style={{ width: '100%', height: chartHeight }}>
+        <PieChart width={width} height={chartHeight}>
+          <Pie
+            data={coloredData}
+            cx={width / 2}
+            cy={chartHeight / 2}
+            innerRadius={innerR}
+            outerRadius={outerR}
+            dataKey="count"
+            nameKey="status"
+            paddingAngle={2}
+            stroke="none"
+          />
+          <Tooltip formatter={(value, name) => [`${value} tickets`, String(name)]} />
+        </PieChart>
       </div>
       <div className="flex flex-wrap gap-3 justify-center mt-2">
         {data.map((entry) => (

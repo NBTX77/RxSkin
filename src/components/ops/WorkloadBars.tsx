@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 
 interface WorkloadBarsProps {
   data: Array<{ name: string; count: number }>
@@ -11,17 +11,21 @@ const BAR_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#a855f7', '#eab308', '#ef4
 
 export function WorkloadBars({ data }: WorkloadBarsProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [dims, setDims] = useState({ width: 0, height: 0 })
+  const [width, setWidth] = useState(800)
+
+  const measure = useCallback(() => {
+    if (containerRef.current) {
+      const w = containerRef.current.offsetWidth
+      if (w > 0) setWidth(w)
+    }
+  }, [])
 
   useEffect(() => {
-    if (!containerRef.current) return
-    const ro = new ResizeObserver((entries) => {
-      const { width, height } = entries[0].contentRect
-      if (width > 0 && height > 0) setDims({ width: Math.floor(width), height: Math.floor(height) })
-    })
-    ro.observe(containerRef.current)
+    measure()
+    const ro = new ResizeObserver(() => measure())
+    if (containerRef.current) ro.observe(containerRef.current)
     return () => ro.disconnect()
-  }, [])
+  }, [measure])
 
   if (!data.length) {
     return (
@@ -31,32 +35,31 @@ export function WorkloadBars({ data }: WorkloadBarsProps) {
     )
   }
 
+  // Embed fill color directly in data so Recharts can use it without Cell
+  const coloredData = data.map((d, i) => ({ ...d, fill: BAR_COLORS[i % BAR_COLORS.length] }))
+
+  const chartHeight = 288
+
   return (
-    <div ref={containerRef} style={{ width: '100%', height: 288 }}>
-      {dims.width > 0 && dims.height > 0 && (
-        <BarChart width={dims.width} height={dims.height} data={data} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
-          <XAxis
-            type="number"
-            tick={{ fill: '#9ca3af', fontSize: 12 }}
-            axisLine={{ stroke: '#374151' }}
-            tickLine={{ stroke: '#374151' }}
-          />
-          <YAxis
-            type="category"
-            dataKey="name"
-            tick={{ fill: '#d1d5db', fontSize: 12 }}
-            width={120}
-            axisLine={false}
-            tickLine={false}
-          />
-          <Tooltip formatter={(value) => [`${value} tickets`, 'Assigned']} />
-          <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20}>
-            {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />
-            ))}
-          </Bar>
-        </BarChart>
-      )}
+    <div ref={containerRef} style={{ width: '100%', height: chartHeight }}>
+      <BarChart width={width} height={chartHeight} data={coloredData} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
+        <XAxis
+          type="number"
+          tick={{ fill: '#9ca3af', fontSize: 12 }}
+          axisLine={{ stroke: '#374151' }}
+          tickLine={{ stroke: '#374151' }}
+        />
+        <YAxis
+          type="category"
+          dataKey="name"
+          tick={{ fill: '#d1d5db', fontSize: 12 }}
+          width={120}
+          axisLine={false}
+          tickLine={false}
+        />
+        <Tooltip formatter={(value) => [`${value} tickets`, 'Assigned']} />
+        <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20} />
+      </BarChart>
     </div>
   )
 }
