@@ -178,7 +178,7 @@ export async function getScheduleEntries(
   if (filters.memberId) conditions.push(`member/id=${filters.memberId}`)
   params.set('conditions', conditions.join(' AND '))
   params.set('pageSize', '250')
-  params.set('fields', 'id,objectId,objectType,member,dateStart,dateEnd,status,type,where')
+  params.set('fields', 'id,objectId,objectType,member,dateStart,dateEnd,status,type,where,company')
 
   const raw = await cwFetch<Record<string, unknown>[]>(creds, `/schedule/entries?${params}`)
   return raw.map(normalizeScheduleEntry)
