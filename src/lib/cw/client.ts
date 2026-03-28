@@ -254,7 +254,7 @@ export async function getProject(creds: CWCredentials, projectId: number): Promi
 export async function updateProject(
   creds: CWCredentials,
   projectId: number,
-  patches: Array<{ op: string; path: string; value: unknown }>
+  patches: Array<{ op: string; path: string; value?: unknown }>
 ): Promise<Project> {
   const raw = await cwFetch<Record<string, unknown>>(creds, `/project/projects/${projectId}`, {
     method: 'PATCH',
