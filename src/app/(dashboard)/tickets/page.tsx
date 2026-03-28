@@ -117,23 +117,15 @@ export default function TicketsPage() {
         ) : (
           /* Desktop table */
           <div className="hidden lg:block bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-            <table className="w-full table-fixed">
-              <colgroup>
-                <col style={{ width: '80px' }} />
-                <col />
-                <col style={{ width: '160px' }} />
-                <col style={{ width: '120px' }} />
-                <col style={{ width: '90px' }} />
-                <col style={{ width: '150px' }} />
-              </colgroup>
+            <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-800">
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Ticket #</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Summary</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Company</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Priority</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Updated</th>
+                  <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300 w-[70px]">Ticket</th>
+                  <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300">Summary</th>
+                  <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300 w-[140px]">Company</th>
+                  <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300 w-[120px]">Status</th>
+                  <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300 w-[100px]">Priority</th>
+                  <th className="px-3 py-3 text-left text-sm font-semibold text-gray-300 w-[140px]">Updated</th>
                 </tr>
               </thead>
               <tbody>
@@ -142,7 +134,7 @@ export default function TicketsPage() {
                     key={ticket.id}
                     className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
                   >
-                    <td className="px-4 py-2.5 align-middle">
+                    <td className="px-3 py-2.5 align-middle">
                       <Link
                         href={`/tickets/${ticket.id}`}
                         className="text-blue-400 hover:text-blue-300 font-medium text-sm"
@@ -150,15 +142,19 @@ export default function TicketsPage() {
                         #{ticket.id}
                       </Link>
                     </td>
-                    <td className="px-4 py-2.5 align-middle text-white text-sm truncate">{ticket.summary}</td>
-                    <td className="px-4 py-2.5 align-middle text-gray-400 text-sm truncate">{ticket.company}</td>
-                    <td className="px-4 py-2.5 align-middle">
+                    <td className="px-3 py-2.5 align-middle text-white text-sm">
+                      <div className="truncate">{ticket.summary}</div>
+                    </td>
+                    <td className="px-3 py-2.5 align-middle text-gray-400 text-sm">
+                      <div className="truncate">{ticket.company}</div>
+                    </td>
+                    <td className="px-3 py-2.5 align-middle">
                       <span className={badgeClasses('status', ticket.status)}>{ticket.status}</span>
                     </td>
-                    <td className="px-4 py-2.5 align-middle">
+                    <td className="px-3 py-2.5 align-middle">
                       <span className={badgeClasses('priority', ticket.priority)}>{ticket.priority}</span>
                     </td>
-                    <td className="px-4 py-2.5 align-middle text-gray-400 text-sm whitespace-nowrap">
+                    <td className="px-3 py-2.5 align-middle text-gray-400 text-sm whitespace-nowrap">
                       {new Date(ticket.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                     </td>
                   </tr>

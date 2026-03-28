@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <Sidebar />
 
       {/* Main content area */}
-      <main className="flex-1 flex flex-col overflow-hidden lg:ml-64">
+      <main className="flex-1 flex flex-col overflow-hidden lg:ml-52">
         {/* Page content with padding for mobile nav */}
         <div className="flex-1 overflow-y-auto pb-20 lg:pb-0">
           <div className="h-full w-full">{children}</div>

@@ -180,7 +180,7 @@ export default function TicketDetailPage() {
   /* ---------- loading / error ---------- */
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 lg:ml-64 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-950  flex items-center justify-center">
         <div className="text-gray-400">Loading ticket...</div>
       </div>
     )
@@ -188,7 +188,7 @@ export default function TicketDetailPage() {
 
   if (error || !ticket) {
     return (
-      <div className="min-h-screen bg-gray-950 lg:ml-64 pb-20 lg:pb-0">
+      <div className="min-h-screen bg-gray-950  pb-20 lg:pb-0">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <Link href="/tickets" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
             <ArrowLeft size={18} /> Back to Tickets
@@ -238,7 +238,7 @@ export default function TicketDetailPage() {
 
   /* ---------- render ---------- */
   return (
-    <div className="min-h-screen bg-gray-950 lg:ml-64 pb-20 lg:pb-0">
+    <div className="min-h-screen bg-gray-950  pb-20 lg:pb-0">
       {/* Sticky header */}
       <div className="sticky top-0 z-30 bg-gray-900 border-b border-gray-800">
         <div className="max-w-4xl mx-auto px-4 py-3">
