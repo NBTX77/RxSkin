@@ -6,11 +6,13 @@ type Theme = 'light' | 'dark'
 
 interface ThemeContextValue {
   theme: Theme
+  setTheme: (t: Theme) => void
   toggleTheme: () => void
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
   theme: 'dark',
+  setTheme: () => {},
   toggleTheme: () => {},
 })
 
@@ -19,7 +21,7 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark')
+  const [theme, setThemeState] = useState<Theme>('dark')
 
   // On mount, read from cookie and apply class
   useEffect(() => {
@@ -29,24 +31,30 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       ?.split('=')[1] as Theme | undefined
 
     const initial = stored === 'light' ? 'light' : 'dark'
-    setTheme(initial)
+    setThemeState(initial)
     document.documentElement.classList.remove('dark', 'light')
     document.documentElement.classList.add(initial)
   }, [])
 
+  const applyTheme = useCallback((next: Theme) => {
+    setThemeState(next)
+    document.documentElement.classList.remove('dark', 'light')
+    document.documentElement.classList.add(next)
+    document.cookie = `rx-theme=${next};path=/;max-age=31536000;SameSite=Lax`
+  }, [])
+
   const toggleTheme = useCallback(() => {
-    setTheme(prev => {
+    setThemeState(prev => {
       const next = prev === 'dark' ? 'light' : 'dark'
       document.documentElement.classList.remove('dark', 'light')
       document.documentElement.classList.add(next)
-      // Persist as cookie (365 days) — accessible server-side too
       document.cookie = `rx-theme=${next};path=/;max-age=31536000;SameSite=Lax`
       return next
     })
   }, [])
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme: applyTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   )
