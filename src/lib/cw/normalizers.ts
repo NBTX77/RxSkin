@@ -5,6 +5,7 @@
 // ============================================================
 
 import type { Ticket, ScheduleEntry, Company, Member, Project } from '@/types'
+import { cwDeptToRxDept } from '@/types'
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -111,7 +112,9 @@ export function normalizeProject(raw: Record<string, unknown>): Project {
     statusId: nestedNum(raw.status, 'id'),
     board: nested(raw.board, 'name') || 'Unknown',
     boardId: nestedNum(raw.board, 'id'),
-    department: nested(raw.department, 'name') || undefined,
+    // CW returns full department names ("Systems Integration", "IT", "G&A")
+    // Map to internal RX dept codes (SI, IT, GA, AM, LT) for frontend filtering
+    department: cwDeptToRxDept(nested(raw.department, 'name') || undefined),
     company: nested(raw.company, 'name') || 'Unknown',
     companyId: nestedNum(raw.company, 'id'),
     manager: nested(raw.manager, 'identifier') || undefined,
