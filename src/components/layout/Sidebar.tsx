@@ -285,7 +285,7 @@ export function Sidebar() {
       )}
 
       {/* Bottom: minimal branding */}
-      <div className={`px-3 py-3border-t border-gray-700}>
+      <div className="px-3 py-3 border-t border-gray-700">
         <p className="text-[10px] text-gray-600 text-center tracking-wider uppercase">RX Skin v0.1</p>
       </div>
     </aside>
