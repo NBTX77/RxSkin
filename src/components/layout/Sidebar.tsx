@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Sun,
   Moon,
@@ -19,7 +19,7 @@ import {
   BarChart3,
   Clock,
   Menu,
-  X,
+  GripVertical,
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { useTheme } from '@/components/theme/ThemeProvider'
@@ -37,6 +37,22 @@ const opsSubItems = [
   { href: '/ops/holds', label: 'Schedule Holds', icon: Clock },
 ]
 
+const STORAGE_KEY = 'rx-sidebar-pos'
+
+function loadPosition(): { x: number; y: number } | null {
+  try {
+    const raw = typeof window !== 'undefined' ? sessionStorage.getItem(STORAGE_KEY) : null
+    if (raw) return JSON.parse(raw)
+  } catch {}
+  return null
+}
+
+function savePosition(pos: { x: number; y: number }) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(pos))
+  } catch {}
+}
+
 export function Sidebar() {
   const pathname = usePathname()
   const { theme, toggleTheme } = useTheme()
@@ -44,63 +60,129 @@ export function Sidebar() {
   const [open, setOpen] = useState(true)
   const sidebarRef = useRef<HTMLElement>(null)
 
+  // Drag state
+  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 12, y: 12 })
+  const [isDragging, setIsDragging] = useState(false)
+  const dragOffset = useRef({ x: 0, y: 0 })
+
+  // Load saved position on mount
+  useEffect(() => {
+    const saved = loadPosition()
+    if (saved) setPosition(saved)
+  }, [])
+
   const isOpsActive = pathname.startsWith('/ops')
 
-  // Close sidebar on route change on smaller screens
-  useEffect(() => {
-    // Keep sidebar open on large screens by default
-  }, [pathname])
-
-  // Close on click outside when open
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (
-        open &&
-        sidebarRef.current &&
-        !sidebarRef.current.contains(e.target as Node) &&
-        !(e.target as HTMLElement).closest('[data-sidebar-toggle]')
-      ) {
-        // Don't auto-close — user controls it
-      }
+  // Drag handlers
+  const onDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    dragOffset.current = {
+      x: clientX - position.x,
+      y: clientY - position.y,
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [open])
+    setIsDragging(true)
+  }, [position])
+
+  useEffect(() => {
+    if (!isDragging) return
+
+    function onMove(e: MouseEvent | TouchEvent) {
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+
+      const newX = Math.max(0, Math.min(window.innerWidth - 200, clientX - dragOffset.current.x))
+      const newY = Math.max(0, Math.min(window.innerHeight - 100, clientY - dragOffset.current.y))
+
+      setPosition({ x: newX, y: newY })
+    }
+
+    function onEnd() {
+      setIsDragging(false)
+      setPosition(prev => {
+        savePosition(prev)
+        return prev
+      })
+    }
+
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onEnd)
+    window.addEventListener('touchmove', onMove, { passive: false })
+    window.addEventListener('touchend', onEnd)
+
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onEnd)
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', onEnd)
+    }
+  }, [isDragging])
 
   return (
     <>
-      {/* Toggle button — always visible on desktop */}
-      <button
-        data-sidebar-toggle
-        onClick={() => setOpen(!open)}
-        className="hidden lg:flex fixed top-3 left-3 z-50 items-center justify-center w-9 h-9 rounded-lg bg-gray-900/80 backdrop-blur-md border border-gray-700/40 text-gray-400 hover:text-white hover:bg-gray-800/90 transition-all shadow-lg"
-        title={open ? 'Hide navigation' : 'Show navigation'}
-      >
-        {open ? <X size={16} /> : <Menu size={16} />}
-      </button>
+      {/* Single Menu toggle button — fixed top-left, always visible on desktop */}
+      {!open && (
+        <button
+          data-sidebar-toggle
+          onClick={() => setOpen(true)}
+          className="hidden lg:flex fixed top-3 left-3 z-50 items-center justify-center w-9 h-9 rounded-lg bg-gray-900/80 backdrop-blur-md border border-gray-700/40 text-gray-400 hover:text-white hover:bg-gray-800/90 transition-all shadow-lg"
+          title="Show navigation"
+        >
+          <Menu size={16} />
+        </button>
+      )}
 
-      {/* Floating sidebar card */}
+      {/* Floating, draggable sidebar card */}
       <aside
         ref={sidebarRef}
-        className={`hidden lg:flex flex-col fixed left-3 top-14 z-40 w-48 max-h-[calc(100vh-72px)] bg-gray-900/90 backdrop-blur-xl border border-gray-700/40 rounded-xl shadow-2xl transition-all duration-200 ${
+        style={{
+          left: position.x,
+          top: position.y,
+          cursor: isDragging ? 'grabbing' : undefined,
+        }}
+        className={`hidden lg:flex flex-col fixed z-40 w-48 max-h-[calc(100vh-24px)] bg-gray-900/90 backdrop-blur-xl border border-gray-700/40 rounded-xl shadow-2xl transition-opacity duration-200 ${
           open
-            ? 'opacity-100 translate-x-0'
-            : 'opacity-0 -translate-x-4 pointer-events-none'
-        }`}
+            ? 'opacity-100'
+            : 'opacity-0 pointer-events-none'
+        } ${isDragging ? 'select-none' : ''}`}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 px-4 py-3 border-b border-gray-700/30">
-          <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-xs" style={{ color: '#fff' }}>RX</span>
+        {/* Drag handle header with integrated menu toggle */}
+        <div className="flex items-center gap-1 px-1.5 py-1.5 border-b border-gray-700/30">
+          {/* Drag grip */}
+          <div
+            onMouseDown={onDragStart}
+            onTouchStart={onDragStart}
+            className="flex items-center justify-center w-6 h-6 rounded cursor-grab active:cursor-grabbing text-gray-600 hover:text-gray-400 transition-colors"
+            title="Drag to reposition"
+          >
+            <GripVertical size={12} />
           </div>
-          <div>
-            <p className="text-white font-semibold text-xs">RX Skin</p>
-            <p className="text-gray-500 text-[10px]">ConnectWise Portal</p>
+
+          {/* Logo */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-[10px]" style={{ color: '#fff' }}>RX</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-white font-semibold text-[11px] leading-tight">RX Skin</p>
+              <p className="text-gray-500 text-[9px] leading-tight truncate">ConnectWise Portal</p>
+            </div>
           </div>
+
+          {/* Close / collapse button (Menu icon) */}
+          <button
+            onClick={() => setOpen(false)}
+            className="flex items-center justify-center w-6 h-6 rounded text-gray-500 hover:text-white hover:bg-gray-800/50 transition-colors"
+            title="Hide navigation"
+          >
+            <Menu size={13} />
+          </button>
         </div>
 
         {/* Search shortcut */}
-        <div className="px-2.5 pt-2.5 pb-1">
+        <div className="px-2.5 pt-2 pb-1">
           <button
             onClick={() => {
               document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }))
