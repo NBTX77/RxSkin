@@ -11,7 +11,7 @@ export function useFleetData() {
       if (!res.ok) throw new Error('Failed to fetch fleet data')
       return res.json()
     },
-    refetchInterval: 30_000, // Auto-refresh every 30s
-    staleTime: 15_000,
+    refetchInterval: 10_000, // 10s for real-time tracking
+    staleTime: 5_000,
   })
 }

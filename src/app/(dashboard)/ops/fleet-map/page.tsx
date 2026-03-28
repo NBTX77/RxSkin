@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useFleetData } from '@/hooks/useFleetData'
+import { useVehicleTrails } from '@/hooks/useVehicleTrails'
 import { OpsHeader } from '@/components/ops/OpsHeader'
 import { TechSidebar } from '@/components/ops/TechSidebar'
 import { TechProfilePanel } from '@/components/ops/TechProfilePanel'
@@ -20,6 +21,7 @@ const FleetMap = dynamic(() => import('@/components/ops/FleetMap').then((mod) =>
 
 export default function FleetMapPage() {
   const { data, isLoading, refetch, isFetching } = useFleetData()
+  const { data: trailData } = useVehicleTrails()
   const [selectedTech, setSelectedTech] = useState<FleetTech | null>(null)
 
   if (isLoading) {
@@ -58,6 +60,7 @@ export default function FleetMapPage() {
         <div className="flex-1 relative">
           <FleetMap
             techs={techs}
+            trails={trailData?.trails}
             onSelectTech={(tech) => setSelectedTech(tech)}
           />
         </div>

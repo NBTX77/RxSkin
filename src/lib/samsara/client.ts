@@ -189,3 +189,67 @@ export function getSamsaraCredentials(): SamsaraCredentials {
 export function isSamsaraConfigured(): boolean {
   return !!process.env.SAMSARA_API_TOKEN
 }
+
+// ── Vehicle GPS History (Trail) ─────────────────
+
+export interface GpsPoint {
+  latitude: number
+  longitude: number
+  speedMph: number
+  headingDegrees: number
+  time: string
+}
+
+export interface VehicleTrail {
+  vehicleId: string
+  vehicleName: string
+  points: GpsPoint[]
+}
+
+interface SamsaraStatsHistoryResponse {
+  data: Array<{
+    id: string
+    name: string
+    gps: Array<{
+      time: string
+      latitude: number
+      longitude: number
+      headingDegrees: number
+      speedMilesPerHour: number
+    }>
+  }>
+}
+
+/**
+ * Fetch GPS breadcrumb history for all vehicles over a time window.
+ * Uses `/fleet/vehicles/stats/history?types=gps`.
+ * Returns ~5-second resolution when vehicles are moving.
+ */
+export async function getVehicleLocationHistory(
+  creds: SamsaraCredentials,
+  startTime: string,
+  endTime: string
+): Promise<VehicleTrail[]> {
+  const params = new URLSearchParams({
+    types: 'gps',
+    startTime,
+    endTime,
+  })
+
+  const res = await samsaraFetch<SamsaraStatsHistoryResponse>(
+    creds,
+    `/fleet/vehicles/stats/history?${params.toString()}`
+  )
+
+  return res.data.map((v) => ({
+    vehicleId: v.id,
+    vehicleName: v.name,
+    points: (v.gps ?? []).map((p) => ({
+      latitude: p.latitude,
+      longitude: p.longitude,
+      speedMph: p.speedMilesPerHour,
+      headingDegrees: p.headingDegrees,
+      time: p.time,
+    })),
+  }))
+}

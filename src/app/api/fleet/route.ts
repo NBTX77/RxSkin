@@ -13,7 +13,7 @@ import type { FleetData } from '@/types/ops'
 
 export const dynamic = 'force-dynamic'
 
-const FLEET_CACHE_TTL_MS = 30 * 1000 // 30 seconds
+const FLEET_CACHE_TTL_MS = 10 * 1000 // 10 seconds — real-time tracking
 
 export async function GET() {
   try {

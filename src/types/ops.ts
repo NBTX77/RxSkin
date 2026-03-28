@@ -120,3 +120,26 @@ export type TechFilter = 'all' | 'critical' | 'high' | 'inProgress' | 'multiTech
 export type EntryType = 'On-Site' | 'Remote' | 'Meeting' | 'Schedule Hold' | 'Recurring'
 
 export type ScheduleHoldSort = 'priority' | 'dateEntered' | 'company'
+
+// ── Vehicle Trail (GPS History) ──────────────────
+
+export interface VehicleTrailPoint {
+  lat: number
+  lng: number
+  speed: number
+  heading: number
+  time: string
+}
+
+export interface VehicleTrailData {
+  vehicleId: string
+  vehicleName: string
+  points: VehicleTrailPoint[]
+}
+
+export interface FleetTrailsResponse {
+  ok: boolean
+  trails: VehicleTrailData[]
+  windowStart: string
+  windowEnd: string
+}
