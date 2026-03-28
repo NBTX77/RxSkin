@@ -2,6 +2,8 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { GlobalSearch } from '@/components/layout/GlobalSearch'
 
+export const dynamic = 'force-dynamic'
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col lg:flex-row h-screen bg-gray-950">
