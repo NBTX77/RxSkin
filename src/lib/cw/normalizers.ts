@@ -1,4 +1,12 @@
-import type { Ticket, ScheduleEntry, Company, Member } from '@/types'
+// ============================================================
+// CW API Response Normalizers — RX Skin
+// Maps verbose CW API responses to clean frontend types.
+// CW tickets have 60+ fields — we only need ~20.
+// ============================================================
+
+import type { Ticket, ScheduleEntry, Company, Member, Project } from '@/types'
+
+// ── Helpers ───────────────────────────────────────────────────
 
 function str(val: unknown): string {
   if (typeof val === 'string') return val
@@ -11,19 +19,22 @@ function num(val: unknown): number | undefined {
 }
 
 function nested(obj: unknown, key: string): string {
-  if (obj && typeof obj === 'object') return str((obj as Record<string, unknown>)[key])
+  if (obj && typeof obj === 'object') {
+    return str((obj as Record<string, unknown>)[key])
+  }
   return ''
 }
 
 function nestedNum(obj: unknown, key: string): number | undefined {
-  if (obj && typeof obj === 'object') return num((obj as Record<string, unknown>)[key])
+  if (obj && typeof obj === 'object') {
+    return num((obj as Record<string, unknown>)[key])
+  }
   return undefined
 }
 
-export function normalizeTicket(raw: Record<string, unknown>): Ticket {
-  // CW puts dates inside _info, not top-level
-  const info = (raw._info && typeof raw._info === 'object') ? raw._info as Record<string, unknown> : {}
+// ── Ticket ────────────────────────────────────────────────────
 
+export function normalizeTicket(raw: Record<string, unknown>): Ticket {
   return {
     id: num(raw.id) ?? 0,
     summary: str(raw.summary),
@@ -41,8 +52,8 @@ export function normalizeTicket(raw: Record<string, unknown>): Ticket {
     assignedToId: nested(raw.owner, 'identifier') || undefined,
     budgetHours: num(raw.budgetHours),
     actualHours: num(raw.actualHours),
-    createdAt: str(raw.dateEntered) || str(info.dateEntered) || '',
-    updatedAt: str(raw.lastUpdated) || str(info.lastUpdated) || '',
+    createdAt: str(raw.dateEntered),
+    updatedAt: str(raw.lastUpdated),
     closedAt: str(raw.closedDate) || undefined,
     resources: Array.isArray(raw.resources)
       ? raw.resources.map((r: Record<string, unknown>) => ({
@@ -53,6 +64,8 @@ export function normalizeTicket(raw: Record<string, unknown>): Ticket {
       : [],
   }
 }
+
+// ── Schedule Entry ────────────────────────────────────────────
 
 export function normalizeScheduleEntry(raw: Record<string, unknown>): ScheduleEntry {
   return {
@@ -70,6 +83,8 @@ export function normalizeScheduleEntry(raw: Record<string, unknown>): ScheduleEn
   }
 }
 
+// ── Company ───────────────────────────────────────────────────
+
 export function normalizeCompany(raw: Record<string, unknown>): Company {
   return {
     id: num(raw.id) ?? 0,
@@ -86,6 +101,34 @@ export function normalizeCompany(raw: Record<string, unknown>): Company {
   }
 }
 
+// ── Project ───────────────────────────────────────────────────
+
+export function normalizeProject(raw: Record<string, unknown>): Project {
+  return {
+    id: num(raw.id) ?? 0,
+    name: str(raw.name),
+    status: nested(raw.status, 'name') || 'Unknown',
+    statusId: nestedNum(raw.status, 'id'),
+    board: nested(raw.board, 'name') || 'Unknown',
+    boardId: nestedNum(raw.board, 'id'),
+    department: nested(raw.department, 'name') || undefined,
+    company: nested(raw.company, 'name') || 'Unknown',
+    companyId: nestedNum(raw.company, 'id'),
+    manager: nested(raw.manager, 'identifier') || undefined,
+    managerId: nested(raw.manager, 'identifier') || undefined,
+    estimatedStart: str(raw.estimatedStart) || undefined,
+    estimatedEnd: str(raw.estimatedEnd) || undefined,
+    actualStart: str(raw.actualStart) || undefined,
+    actualEnd: str(raw.actualEnd) || undefined,
+    budgetHours: num(raw.budgetHours) ?? 0,
+    actualHours: num(raw.actualHours) ?? 0,
+    billingMethod: str(raw.billingMethod) || undefined,
+    closedFlag: raw.closedFlag === true,
+  }
+}
+
+// ── Member ────────────────────────────────────────────────────
+
 export function normalizeMember(raw: Record<string, unknown>): Member {
   const firstName = str(raw.firstName)
   const lastName = str(raw.lastName)
@@ -95,6 +138,8 @@ export function normalizeMember(raw: Record<string, unknown>): Member {
     name: [firstName, lastName].filter(Boolean).join(' ') || str(raw.identifier),
     email: str(raw.emailAddress) || undefined,
     title: str(raw.title) || undefined,
-    avatar: nestedNum(raw.photo, 'id') ? `/api/members/${num(raw.id)}/avatar` : undefined,
+    avatar: nestedNum(raw.photo, 'id')
+      ? `/api/members/${num(raw.id)}/avatar`
+      : undefined,
   }
 }
