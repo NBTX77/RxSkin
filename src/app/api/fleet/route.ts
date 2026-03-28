@@ -38,46 +38,48 @@ export async function GET() {
           }
         }
 
-        // Try live Samsara + CW data, fall back to mock on error
-        try {
-          const cwCreds = await getTenantCredentials(tenantId)
-          const samsaraCreds = getSamsaraCredentials()
+        // Fetch live Samsara + CW data with graceful per-source fallback
+        const cwCreds = await getTenantCredentials(tenantId)
+        const samsaraCreds = getSamsaraCredentials()
 
-          // Fetch all data sources in parallel
-          const today = new Date()
-          const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString()
-          const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString()
+        const today = new Date()
+        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString()
+        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString()
 
-          const [locations, drivers, hosClocks, members, tickets, scheduleEntries] = await Promise.all([
-            getVehicleLocations(samsaraCreds),
-            getDrivers(samsaraCreds),
-            getHosClocks(samsaraCreds),
-            getMembers(cwCreds),
-            getTickets(cwCreds, {
-              status: ['New', 'In Progress', 'Waiting Customer', 'Waiting Vendor', 'Schedule Hold', 'Scheduled'],
-              pageSize: 200,
-            }),
-            getScheduleEntries(cwCreds, { start: startOfDay, end: endOfDay }),
-          ])
+        // Wrap each source so one failure doesn't kill the whole response
+        const [locations, drivers, hosClocks, members, tickets, scheduleEntries] = await Promise.all([
+          getVehicleLocations(samsaraCreds).catch((e) => {
+            console.error('[fleet] Samsara locations failed:', e.message ?? e)
+            return [] as Awaited<ReturnType<typeof getVehicleLocations>>
+          }),
+          getDrivers(samsaraCreds).catch((e) => {
+            console.error('[fleet] Samsara drivers failed:', e.message ?? e)
+            return [] as Awaited<ReturnType<typeof getDrivers>>
+          }),
+          getHosClocks(samsaraCreds).catch((e) => {
+            console.error('[fleet] Samsara HOS failed:', e.message ?? e)
+            return [] as Awaited<ReturnType<typeof getHosClocks>>
+          }),
+          getMembers(cwCreds).catch((e) => {
+            console.error('[fleet] CW members failed:', e.message ?? e)
+            return [] as Awaited<ReturnType<typeof getMembers>>
+          }),
+          getTickets(cwCreds, {
+            status: ['New', 'In Progress', 'Waiting Customer', 'Waiting Vendor', 'Schedule Hold', 'Scheduled'],
+            pageSize: 200,
+          }).catch((e) => {
+            console.error('[fleet] CW tickets failed:', e.message ?? e)
+            return [] as Awaited<ReturnType<typeof getTickets>>
+          }),
+          getScheduleEntries(cwCreds, { start: startOfDay, end: endOfDay }).catch((e) => {
+            console.error('[fleet] CW schedule failed:', e.message ?? e)
+            return [] as Awaited<ReturnType<typeof getScheduleEntries>>
+          }),
+        ])
 
-          const merged = mergeFleetData({
-            locations,
-            drivers,
-            hosClocks,
-            members,
-            tickets,
-            scheduleEntries,
-          })
-
-          return {
-            ok: true,
-            techs: merged.techs,
-            schedHoldTickets: merged.schedHoldTickets,
-            lastSync: new Date().toISOString(),
-          }
-        } catch (samsaraError) {
-          // Samsara or CW call failed — fall back to mock data
-          console.error('[fleet] Samsara/CW fetch failed, falling back to mock:', samsaraError)
+        // If we got zero drivers AND zero locations, nothing to merge — fall back to mock
+        if (drivers.length === 0 && locations.length === 0) {
+          console.warn('[fleet] No Samsara data returned — falling back to mock')
           const mock = getMockFleetData()
           return {
             ok: true,
@@ -85,6 +87,22 @@ export async function GET() {
             schedHoldTickets: mock.schedHoldTickets,
             lastSync: new Date().toISOString(),
           }
+        }
+
+        const merged = mergeFleetData({
+          locations,
+          drivers,
+          hosClocks,
+          members,
+          tickets,
+          scheduleEntries,
+        })
+
+        return {
+          ok: true,
+          techs: merged.techs,
+          schedHoldTickets: merged.schedHoldTickets,
+          lastSync: new Date().toISOString(),
         }
       },
       FLEET_CACHE_TTL_MS
