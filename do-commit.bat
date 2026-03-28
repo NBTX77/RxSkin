@@ -1,5 +1,7 @@
 @echo off
 cd /d C:\Users\TBrown\Desktop\rx-skin
-git add package.json src/app/api/tickets/route.ts src/components/layout/MobileNav.tsx src/components/layout/Sidebar.tsx src/lib/cw/client.ts
-git commit -m "feat: add Ops Hub - Fleet Map, Analytics, Schedule Holds"
-echo COMMIT_DONE
+git add -A
+git commit -m "chore: remove stale batch files and build artifacts"
+git push origin main
+git log --oneline -3
+del do-commit.bat
