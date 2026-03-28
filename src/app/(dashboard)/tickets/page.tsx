@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Search, Filter, Plus } from 'lucide-react'
+import { Search, Plus } from 'lucide-react'
 import Link from 'next/link'
 
 interface Ticket {
@@ -13,6 +13,24 @@ interface Ticket {
   company: string
   assignedTo?: string
   updatedAt: string
+}
+
+/* ── unified badge helper (shared pattern) ── */
+function badgeClasses(variant: 'priority' | 'status', value: string) {
+  const v = value.toLowerCase()
+  const base = 'inline-block px-2 py-0.5 rounded text-xs font-medium border whitespace-nowrap'
+  if (variant === 'priority') {
+    if (v === 'critical') return `${base} bg-red-500/10 text-red-400 border-red-500/30`
+    if (v === 'high') return `${base} bg-orange-500/10 text-orange-400 border-orange-500/30`
+    if (v === 'medium') return `${base} bg-yellow-500/10 text-yellow-400 border-yellow-500/30`
+    return `${base} bg-green-500/10 text-green-400 border-green-500/30`
+  }
+  // status
+  if (v === 'resolved' || v === 'closed') return `${base} bg-green-500/10 text-green-400 border-green-500/30`
+  if (v === 'in progress') return `${base} bg-blue-500/10 text-blue-400 border-blue-500/30`
+  if (v.includes('waiting')) return `${base} bg-yellow-500/10 text-yellow-400 border-yellow-500/30`
+  if (v === 'scheduled' || v === 'schedule hold') return `${base} bg-purple-500/10 text-purple-400 border-purple-500/30`
+  return `${base} bg-gray-500/10 text-gray-300 border-gray-500/30`
 }
 
 export default function TicketsPage() {
@@ -52,7 +70,6 @@ export default function TicketsPage() {
               New Ticket
             </Link>
           </div>
-          {/* Search and Filters */}
           <div className="space-y-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
@@ -95,18 +112,19 @@ export default function TicketsPage() {
         {isLoading && <div className="text-gray-400">Loading tickets...</div>}
         {error && <div className="text-red-400">Error loading tickets</div>}
 
-        {tickets.length === 0 ? (
+        {tickets.length === 0 && !isLoading ? (
           <div className="text-center text-gray-400">No tickets found</div>
         ) : (
+          /* Desktop table */
           <div className="hidden lg:block bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
             <table className="w-full table-fixed">
               <colgroup>
                 <col style={{ width: '80px' }} />
                 <col />
-                <col style={{ width: '140px' }} />
-                <col style={{ width: '110px' }} />
-                <col style={{ width: '80px' }} />
-                <col style={{ width: '130px' }} />
+                <col style={{ width: '160px' }} />
+                <col style={{ width: '120px' }} />
+                <col style={{ width: '90px' }} />
+                <col style={{ width: '150px' }} />
               </colgroup>
               <thead>
                 <tr className="border-b border-gray-800">
@@ -124,7 +142,7 @@ export default function TicketsPage() {
                     key={ticket.id}
                     className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
                   >
-                    <td className="px-4 py-2.5 align-top">
+                    <td className="px-4 py-2.5 align-middle">
                       <Link
                         href={`/tickets/${ticket.id}`}
                         className="text-blue-400 hover:text-blue-300 font-medium text-sm"
@@ -132,27 +150,17 @@ export default function TicketsPage() {
                         #{ticket.id}
                       </Link>
                     </td>
-                    <td className="px-4 py-2.5 align-top text-white text-sm truncate">{ticket.summary}</td>
-                    <td className="px-4 py-2.5 align-top text-gray-400 text-sm truncate">{ticket.company}</td>
-                    <td className="px-4 py-2.5 align-top">
-                      <span className="px-2 py-0.5 bg-gray-800 text-gray-300 rounded text-xs font-medium whitespace-nowrap">
-                        {ticket.status}
-                      </span>
+                    <td className="px-4 py-2.5 align-middle text-white text-sm truncate">{ticket.summary}</td>
+                    <td className="px-4 py-2.5 align-middle text-gray-400 text-sm truncate">{ticket.company}</td>
+                    <td className="px-4 py-2.5 align-middle">
+                      <span className={badgeClasses('status', ticket.status)}>{ticket.status}</span>
                     </td>
-                    <td className="px-4 py-2.5 align-top">
-                      <span
-                        className={`px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${
-                          ticket.priority === 'high'
-                            ? 'bg-red-950 text-red-400'
-                            : ticket.priority === 'medium'
-                              ? 'bg-yellow-950 text-yellow-400'
-                              : 'bg-green-950 text-green-400'
-                        }`}
-                      >
-                        {ticket.priority}
-                      </span>
+                    <td className="px-4 py-2.5 align-middle">
+                      <span className={badgeClasses('priority', ticket.priority)}>{ticket.priority}</span>
                     </td>
-                    <td className="px-4 py-2.5 align-top text-gray-400 text-sm whitespace-nowrap">{new Date(ticket.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</td>
+                    <td className="px-4 py-2.5 align-middle text-gray-400 text-sm whitespace-nowrap">
+                      {new Date(ticket.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -170,8 +178,11 @@ export default function TicketsPage() {
                 className="block p-4 bg-gray-900 border border-gray-800 rounded-lg hover:bg-gray-800 transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
-                  <span className="text-blue-400 font-semibold">#{ticket.id}</span>
-                  <span className="text-xs px-2 py-1 bg-gray-800 text-gray-300 rounded">{ticket.status}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-400 font-semibold">#{ticket.id}</span>
+                    <span className={badgeClasses('priority', ticket.priority)}>{ticket.priority}</span>
+                  </div>
+                  <span className={badgeClasses('status', ticket.status)}>{ticket.status}</span>
                 </div>
                 <p className="text-white font-medium mb-2">{ticket.summary}</p>
                 <div className="flex items-center justify-between text-sm text-gray-400">

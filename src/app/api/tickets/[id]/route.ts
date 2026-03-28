@@ -1,9 +1,9 @@
-// GET /api/tickets/[id] — Get a single ticket by ID
+// GET/PATCH /api/tickets/[id] — Get or update a single ticket
 
 import { auth } from '@/lib/auth/config'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 import { getCWCredentials } from '@/lib/cw/credentials'
-import { getTicket } from '@/lib/cw/client'
+import { getTicket, updateTicket } from '@/lib/cw/client'
 import { getMockTicketById } from '@/lib/mock-data'
 
 export async function GET(
@@ -28,6 +28,42 @@ export async function GET(
       }
       return Response.json(ticket)
     }
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user) return apiErrors.unauthorized()
+
+    const ticketId = parseInt(params.id, 10)
+    if (isNaN(ticketId)) return apiErrors.badRequest('Invalid ticket ID')
+
+    const creds = getCWCredentials()
+    if (!creds) return apiErrors.internal('ConnectWise credentials not configured')
+
+    const body = await request.json()
+    // Accept either a JSON Patch array or a convenience object
+    let patches: Array<{ op: string; path: string; value: unknown }>
+
+    if (Array.isArray(body)) {
+      patches = body
+    } else {
+      // Convert { status: 'Resolved', type: {...} } → JSON Patch ops
+      patches = Object.entries(body).map(([key, value]) => ({
+        op: 'replace',
+        path: key,
+        value,
+      }))
+    }
+
+    const ticket = await updateTicket(creds, ticketId, patches)
+    return Response.json(ticket)
   } catch (error) {
     return handleApiError(error)
   }

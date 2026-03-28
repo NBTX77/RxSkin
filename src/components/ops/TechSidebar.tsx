@@ -10,9 +10,11 @@ interface TechSidebarProps {
   techs: FleetTech[]
   selectedTechId?: string
   onSelectTech: (tech: FleetTech) => void
+  /** When true, renders inline content only (no outer wrapper) — for overlay mode */
+  overlay?: boolean
 }
 
-export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebarProps) {
+export function TechSidebar({ techs, selectedTechId, onSelectTech, overlay }: TechSidebarProps) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<TechFilter>('all')
   const [mobileExpanded, setMobileExpanded] = useState(false)
@@ -129,6 +131,11 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebar
       </div>
     </>
   )
+
+  // Overlay mode: render content directly (parent handles positioning)
+  if (overlay) {
+    return <div className="flex flex-col h-full p-3 overflow-hidden">{content}</div>
+  }
 
   return (
     <>

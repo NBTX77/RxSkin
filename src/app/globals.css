@@ -148,10 +148,48 @@ html.light {
   & .bg-purple-500\/10 { background-color: rgb(243 232 255 / 0.6) !important; }
   & .bg-cyan-500\/10 { background-color: rgb(207 250 254 / 0.6) !important; }
   & .bg-green-500\/10 { background-color: rgb(220 252 231 / 0.6) !important; }
+  & .bg-red-500\/10 { background-color: rgb(254 226 226 / 0.6) !important; }
+  & .bg-orange-500\/10 { background-color: rgb(255 237 213 / 0.6) !important; }
   & .bg-gray-500\/10 { background-color: rgb(241 245 249 / 0.6) !important; }
   & .bg-yellow-500\/5 { background-color: rgb(254 249 195 / 0.3) !important; }
   & .border-yellow-500\/20 { border-color: rgb(253 224 71 / 0.4) !important; }
   & .bg-yellow-500\/20 { background-color: rgb(253 224 71 / 0.2) !important; }
+
+  /* Unified badge borders for light mode */
+  & .border-blue-500\/30 { border-color: rgb(59 130 246 / 0.3) !important; }
+  & .border-green-500\/30 { border-color: rgb(34 197 94 / 0.3) !important; }
+  & .border-red-500\/30 { border-color: rgb(239 68 68 / 0.3) !important; }
+  & .border-orange-500\/30 { border-color: rgb(249 115 22 / 0.3) !important; }
+  & .border-yellow-500\/30 { border-color: rgb(234 179 8 / 0.3) !important; }
+  & .border-purple-500\/30 { border-color: rgb(168 85 247 / 0.3) !important; }
+  & .border-gray-500\/30 { border-color: rgb(107 114 128 / 0.3) !important; }
+
+  /* Schedule entry overlay backgrounds */
+  & .bg-blue-500\/15 { background-color: rgb(219 234 254 / 0.7) !important; }
+  & .bg-purple-500\/15 { background-color: rgb(243 232 255 / 0.7) !important; }
+  & .bg-teal-500\/15 { background-color: rgb(204 251 241 / 0.7) !important; }
+  & .bg-orange-500\/15 { background-color: rgb(255 237 213 / 0.7) !important; }
+  & .bg-pink-500\/15 { background-color: rgb(252 231 243 / 0.7) !important; }
+  & .bg-emerald-500\/15 { background-color: rgb(209 250 229 / 0.7) !important; }
+  & .border-blue-500\/40 { border-color: rgb(59 130 246 / 0.4) !important; }
+  & .border-purple-500\/40 { border-color: rgb(168 85 247 / 0.4) !important; }
+  & .border-teal-500\/40 { border-color: rgb(20 184 166 / 0.4) !important; }
+  & .border-orange-500\/40 { border-color: rgb(249 115 22 / 0.4) !important; }
+  & .border-pink-500\/40 { border-color: rgb(236 72 153 / 0.4) !important; }
+  & .border-emerald-500\/40 { border-color: rgb(16 185 129 / 0.4) !important; }
+
+  /* Schedule text colors for light */
+  & .text-blue-200 { color: #1e40af !important; }
+  & .text-purple-200 { color: #7e22ce !important; }
+  & .text-teal-200 { color: #0f766e !important; }
+  & .text-orange-200 { color: #c2410c !important; }
+  & .text-pink-200 { color: #be185d !important; }
+  & .text-emerald-200 { color: #047857 !important; }
+
+  /* Note form internal badge */
+  & .bg-yellow-950\/30 { background-color: rgb(254 249 195 / 0.5) !important; }
+  & .border-yellow-900\/50 { border-color: rgb(253 224 71 / 0.4) !important; }
+  & .bg-blue-500\/10 .text-blue-400 { color: #2563eb !important; }
 
   /* Quick close panel green */
   & .bg-green-600\/20 { background-color: rgb(34 197 94 / 0.1) !important; }

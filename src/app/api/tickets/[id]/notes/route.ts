@@ -1,9 +1,9 @@
-// GET /api/tickets/[id]/notes — List notes for a ticket
+// GET/POST /api/tickets/[id]/notes — List or add notes for a ticket
 
 import { auth } from '@/lib/auth/config'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 import { getCWCredentials } from '@/lib/cw/credentials'
-import { getTicketNotes } from '@/lib/cw/client'
+import { getTicketNotes, addTicketNote } from '@/lib/cw/client'
 import { getMockNotes } from '@/lib/mock-data'
 import type { TicketNote } from '@/types'
 
@@ -42,6 +42,32 @@ export async function GET(
       const notes = getMockNotes(ticketId)
       return Response.json(notes)
     }
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
+
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user) return apiErrors.unauthorized()
+
+    const ticketId = parseInt(params.id, 10)
+    if (isNaN(ticketId)) return apiErrors.badRequest('Invalid ticket ID')
+
+    const body = await request.json()
+    const { text, isInternal } = body as { text?: string; isInternal?: boolean }
+    if (!text?.trim()) return apiErrors.badRequest('Note text is required')
+
+    const creds = getCWCredentials()
+    if (!creds) return apiErrors.internal('ConnectWise credentials not configured')
+
+    const raw = await addTicketNote(creds, ticketId, text.trim(), isInternal ?? false)
+    const note = normalizeNote(raw, ticketId)
+    return Response.json(note, { status: 201 })
   } catch (error) {
     return handleApiError(error)
   }

@@ -1,20 +1,23 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { useParams, useRouter } from 'next/navigation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft, Building2, User, Clock, Calendar, Tag,
-  MessageSquare, Timer, ChevronDown, ChevronUp, AlertCircle,
+  MessageSquare, Timer, AlertCircle, Send, ChevronDown,
+  CheckCircle2, Settings2,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
-/* ---------- types (local, matching API response) ---------- */
+/* ---------- types ---------- */
 interface Ticket {
   id: number
   summary: string
   status: string
   priority: string
+  type?: string
+  subType?: string
   board: string
   company: string
   companyId?: number
@@ -62,32 +65,50 @@ function fmtShortDate(iso: string) {
   })
 }
 
-function priorityClasses(p: string) {
-  const l = p.toLowerCase()
-  if (l === 'critical') return 'bg-red-950 text-red-400 border border-red-800'
-  if (l === 'high') return 'bg-orange-950 text-orange-400 border border-orange-800'
-  if (l === 'medium') return 'bg-yellow-950 text-yellow-400 border border-yellow-800'
-  return 'bg-green-950 text-green-400 border border-green-800'
-}
-
-function statusClasses(s: string) {
-  const l = s.toLowerCase()
-  if (l === 'resolved' || l === 'closed') return 'bg-green-950 text-green-400 border border-green-800'
-  if (l === 'in progress') return 'bg-blue-950 text-blue-400 border border-blue-800'
-  if (l.includes('waiting')) return 'bg-yellow-950 text-yellow-400 border border-yellow-800'
-  if (l === 'scheduled') return 'bg-purple-950 text-purple-400 border border-purple-800'
-  return 'bg-gray-800 text-gray-300 border border-gray-700'
+/* ---------- unified badge helper ---------- */
+function badgeClasses(variant: 'priority' | 'status' | 'type', value: string) {
+  const v = value.toLowerCase()
+  // All badges: same shape, consistent border style
+  const base = 'px-2 py-0.5 rounded text-xs font-medium border'
+  if (variant === 'priority') {
+    if (v === 'critical') return `${base} bg-red-500/10 text-red-400 border-red-500/30`
+    if (v === 'high') return `${base} bg-orange-500/10 text-orange-400 border-orange-500/30`
+    if (v === 'medium') return `${base} bg-yellow-500/10 text-yellow-400 border-yellow-500/30`
+    return `${base} bg-green-500/10 text-green-400 border-green-500/30`
+  }
+  if (variant === 'status') {
+    if (v === 'resolved' || v === 'closed') return `${base} bg-green-500/10 text-green-400 border-green-500/30`
+    if (v === 'in progress') return `${base} bg-blue-500/10 text-blue-400 border-blue-500/30`
+    if (v.includes('waiting')) return `${base} bg-yellow-500/10 text-yellow-400 border-yellow-500/30`
+    if (v === 'scheduled' || v === 'schedule hold') return `${base} bg-purple-500/10 text-purple-400 border-purple-500/30`
+    return `${base} bg-gray-500/10 text-gray-300 border-gray-500/30`
+  }
+  // type
+  return `${base} bg-gray-500/10 text-gray-300 border-gray-500/30`
 }
 
 /* ---------- component ---------- */
 export default function TicketDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const router = useRouter()
   const ticketId = parseInt(id, 10)
+  const queryClient = useQueryClient()
 
   const [activeTab, setActiveTab] = useState<'notes' | 'time'>('notes')
+  const [showActions, setShowActions] = useState(false)
+  const actionsRef = useRef<HTMLDivElement>(null)
 
-  /* ticket */
+  // Close actions dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (actionsRef.current && !actionsRef.current.contains(e.target as Node)) {
+        setShowActions(false)
+      }
+    }
+    if (showActions) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showActions])
+
+  /* ── data fetching ── */
   const { data: ticket, isLoading, error } = useQuery<Ticket>({
     queryKey: ['ticket', ticketId],
     queryFn: async () => {
@@ -98,7 +119,6 @@ export default function TicketDetailPage() {
     enabled: !isNaN(ticketId),
   })
 
-  /* notes */
   const { data: notes = [] } = useQuery<TicketNote[]>({
     queryKey: ['ticket-notes', ticketId],
     queryFn: async () => {
@@ -109,7 +129,6 @@ export default function TicketDetailPage() {
     enabled: !isNaN(ticketId),
   })
 
-  /* time entries */
   const { data: timeEntries = [] } = useQuery<TimeEntry[]>({
     queryKey: ['ticket-time', ticketId],
     queryFn: async () => {
@@ -121,6 +140,42 @@ export default function TicketDetailPage() {
   })
 
   const totalHours = timeEntries.reduce((s, e) => s + e.hoursWorked, 0)
+
+  /* ── sort notes oldest first ── */
+  const sortedNotes = [...notes].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  )
+
+  /* ── mutations ── */
+  const addNoteMutation = useMutation({
+    mutationFn: async ({ text, isInternal }: { text: string; isInternal: boolean }) => {
+      const res = await fetch(`/api/tickets/${ticketId}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, isInternal }),
+      })
+      if (!res.ok) throw new Error('Failed to add note')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticket-notes', ticketId] })
+    },
+  })
+
+  const updateTicketMutation = useMutation({
+    mutationFn: async (patches: Array<{ op: string; path: string; value: unknown }>) => {
+      const res = await fetch(`/api/tickets/${ticketId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patches),
+      })
+      if (!res.ok) throw new Error('Failed to update ticket')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
+    },
+  })
 
   /* ---------- loading / error ---------- */
   if (isLoading) {
@@ -147,34 +202,99 @@ export default function TicketDetailPage() {
     )
   }
 
+  /* ---------- quick actions ---------- */
+  const quickActions = [
+    {
+      label: 'Mark Resolved',
+      action: () => updateTicketMutation.mutate([
+        { op: 'replace', path: 'status', value: { name: 'Resolved' } },
+      ]),
+    },
+    {
+      label: 'Set In Progress',
+      action: () => updateTicketMutation.mutate([
+        { op: 'replace', path: 'status', value: { name: 'In Progress' } },
+      ]),
+    },
+    {
+      label: 'Set Waiting Customer',
+      action: () => updateTicketMutation.mutate([
+        { op: 'replace', path: 'status', value: { name: 'Waiting Customer' } },
+      ]),
+    },
+    {
+      label: 'Set Schedule Hold',
+      action: () => updateTicketMutation.mutate([
+        { op: 'replace', path: 'status', value: { name: 'Schedule Hold' } },
+      ]),
+    },
+    {
+      label: 'Close Ticket',
+      action: () => updateTicketMutation.mutate([
+        { op: 'replace', path: 'status', value: { name: 'Closed' } },
+      ]),
+    },
+  ]
+
   /* ---------- render ---------- */
   return (
     <div className="min-h-screen bg-gray-950 lg:ml-64 pb-20 lg:pb-0">
-      {/* Back link + header */}
+      {/* Sticky header */}
       <div className="sticky top-0 z-30 bg-gray-900 border-b border-gray-800">
         <div className="max-w-4xl mx-auto px-4 py-3">
-          <Link href="/tickets" className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-2 transition-colors">
-            <ArrowLeft size={16} /> Tickets
-          </Link>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <div className="flex items-center justify-between">
+            <Link href="/tickets" className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors">
+              <ArrowLeft size={16} /> Tickets
+            </Link>
+
+            {/* Actions dropdown */}
+            <div className="relative" ref={actionsRef}>
+              <button
+                onClick={() => setShowActions(!showActions)}
+                disabled={updateTicketMutation.isPending}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                <Settings2 size={14} />
+                Actions
+                <ChevronDown size={14} />
+              </button>
+              {showActions && (
+                <div className="absolute right-0 mt-1 w-52 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden z-50">
+                  {quickActions.map((qa) => (
+                    <button
+                      key={qa.label}
+                      onClick={() => { qa.action(); setShowActions(false) }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
+                    >
+                      {qa.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2">
             <h1 className="text-xl font-bold text-white">#{ticket.id}</h1>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${statusClasses(ticket.status)}`}>
-                {ticket.status}
-              </span>
-              <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${priorityClasses(ticket.priority)}`}>
-                {ticket.priority}
-              </span>
+              <span className={badgeClasses('status', ticket.status)}>{ticket.status}</span>
+              <span className={badgeClasses('priority', ticket.priority)}>{ticket.priority}</span>
+              {ticket.type && <span className={badgeClasses('type', ticket.type)}>{ticket.type}</span>}
             </div>
           </div>
           <p className="text-white mt-1 text-base">{ticket.summary}</p>
+          {updateTicketMutation.isPending && (
+            <div className="text-xs text-blue-400 mt-1">Updating ticket...</div>
+          )}
+          {updateTicketMutation.isError && (
+            <div className="text-xs text-red-400 mt-1">Failed to update ticket</div>
+          )}
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-4">
-        {/* Detail cards — responsive grid */}
+        {/* Detail cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-          {/* Company */}
           <div className="flex items-start gap-3 p-3 bg-gray-900 border border-gray-800 rounded-lg">
             <Building2 size={18} className="text-gray-500 mt-0.5 shrink-0" />
             <div>
@@ -182,8 +302,6 @@ export default function TicketDetailPage() {
               <div className="text-sm text-white">{ticket.company}</div>
             </div>
           </div>
-
-          {/* Contact */}
           <div className="flex items-start gap-3 p-3 bg-gray-900 border border-gray-800 rounded-lg">
             <User size={18} className="text-gray-500 mt-0.5 shrink-0" />
             <div>
@@ -191,8 +309,6 @@ export default function TicketDetailPage() {
               <div className="text-sm text-white">{ticket.contact || '—'}</div>
             </div>
           </div>
-
-          {/* Assigned To */}
           <div className="flex items-start gap-3 p-3 bg-gray-900 border border-gray-800 rounded-lg">
             <User size={18} className="text-gray-500 mt-0.5 shrink-0" />
             <div>
@@ -200,8 +316,6 @@ export default function TicketDetailPage() {
               <div className="text-sm text-white">{ticket.assignedTo || 'Unassigned'}</div>
             </div>
           </div>
-
-          {/* Board */}
           <div className="flex items-start gap-3 p-3 bg-gray-900 border border-gray-800 rounded-lg">
             <Tag size={18} className="text-gray-500 mt-0.5 shrink-0" />
             <div>
@@ -209,8 +323,6 @@ export default function TicketDetailPage() {
               <div className="text-sm text-white">{ticket.board}</div>
             </div>
           </div>
-
-          {/* Hours */}
           <div className="flex items-start gap-3 p-3 bg-gray-900 border border-gray-800 rounded-lg">
             <Timer size={18} className="text-gray-500 mt-0.5 shrink-0" />
             <div>
@@ -220,8 +332,6 @@ export default function TicketDetailPage() {
               </div>
             </div>
           </div>
-
-          {/* Dates */}
           <div className="flex items-start gap-3 p-3 bg-gray-900 border border-gray-800 rounded-lg">
             <Calendar size={18} className="text-gray-500 mt-0.5 shrink-0" />
             <div>
@@ -239,7 +349,7 @@ export default function TicketDetailPage() {
           </div>
         </div>
 
-        {/* Tabs: Notes / Time Entries */}
+        {/* Tabs */}
         <div className="border-b border-gray-800 mb-4 flex gap-1">
           <button
             onClick={() => setActiveTab('notes')}
@@ -266,10 +376,10 @@ export default function TicketDetailPage() {
         {/* Notes tab */}
         {activeTab === 'notes' && (
           <div className="space-y-3">
-            {notes.length === 0 ? (
+            {sortedNotes.length === 0 ? (
               <p className="text-gray-500 text-sm py-4">No notes yet.</p>
             ) : (
-              notes.map((note) => (
+              sortedNotes.map((note) => (
                 <div
                   key={note.id}
                   className={`p-4 rounded-lg border ${
@@ -281,18 +391,28 @@ export default function TicketDetailPage() {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-white">{note.createdBy}</span>
-                      {note.isInternal && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-900/60 text-yellow-400 rounded uppercase">
+                      {note.isInternal ? (
+                        <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 rounded">
                           Internal
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded">
+                          Customer View
                         </span>
                       )}
                     </div>
                     <span className="text-xs text-gray-500">{fmtShortDate(note.createdAt)}</span>
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed">{note.text}</p>
+                  <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{note.text}</p>
                 </div>
               ))
             )}
+
+            {/* Add note form */}
+            <AddNoteForm
+              onSubmit={(text, isInternal) => addNoteMutation.mutate({ text, isInternal })}
+              isPending={addNoteMutation.isPending}
+            />
           </div>
         )}
 
@@ -360,6 +480,67 @@ export default function TicketDetailPage() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+/* ====================== ADD NOTE FORM ====================== */
+function AddNoteForm({
+  onSubmit,
+  isPending,
+}: {
+  onSubmit: (text: string, isInternal: boolean) => void
+  isPending: boolean
+}) {
+  const [text, setText] = useState('')
+  const [isInternal, setIsInternal] = useState(true)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const handleSubmit = () => {
+    if (!text.trim() || isPending) return
+    onSubmit(text.trim(), isInternal)
+    setText('')
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      handleSubmit()
+    }
+  }
+
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 mt-4">
+      <textarea
+        ref={textareaRef}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Add a note..."
+        rows={3}
+        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+      />
+      <div className="flex items-center justify-between mt-2">
+        <button
+          onClick={() => setIsInternal(!isInternal)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium border transition-colors ${
+            isInternal
+              ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
+              : 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+          }`}
+        >
+          {isInternal ? 'Internal' : 'Customer View'}
+        </button>
+        <button
+          onClick={handleSubmit}
+          disabled={!text.trim() || isPending}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Send size={14} />
+          {isPending ? 'Sending...' : 'Add Note'}
+        </button>
+      </div>
+      <p className="text-[10px] text-gray-600 mt-1">Ctrl+Enter to send</p>
     </div>
   )
 }
