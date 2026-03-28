@@ -11,7 +11,7 @@ const BAR_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#a855f7', '#eab308', '#ef4
 export function WorkloadBars({ data }: WorkloadBarsProps) {
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400 dark:text-gray-500 text-sm">
+      <div className="flex items-center justify-center h-64 text-gray-500 text-sm">
         No data available
       </div>
     )

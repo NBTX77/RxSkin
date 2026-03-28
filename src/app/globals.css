@@ -211,4 +211,26 @@ html.light {
   & button.bg-blue-600 { color: #ffffff !important; }
   & button.bg-green-600 { color: #ffffff !important; }
   & .bg-blue-600 span, & .bg-blue-600 svg { color: #ffffff !important; }
+
+  /* Floating sidebar glass card in light mode */
+  & .bg-gray-900\/80 { background-color: rgb(255 255 255 / 0.85) !important; }
+  & .bg-gray-900\/90 { background-color: rgb(255 255 255 / 0.92) !important; }
+  & .bg-gray-900\/95 { background-color: rgb(255 255 255 / 0.95) !important; }
+  & .bg-gray-800\/40 { background-color: rgb(241 245 249 / 0.5) !important; }
+  & .bg-gray-800\/60 { background-color: rgb(241 245 249 / 0.6) !important; }
+  & .bg-gray-800\/90 { background-color: rgb(241 245 249 / 0.9) !important; }
+  & .border-gray-700\/40 { border-color: rgb(203 213 225 / 0.5) !important; }
+  & .border-gray-700\/30 { border-color: rgb(203 213 225 / 0.4) !important; }
+  & .hover\:bg-gray-800\/50:hover { background-color: rgb(241 245 249 / 0.5) !important; }
+  & .hover\:bg-gray-800\/90:hover { background-color: rgb(241 245 249 / 0.9) !important; }
+  & .hover\:bg-gray-800\/60:hover { background-color: rgb(241 245 249 / 0.6) !important; }
+  & .bg-gray-800\/30 { background-color: rgb(241 245 249 / 0.3) !important; }
+  & .hover\:bg-gray-800\/30:hover { background-color: rgb(241 245 249 / 0.3) !important; }
+  & .bg-gray-800\/60 { background-color: rgb(241 245 249 / 0.6) !important; }
+  & .bg-blue-600\/10 { background-color: rgb(37 99 235 / 0.08) !important; }
+
+  /* Recharts axis text for light mode */
+  & .recharts-cartesian-axis-tick text { fill: #64748b !important; }
+  & .recharts-cartesian-axis-line { stroke: #e2e8f0 !important; }
+  & .recharts-cartesian-axis-tick-line { stroke: #e2e8f0 !important; }
 }

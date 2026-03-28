@@ -13,7 +13,7 @@ import type { FleetTech } from '@/types/ops'
 const FleetMap = dynamic(() => import('@/components/ops/FleetMap').then((mod) => ({ default: mod.FleetMap })), {
   ssr: false,
   loading: () => (
-    <div className="flex-1 bg-gray-100 dark:bg-gray-900 rounded-xl flex items-center justify-center">
+    <div className="flex-1 bg-gray-900 rounded-xl flex items-center justify-center">
       <div className="text-gray-400 text-sm">Loading map...</div>
     </div>
   ),
@@ -29,7 +29,7 @@ export default function FleetMapPage() {
     return (
       <div className="space-y-4">
         <OpsHeader title="Fleet Map" subtitle="Real-time vehicle tracking" />
-        <div className="h-[calc(100vh-140px)] bg-gray-100 dark:bg-gray-900 rounded-xl animate-pulse" />
+        <div className="h-[calc(100vh-140px)] bg-gray-900 rounded-xl animate-pulse" />
       </div>
     )
   }
@@ -47,7 +47,7 @@ export default function FleetMapPage() {
       />
 
       {/* Full-width map with overlay panels */}
-      <div className="relative h-[calc(100vh-140px)] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div className="relative h-[calc(100vh-140px)] rounded-xl border border-gray-800 shadow-sm overflow-hidden">
         {/* Map takes 100% of the space */}
         <FleetMap
           techs={techs}

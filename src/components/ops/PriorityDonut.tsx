@@ -9,7 +9,7 @@ interface PriorityDonutProps {
 export function PriorityDonut({ data }: PriorityDonutProps) {
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-56 text-gray-400 dark:text-gray-500 text-sm">
+      <div className="flex items-center justify-center h-56 text-gray-500 text-sm">
         No data available
       </div>
     )
@@ -41,7 +41,7 @@ export function PriorityDonut({ data }: PriorityDonutProps) {
       </div>
       <div className="flex flex-wrap gap-3 justify-center mt-2">
         {data.map((entry) => (
-          <div key={entry.priority} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+          <div key={entry.priority} className="flex items-center gap-1.5 text-xs text-gray-400">
             <span
               className="w-2.5 h-2.5 rounded-full"
               style={{ backgroundColor: entry.color }}
