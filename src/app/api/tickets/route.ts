@@ -22,13 +22,6 @@ export async function GET(req: NextRequest) {
 
     const creds = getCWCredentials()
     if (creds) {
-      // Debug: log raw CW response for first ticket
-      if (searchParams.get('debug') === '1') {
-        const { cwFetchRaw } = await import('@/lib/cw/client')
-        const rawData = await cwFetchRaw(creds, '/service/tickets?pageSize=1&fields=id,summary,dateEntered,lastUpdated,_info')
-        return Response.json({ raw: rawData })
-      }
-
       // Live ConnectWise data
       tickets = await getTickets(creds, {
         search: search?.trim() || undefined,

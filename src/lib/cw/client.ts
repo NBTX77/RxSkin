@@ -58,11 +58,6 @@ async function cwFetch<T>(creds: CWCredentials, path: string, options: RequestIn
   return response.json() as Promise<T>
 }
 
-// Debug helper — raw CW fetch (remove after debugging)
-export async function cwFetchRaw(creds: CWCredentials, path: string): Promise<unknown> {
-  return cwFetch(creds, path)
-}
-
 export async function getTickets(creds: CWCredentials, filters: TicketFilters = {}): Promise<Ticket[]> {
   const params = new URLSearchParams()
   const conditions: string[] = []
