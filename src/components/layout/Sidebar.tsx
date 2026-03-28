@@ -2,15 +2,18 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+<<<<<<< HEAD
 import { useState, useRef } from 'react'
+=======
+import { useState } from 'react'
+import type { LucideIcon } from 'lucide-react'
+>>>>>>> 292fbbe (chore: delete stale config duplicates, fix TypeScript errors)
 import {
   Sun,
-  Moon,
   Ticket,
   Calendar,
   Building2,
   Settings,
-  LogOut,
   Search,
   Radar,
   ChevronDown,
@@ -18,20 +21,36 @@ import {
   Map,
   BarChart3,
   Clock,
+<<<<<<< HEAD
   Menu,
   GripVertical,
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { useTheme } from '@/components/theme/ThemeProvider'
 import { useDraggable } from '@/hooks/useDraggable'
+=======
+  FolderKanban,
+  FileCheck,
+  TrendingUp,
+  DollarSign,
+  Package,
+  ShoppingCart,
+  LayoutDashboard,
+  Users,
+  ChevronUp,
+} from 'lucide-react'
+import { useDepartment } from '@/components/department/DepartmentProvider'
+import type { DepartmentCode } from '@/types'
+>>>>>>> 292fbbe (chore: delete stale config duplicates, fix TypeScript errors)
 
-const navItems = [
-  { href: '/dashboard', label: 'My Day', icon: Sun },
-  { href: '/tickets', label: 'Tickets', icon: Ticket },
-  { href: '/schedule', label: 'Schedule', icon: Calendar },
-  { href: '/companies', label: 'Companies', icon: Building2 },
-]
+interface NavItem {
+  href: string
+  label: string
+  icon: LucideIcon
+  badge?: string
+}
 
+<<<<<<< HEAD
 const opsSubItems = [
   { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
   { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
@@ -222,3 +241,90 @@ export function Sidebar() {
     </>
   )
 }
+=======
+type DepartmentNavConfig = {
+  [key in DepartmentCode]?: {
+    dashboardLabel: string
+    dashboardIcon: LucideIcon
+    items: NavItem[]
+    expandableSections?: {
+      [sectionName: string]: {
+        icon: LucideIcon
+        items: NavItem[]
+      }
+    }
+  }
+}
+const departmentNav: DepartmentNavConfig = {
+  IT: {
+    dashboardLabel: 'My Day',
+    dashboardIcon: Sun,
+    items: [
+      { href: '/dashboard', label: 'My Day', icon: Sun },
+      { href: '/tickets', label: 'Tickets', icon: Ticket },
+      { href: '/projects', label: 'Projects', icon: FolderKanban },
+      { href: '/schedule', label: 'Schedule', icon: Calendar },
+      { href: '/settings', label: 'Settings', icon: Settings },
+    ],
+    expandableSections: {
+      Ops: {
+        icon: Radar,
+        items: [
+          { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
+          { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
+          { href: '/ops/holds', label: 'Schedule Holds', icon: Clock },
+        ],
+      },
+    },
+  },
+  SI: {
+    dashboardLabel: 'My Day',
+    dashboardIcon: Sun,
+    items: [
+      { href: '/dashboard', label: 'My Day', icon: Sun },
+      { href: '/projects', label: 'Project Board', icon: FolderKanban },
+      { href: '/tickets', label: 'Service Queue', icon: Ticket },
+      { href: '/schedule', label: 'Job Scheduler', icon: Calendar },
+      { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
+      { href: '/settings', label: 'Settings', icon: Settings },
+    ],
+  },
+  AM: {
+    dashboardLabel: 'My Day',
+    dashboardIcon: Sun,
+    items: [
+      { href: '/dashboard', label: 'My Day', icon: Sun },
+      { href: '/companies', label: 'My Accounts', icon: Building2 },
+      { href: '/projects', label: 'Projects', icon: FolderKanban, badge: '(view)' },
+      { href: '/agreements', label: 'Agreements', icon: FileCheck },
+      { href: '/opportunities', label: 'Opportunities', icon: TrendingUp },
+      { href: '/settings', label: 'Settings', icon: Settings },
+    ],
+  },
+  GA: {
+    dashboardLabel: 'My Day',
+    dashboardIcon: Sun,
+    items: [
+      { href: '/dashboard', label: 'My Day', icon: Sun },
+      { href: '/projects', label: 'Projects', icon: FolderKanban, badge: '($)' },
+      { href: '/invoices', label: 'Invoices', icon: DollarSign },
+      { href: '/purchase-orders', label: 'Purchase Orders', icon: Package },
+      { href: '/agreements', label: 'Agreements', icon: FileCheck },
+      { href: '/tickets', label: 'Procurement', icon: ShoppingCart },
+      { href: '/settings', label: 'Settings', icon: Settings },
+    ],
+  },
+  LT: {
+    dashboardLabel: 'Executive Dashboard',
+    dashboardIcon: LayoutDashboard,
+    items: [
+      { href: '/dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
+      { href: '/tickets', label: 'All Tickets', icon: Ticket },
+      { href: '/projects', label: 'All Projects', icon: FolderKanban },
+      { href: '/departments', label: 'Departments', icon: Users },
+      { href: '/financials', label: 'Financials', icon: DollarSign },
+      { href: '/settings', label: 'Settings', icon: Settings },
+    ],
+  },
+}
+>>>>>>> 292fbbe (chore: delete stale config duplicates, fix TypeScript errors)
