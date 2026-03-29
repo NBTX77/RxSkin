@@ -2,6 +2,8 @@
 
 import { Search } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { format } from 'date-fns'
 import { UserAvatar } from './UserAvatar'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 
@@ -20,10 +22,18 @@ function getBreadcrumb(pathname: string): { section: string; detail?: string } {
   return { section: 'Dashboard' }
 }
 
+function getGreeting(): string {
+  const hour = new Date().getHours()
+  return hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+}
+
 export function TopBar() {
   const { config } = useDepartment()
   const pathname = usePathname()
   const breadcrumb = getBreadcrumb(pathname)
+  const { data: session } = useSession()
+  const isDashboard = pathname === '/dashboard'
+  const firstName = session?.user?.name?.split(' ')[0] ?? 'there'
 
   const getColorBg = (color: string): string => {
     const colorMap: Record<string, string> = {
@@ -46,16 +56,27 @@ export function TopBar() {
         <span className="text-white font-semibold text-sm">RX Skin</span>
       </div>
 
-      {/* Left: Breadcrumb on desktop */}
-      <div className="hidden lg:flex items-center gap-1.5 text-sm">
-        <span className="text-gray-900 dark:text-gray-300 font-medium">{breadcrumb.section}</span>
-        {breadcrumb.detail && (
-          <>
-            <span className="text-gray-400 dark:text-gray-600">/</span>
-            <span className="text-gray-500">{breadcrumb.detail}</span>
-          </>
-        )}
-      </div>
+      {/* Left: Greeting on dashboard, breadcrumb on other pages (desktop only) */}
+      {isDashboard ? (
+        <div className="hidden lg:flex flex-col justify-center">
+          <span className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
+            {getGreeting()}, {firstName}
+          </span>
+          <span className="text-xs text-gray-500 leading-tight">
+            {format(new Date(), 'EEEE, MMMM d')}
+          </span>
+        </div>
+      ) : (
+        <div className="hidden lg:flex items-center gap-1.5 text-sm">
+          <span className="text-gray-900 dark:text-gray-300 font-medium">{breadcrumb.section}</span>
+          {breadcrumb.detail && (
+            <>
+              <span className="text-gray-400 dark:text-gray-600">/</span>
+              <span className="text-gray-500">{breadcrumb.detail}</span>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Right: Search + Avatar */}
       <div className="flex items-center gap-2">

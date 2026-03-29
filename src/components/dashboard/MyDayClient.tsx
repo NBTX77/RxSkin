@@ -14,7 +14,6 @@ import { TicketCardSkeleton } from '@/components/ui/TicketCardSkeleton'
 
 export function MyDayClient() {
   const { data: session } = useSession()
-  const userName = session?.user?.name?.split(' ')[0] ?? 'there'
 
   const { data: tickets = [], isLoading: ticketsLoading } = useQuery<Ticket[]>({
     queryKey: ['my-tickets'],
@@ -46,18 +45,8 @@ export function MyDayClient() {
     } catch { return false }
   })
 
-  // Determine greeting
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-white">{greeting}, {userName}</h1>
-        <p className="text-gray-500 text-sm mt-1">{format(new Date(), 'EEEE, MMMM d')}</p>
-      </div>
-
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
