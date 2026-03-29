@@ -47,6 +47,7 @@ model Tenant {
   companyCache     CompanyCache[]
   cacheSyncState   CacheSyncState[]
   surveyResponses  SurveyResponse[]
+  clientTenants    ClientTenant[]
 
   @@map("tenants")
 }
@@ -454,4 +455,50 @@ model SurveyResponse {
   @@index([tenantId, agents])
   @@index([tenantId, createdAt])
   @@map("survey_responses")
+}
+
+// ── Microsoft 365 Multi-Tenant Management ──────────────────
+// Client tenants represent Azure AD tenants managed via GDAP.
+// Each links to a CW company for cross-platform context.
+
+model ClientTenant {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  azureTenantId      String
+  displayName        String
+  domain             String?
+  cwCompanyId        Int?
+  gdapRelationshipId String?
+  gdapStatus         String    @default("pending")
+  gdapExpiresAt      DateTime?
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  tenant             Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, azureTenantId])
+  @@index([tenantId])
+  @@map("client_tenants")
+}
+
+// ── M365 Audit Trail ───────────────────────────────────────
+// Every write operation (user create, password reset, license assign,
+// group membership change) is logged for compliance and review.
+
+model M365AuditAction {
+  id              String   @id @default(cuid())
+  tenantId        String
+  clientTenantId  String
+  actorId         String
+  actorEmail      String
+  action          String
+  targetId        String
+  targetName      String
+  details         Json?
+  createdAt       DateTime @default(now())
+
+  @@index([tenantId, clientTenantId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("m365_audit_actions")
 }

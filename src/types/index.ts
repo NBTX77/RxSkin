@@ -2,6 +2,8 @@
 // Core TypeScript Types — RX Skin
 // ============================================================
 
+export * from './m365'
+
 // ── Tickets ──────────────────────────────────────────────────
 
 export interface Ticket {
