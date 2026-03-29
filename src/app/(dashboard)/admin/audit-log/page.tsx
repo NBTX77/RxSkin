@@ -89,7 +89,7 @@ export default function AuditLogPage() {
       </div>
 
       {/* Log entries */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 overflow-hidden">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
         {filtered.map(entry => {
           const config = actionConfig[entry.action]
           const Icon = config.icon

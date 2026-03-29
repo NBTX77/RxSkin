@@ -91,7 +91,7 @@ export default function UsersPage() {
       </div>
 
       {/* User list */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 overflow-hidden">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
         {/* Desktop header */}
         <div className="hidden sm:grid grid-cols-[1fr_120px_80px_100px_140px_40px] gap-4 px-5 py-3 border-b border-gray-200 dark:border-gray-800 text-xs font-semibold text-gray-500 uppercase tracking-wider">
           <span>User</span>

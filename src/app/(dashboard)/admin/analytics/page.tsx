@@ -33,7 +33,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Tracking Configuration */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Eye size={16} className="text-blue-400" />
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Tracking Configuration</h3>
@@ -69,7 +69,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Heatmaps */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Flame size={16} className="text-orange-400" />
@@ -95,7 +95,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Dead Zones (AI-detected) */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Map size={16} className="text-red-400" />
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Dead Zones</h3>
@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* AI Suggestions */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-cyan-400" />
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI Improvement Suggestions</h3>
@@ -188,7 +188,7 @@ function StatCard({
   const c = colorMap[color]
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4">
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <div className={`w-8 h-8 rounded-lg ${c} flex items-center justify-center mb-2`}>
         <Icon size={16} />
       </div>

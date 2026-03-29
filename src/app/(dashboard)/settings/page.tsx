@@ -69,7 +69,7 @@ function ProfileTab() {
   return (
     <div className="space-y-6">
       {/* Avatar + Name */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
         <div className="flex items-center gap-4 mb-6">
           <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center">
             <span className="text-gray-900 dark:text-white text-xl font-semibold">
@@ -91,7 +91,7 @@ function ProfileTab() {
       </div>
 
       {/* ConnectWise Connection */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">ConnectWise Connection</h2>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between items-center">
@@ -119,7 +119,7 @@ function AppearanceTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Theme</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {themes.map(({ id, label, icon: Icon, description }) => {
@@ -146,7 +146,7 @@ function AppearanceTab() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Display</h2>
         <div className="space-y-4">
           <ToggleRow label="Compact mode" description="Reduce spacing in tables and lists" defaultValue={false} />
@@ -197,7 +197,7 @@ function ConnectionsTab() {
       </p>
 
       {connections.map(conn => (
-        <div key={conn.id} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+        <div key={conn.id} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -246,7 +246,7 @@ function ConnectionsTab() {
 function NotificationsTab() {
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Email Notifications</h2>
         <div className="space-y-4">
           <ToggleRow label="Ticket assigned to me" description="When a new ticket is assigned to you" defaultValue={true} />
@@ -255,7 +255,7 @@ function NotificationsTab() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">In-App Notifications</h2>
         <div className="space-y-4">
           <ToggleRow label="Desktop notifications" description="Browser push notifications for alerts" defaultValue={false} />

@@ -77,7 +77,7 @@ export default function AdminOverviewPage() {
             <Link
               key={href}
               href={href}
-              className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-5 hover:border-gray-700 transition-colors group"
+              className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 hover:border-gray-600 dark:hover:border-gray-700 transition-colors group"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className={`w-10 h-10 rounded-lg ${colors.bg} border ${colors.border} flex items-center justify-center`}>

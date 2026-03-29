@@ -19,7 +19,7 @@ export default function TenantSettingsPage() {
       </div>
 
       {/* Company Info */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Building2 size={16} className="text-purple-400" />
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Company Information</h3>
@@ -43,7 +43,7 @@ export default function TenantSettingsPage() {
       </div>
 
       {/* ConnectWise Board Mappings */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Globe size={16} className="text-blue-400" />
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">ConnectWise Board Mappings</h3>
@@ -57,7 +57,7 @@ export default function TenantSettingsPage() {
       </div>
 
       {/* Cache & Performance */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Gauge size={16} className="text-orange-400" />
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Cache & Performance</h3>
@@ -77,7 +77,7 @@ export default function TenantSettingsPage() {
       </div>
 
       {/* Database */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Database size={16} className="text-green-400" />
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Database</h3>

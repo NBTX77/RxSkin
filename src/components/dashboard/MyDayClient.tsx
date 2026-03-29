@@ -79,7 +79,7 @@ export function MyDayClient() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Schedule Timeline (2/5) */}
         <div className="lg:col-span-2">
-          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 overflow-hidden">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
               <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
                 <Calendar size={15} className="text-blue-400" />
@@ -122,7 +122,7 @@ export function MyDayClient() {
 
         {/* My Tickets (3/5) */}
         <div className="lg:col-span-3">
-          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 overflow-hidden">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
               <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
                 <TicketIcon size={15} className="text-purple-400" />

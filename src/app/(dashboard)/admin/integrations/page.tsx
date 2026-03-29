@@ -213,7 +213,7 @@ function PlatformCard({
   const StatusIcon = st.icon
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 overflow-hidden">
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
       {/* Header (always visible) */}
       <button
         onClick={onToggle}

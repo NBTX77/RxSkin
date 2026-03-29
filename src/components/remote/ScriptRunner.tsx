@@ -101,7 +101,7 @@ export function ScriptRunner({ computer, isOpen, onClose }: ScriptRunnerProps) {
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                   qa.danger
                     ? 'text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20'
-                    : 'text-gray-700 dark:text-gray-300 bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800'
+                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800'
                 }`}
               >
                 <span>{qa.icon}</span>
@@ -168,7 +168,7 @@ export function ScriptRunner({ computer, isOpen, onClose }: ScriptRunnerProps) {
 
         {/* Confirm dialog */}
         {confirmScript && (
-          <div className="px-5 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-900">
+          <div className="px-5 py-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
             <div className="flex items-start gap-3">
               <AlertTriangle size={16} className="text-yellow-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">

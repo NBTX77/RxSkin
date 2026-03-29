@@ -79,7 +79,7 @@ export default function AIBotsPage() {
       </div>
 
       {/* Global AI Settings */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-cyan-400" />
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Global AI Settings</h3>
@@ -130,7 +130,7 @@ export default function AIBotsPage() {
         {bots.map(bot => {
           const Icon = bot.icon
           return (
-            <div key={bot.id} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-5">
+            <div key={bot.id} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -171,7 +171,7 @@ export default function AIBotsPage() {
       </div>
 
       {/* Chatbot Placement */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <MessageSquare size={16} className="text-blue-400" />
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Chatbot Placement</h3>

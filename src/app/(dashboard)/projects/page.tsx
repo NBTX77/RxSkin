@@ -34,7 +34,7 @@ function ProjectsSkeleton() {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="min-w-[280px] w-[280px] bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 p-3 space-y-3"
+            className="min-w-[280px] w-[280px] bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 p-3 space-y-3"
           >
             <div className="h-5 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
             {Array.from({ length: 2 }).map((_, j) => (
