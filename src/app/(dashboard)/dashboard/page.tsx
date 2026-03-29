@@ -1,12 +1,12 @@
-import { MyDayClient } from '@/components/dashboard/MyDayClient'
+import { DashboardRouter } from '@/components/dashboard/DashboardRouter'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 
-export const metadata = { title: 'My Day — RX Skin' }
+export const metadata = { title: 'Dashboard — RX Skin' }
 
 export default function DashboardPage() {
   return (
     <ErrorBoundary section="Dashboard">
-      <MyDayClient />
+      <DashboardRouter />
     </ErrorBoundary>
   )
 }
