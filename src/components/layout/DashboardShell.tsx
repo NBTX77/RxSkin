@@ -15,7 +15,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       </ErrorBoundary>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col min-h-screen lg:ml-64">
+      <main className="flex-1 flex flex-col min-h-screen min-w-0 lg:ml-12">
         {/* Persistent top bar with avatar pinned to top-right */}
         <ErrorBoundary section="TopBar">
           <TopBar />

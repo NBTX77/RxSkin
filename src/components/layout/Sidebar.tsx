@@ -24,7 +24,6 @@ import {
   ShoppingCart,
   LayoutDashboard,
   Users,
-  ChevronUp,
 } from 'lucide-react'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 import type { DepartmentCode } from '@/types'
@@ -127,7 +126,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const { department, config, canSwitch, switchDepartment, allDepartments } = useDepartment()
   const [expandedSection, setExpandedSection] = useState<string | null>(pathname.startsWith('/ops') ? 'Ops' : null)
-  const [deptSwitcherOpen, setDeptSwitcherOpen] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
   const deptConfig = departmentNav[department]
   const navItems = deptConfig?.items || []
@@ -149,60 +148,77 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-64 bg-gray-900 border-r border-gray-800 z-40">
+    <aside
+      className={`hidden lg:flex flex-col fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-40 transition-all duration-200 ease-in-out overflow-hidden ${
+        isHovered ? 'w-52' : 'w-12'
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       {/* Logo + Department Badge */}
-      <div className="flex flex-col px-5 py-5 border-b border-gray-800">
-        <div className="flex items-center gap-3 mb-3">
-          <div className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center flex-shrink-0`}>
+      <div className="flex flex-col px-2 py-3 border-b border-gray-200 dark:border-gray-800">
+        <div className={`flex items-center gap-3 ${isHovered ? 'px-3' : 'justify-center'}`}>
+          <div className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center flex-shrink-0 ${canSwitch ? 'cursor-pointer hover:ring-2 hover:ring-white/20' : ''}`}>
             <span className="text-white font-bold text-sm">RX</span>
           </div>
-          <div className="flex-1">
-            <p className="text-white font-semibold text-sm">RX Skin</p>
-            <p className="text-gray-500 text-xs">ConnectWise Portal</p>
+          {isHovered && (
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-900 dark:text-white font-semibold text-sm truncate">RX Skin</p>
+              <p className="text-gray-500 text-xs truncate">ConnectWise Portal</p>
+            </div>
+          )}
+        </div>
+        {isHovered && (
+          <div className="pl-3 mt-2">
+            <p className={`text-xs font-medium px-2 py-1 rounded w-fit text-${config.color}-300 bg-${config.color}-900/40 truncate`}>
+              {config.name} Department
+            </p>
           </div>
-        </div>
-        <div className="pl-0.5">
-          <p className={`text-xs font-medium px-2 py-1 rounded w-fit text-${config.color}-300 bg-${config.color}-900/40`}>
-            {config.name} Department
-          </p>
-        </div>
+        )}
       </div>
 
-      {/* Search shortcut */}
-      <div className="px-3 pt-4 pb-2">
-        <button
-          onClick={() => {
-            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }))
-          }}
-          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700/50 text-gray-500 text-sm hover:bg-gray-800 hover:text-gray-400 transition-colors"
-        >
-          <Search size={14} />
-          <span className="flex-1 text-left">Search...</span>
-          <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-gray-600">
-            Ctrl K
-          </kbd>
-        </button>
-      </div>
+      {/* Search shortcut — hidden when collapsed */}
+      {isHovered && (
+        <div className="px-3 pt-3 pb-2">
+          <button
+            onClick={() => {
+              document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }))
+            }}
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 text-gray-500 text-sm hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+          >
+            <Search size={14} />
+            <span className="flex-1 text-left">Search...</span>
+            <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-600">
+              Ctrl K
+            </kbd>
+          </button>
+        </div>
+      )}
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-1.5 py-2 space-y-1 overflow-y-auto">
         {navItems.map(({ href, label, icon: Icon, badge }) => {
           const active = isNavItemActive(href)
           return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              title={!isHovered ? label : undefined}
+              className={`flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
+                isHovered ? 'px-3 py-2.5' : 'justify-center py-2.5'
+              } ${
                 active
                   ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
-              <Icon size={18} />
-              <span className="flex-1 text-left">
-                {label}
-                {badge && <span className="text-xs text-gray-500 ml-1">{badge}</span>}
-              </span>
+              <Icon size={18} className="flex-shrink-0" />
+              {isHovered && (
+                <span className="flex-1 text-left truncate">
+                  {label}
+                  {badge && <span className="text-xs text-gray-500 ml-1">{badge}</span>}
+                </span>
+              )}
             </Link>
           )
         })}
@@ -219,85 +235,80 @@ export function Sidebar() {
                 onClick={() => setExpandedSection(isExpanded ? null : sectionName)}
                 aria-expanded={isExpanded}
                 aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${sectionName}`}
-                className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none ${
+                title={!isHovered ? sectionName : undefined}
+                className={`flex items-center gap-3 w-full rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none ${
+                  isHovered ? 'px-3 py-2.5' : 'justify-center py-2.5'
+                } ${
                   isSectionActive
                     ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
-                <SectionIcon size={18} />
-                <span className="flex-1 text-left">{sectionName}</span>
-                <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
+                <SectionIcon size={18} className="flex-shrink-0" />
+                {isHovered && (
+                  <>
+                    <span className="flex-1 text-left">{sectionName}</span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
+                  </>
+                )}
               </button>
 
-              <div className={`overflow-hidden transition-all duration-200 ease-in-out ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="ml-4 mt-1 space-y-0.5">
-                  {section.items.map(({ href, label, icon: Icon }) => {
-                    const active = isNavItemActive(href)
-                    return (
-                      <Link
-                        key={href}
-                        href={href}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                          active
-                            ? 'text-blue-400 bg-blue-600/10'
-                            : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
-                        }`}
-                      >
-                        <Icon size={15} />
-                        {label}
-                      </Link>
-                    )
-                  })}
+              {isHovered && (
+                <div className={`overflow-hidden transition-all duration-200 ease-in-out ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="ml-4 mt-1 space-y-0.5">
+                    {section.items.map(({ href, label, icon: Icon }) => {
+                      const active = isNavItemActive(href)
+                      return (
+                        <Link
+                          key={href}
+                          href={href}
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                            active
+                              ? 'text-blue-400 bg-blue-600/10'
+                              : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50'
+                          }`}
+                        >
+                          <Icon size={15} />
+                          {label}
+                        </Link>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )
         })}
       </nav>
 
-      {/* Department Switcher (if user can switch) */}
-      {canSwitch && (
-        <div className="px-3 py-3 border-t border-gray-800">
-          <button
-            onClick={() => setDeptSwitcherOpen(!deptSwitcherOpen)}
-            aria-expanded={deptSwitcherOpen}
-            aria-label="Switch department"
-            className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
-          >
-            <div className={`w-3 h-3 rounded-full ${getColorBg(config.color)}`} />
-            <span className="flex-1 text-left">{config.name}</span>
-            {deptSwitcherOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-
-          {deptSwitcherOpen && (
-            <div className="mt-2 space-y-1 bg-gray-800/50 rounded-lg p-2">
-              {allDepartments.map(dept => (
-                <button
-                  key={dept.code}
-                  onClick={() => {
-                    switchDepartment(dept.code)
-                    setDeptSwitcherOpen(false)
-                  }}
-                  className={`flex items-center gap-2 w-full px-3 py-2 rounded text-sm transition-colors ${
-                    dept.code === department
-                      ? 'bg-blue-600/20 text-blue-400 font-medium'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                  }`}
-                >
-                  <div className={`w-2 h-2 rounded-full ${getColorBg(dept.color)}`} />
-                  {dept.name}
-                </button>
-              ))}
-            </div>
-          )}
+      {/* Department Switcher (if user can switch) — only when expanded */}
+      {canSwitch && isHovered && (
+        <div className="px-3 py-3 border-t border-gray-200 dark:border-gray-800">
+          <div className="space-y-1 bg-gray-100 dark:bg-gray-800/50 rounded-lg p-2">
+            {allDepartments.map(dept => (
+              <button
+                key={dept.code}
+                onClick={() => switchDepartment(dept.code)}
+                className={`flex items-center gap-2 w-full px-3 py-2 rounded text-sm transition-colors ${
+                  dept.code === department
+                    ? 'bg-blue-600/20 text-blue-400 font-medium'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                <div className={`w-2 h-2 rounded-full ${getColorBg(dept.color)}`} />
+                {dept.name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Bottom: minimal branding */}
-      <div className={`px-3 py-3 ${canSwitch ? 'border-t' : 'border-t'} border-gray-800`}>
-        <p className="text-[10px] text-gray-600 text-center tracking-wider uppercase">RX Skin v0.1</p>
-      </div>
+      {isHovered && (
+        <div className="px-3 py-3 border-t border-gray-200 dark:border-gray-800">
+          <p className="text-[10px] text-gray-500 dark:text-gray-600 text-center tracking-wider uppercase">RX Skin v0.1</p>
+        </div>
+      )}
     </aside>
   )
 }
