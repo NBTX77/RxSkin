@@ -248,7 +248,7 @@ export function ScheduleCalendar() {
   const calendarTitle = calendarRef.current?.getApi()?.view.title ?? ''
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-feedback-component="Schedule">
       {/* Unified toolbar — single row on desktop, wraps on mobile */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Left group: nav + date title */}

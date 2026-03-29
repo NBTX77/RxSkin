@@ -57,6 +57,7 @@ export function FleetMap({ techs, onSelectTech }: FleetMapProps) {
       ref={mapRef}
       zoomControl={true}
       style={{ minHeight: '400px' }}
+      data-feedback-component="FleetMap"
     >
       <TileLayer
         attribution='&copy; <a href="https://carto.com/">CARTO</a>'

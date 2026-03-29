@@ -71,7 +71,7 @@ export function ProjectKanban({
   const [completedExpanded, setCompletedExpanded] = useState(false)
 
   return (
-    <div className="flex gap-3 pb-4">
+    <div className="flex gap-3 pb-4" data-feedback-component="ProjectKanban">
       {KANBAN_COLUMNS.map((column) => {
         const columnProjects = projects.filter((p) =>
           column.statusFilter(p.status)

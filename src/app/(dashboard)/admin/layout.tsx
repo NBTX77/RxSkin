@@ -12,6 +12,7 @@ import {
   ScrollText,
   Bot,
   BarChart3,
+  MessageSquareText,
   ArrowLeft,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
@@ -23,6 +24,7 @@ const adminNav = [
   { href: '/admin/tenant', label: 'Tenant Settings', icon: Building2, exact: false },
   { href: '/admin/ai', label: 'AI & Bots', icon: Bot, exact: false },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, exact: false },
+  { href: '/admin/feedback', label: 'Feedback', icon: MessageSquareText, exact: false },
   { href: '/admin/audit-log', label: 'Audit Log', icon: ScrollText, exact: false },
 ]
 

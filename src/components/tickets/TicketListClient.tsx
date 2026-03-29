@@ -114,7 +114,7 @@ export function TicketListClient() {
   const closedCount = statusCounts['Closed'] ?? 0
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-feedback-component="TicketList">
       {/* KPI Strip */}
       <KPIStrip>
         <KPICard icon={Zap} color="bg-blue-500" label="Open" value={openCount} />

@@ -217,6 +217,7 @@ model TenantSettings {
   primaryColor    String?
   defaultTimezone String   @default("America/New_York")
   businessHours   Json     @default("{}")
+  feedbackEnabled Boolean  @default(true)
   updatedAt       DateTime @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
@@ -381,4 +382,46 @@ model CacheSyncState {
 
   @@unique([tenantId, entityType])
   @@map("cache_sync_state")
+}
+
+// ── User Feedback ────────────────────────────────────────────
+// Structured, high-signal feedback from right-click menu.
+// Separate from AnalyticsEvent — needs its own review workflow.
+
+model UserFeedback {
+  id            String    @id @default(cuid())
+  tenantId      String
+  userId        String?
+  sessionId     String
+
+  // Feedback content
+  rating        String    // "positive" | "negative"
+  category      String    // "bug" | "feature_request" | "ux_issue" | "performance" | "other"
+  comment       String?
+  screenshotUrl String?
+
+  // Auto-captured context
+  page          String
+  component     String?
+  featureLabel  String?
+  viewport      String?
+  department    String?
+  userAgent     String?
+
+  // Admin review fields
+  adminStatus   String    @default("unreviewed")
+  adminNotes    String?
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  linkedTaskUrl String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, adminStatus])
+  @@index([tenantId, category])
+  @@index([tenantId, page])
+  @@index([tenantId, createdAt])
+  @@map("user_feedback")
 }

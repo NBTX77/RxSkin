@@ -177,7 +177,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
   const btnDefault = `${btnBase} bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700`
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-feedback-component="TicketDetail">
       {/* Part A — Action buttons bar: all on the left with Back */}
       <div className="flex items-center flex-wrap gap-2">
         <button

@@ -291,7 +291,7 @@ export function DispatchBoard() {
   const isLoading = entriesLoading
 
   return (
-    <div className="flex -m-4 lg:-m-6 h-[calc(100vh-3.5rem)] min-h-0">
+    <div className="flex -m-4 lg:-m-6 h-[calc(100vh-3.5rem)] min-h-0" data-feedback-component="DispatchBoard">
       {/* Unscheduled tickets sidebar */}
       <UnscheduledSidebar
         tickets={unscheduledTickets}

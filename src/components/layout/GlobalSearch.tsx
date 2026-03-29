@@ -225,7 +225,7 @@ export function GlobalSearch() {
   }
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative" data-feedback-component="GlobalSearch">
       {/* Search pill */}
       <div
         className={`

@@ -54,6 +54,7 @@ export const TicketCard = memo(function TicketCard({ ticket, compact = false }: 
     <Link
       href={`/tickets/${ticket.id}`}
       className={`block rounded-lg border-l-[3px] ${borderColor} bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:shadow-lg transition-all duration-150 p-4 cursor-pointer group ${hoverShadow}`}
+      data-feedback-component="TicketCard"
     >
       {/* Header: ID + Priority */}
       <div className="flex items-start justify-between gap-3">

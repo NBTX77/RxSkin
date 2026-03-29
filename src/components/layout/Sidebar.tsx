@@ -174,6 +174,7 @@ export function Sidebar() {
       className={`hidden lg:flex flex-col fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-40 transition-all duration-200 ease-in-out overflow-hidden ${
         isHovered ? 'w-52' : 'w-12'
       }`}
+      data-feedback-component="Sidebar"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => { setIsHovered(false); setDeptPopoverOpen(false) }}
     >

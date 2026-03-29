@@ -6,10 +6,13 @@ import { TopBar } from '@/components/layout/TopBar'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { TimeTrackerProvider } from '@/contexts/TimeTrackerContext'
 import { TimerWidget } from '@/components/timer/TimerWidget'
+import { FeedbackProvider } from '@/components/feedback/FeedbackProvider'
+import { FeedbackButton } from '@/components/feedback/FeedbackButton'
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <TimeTrackerProvider>
+      <FeedbackProvider>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
         {/* Desktop sidebar */}
         <ErrorBoundary section="Sidebar">
@@ -39,7 +42,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <ErrorBoundary section="TimerWidget">
           <TimerWidget />
         </ErrorBoundary>
+
+        {/* Floating feedback button */}
+        <ErrorBoundary section="FeedbackButton">
+          <FeedbackButton />
+        </ErrorBoundary>
       </div>
+      </FeedbackProvider>
     </TimeTrackerProvider>
   )
 }

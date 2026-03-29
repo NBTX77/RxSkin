@@ -249,7 +249,7 @@ export function ExecutiveDashboard() {
   }))
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto" data-feedback-component="ExecutiveDashboard">
       <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8">
         {/* DATA STATUS BANNER */}
         <DataStatusBanner dataStatus={dataStatus} errors={data.errors} />
