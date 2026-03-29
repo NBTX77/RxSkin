@@ -58,7 +58,7 @@ export function TicketListClient() {
   const { data: session } = useSession()
   const [filters, setFilters] = useState<TicketFilters>({})
   const [search, setSearch] = useState('')
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table')
   const [columns, setColumns] = useState<ColumnDef[]>(DEFAULT_COLUMNS)
 
   const tenantId = session?.user?.tenantId ?? ''
@@ -109,7 +109,7 @@ export function TicketListClient() {
   })
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Unified toolbar: Search + View Toggle + New Ticket */}
       <div className="flex items-center gap-2 flex-wrap">
         <form onSubmit={handleSearch} className="flex-1 relative min-w-[180px]">
