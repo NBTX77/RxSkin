@@ -287,11 +287,10 @@ rx-skin/
 **Workspace Root (`CW- Rx Skin/`)**
 ```
 ├── CLAUDE.md                     # THIS FILE — master project doc
-├── ToDo.md                       # ★ Shared task list (Claude Code + Cowork) — 22 action items from deep review
+├── todo.md                       # ★ Shared task list (Claude Code + Cowork) — aesthetic improvement build prompts
 ├── INSTRUCTIONS.md               # AI session instructions
-├── rx-skin/                      # Main Next.js application (above)
-├── rx-ops-hub/                   # Separate ops hub project
-└── docs/                         # (empty — consolidated into rx-skin/docs/)
+└── rx-skin/                      # Main Next.js application — the ONLY git repo (NBTX77/RxSkin)
+    # NOTE: rx-ops-hub was deleted 2026-03-28. Ops Hub features are folded into rx-skin.
 ```
 
 ---
@@ -494,9 +493,9 @@ Interactive React mockups in `rx-skin/docs/mockups/`: `mockup-IT-Dashboard.jsx`,
 - [x] `useScheduleEntries` + `useRescheduleEntry` + `useCreateScheduleEntry` + `useDeleteScheduleEntry` hooks
 - [x] CRON_SECRET configured in Vercel (all environments)
 - [x] Deep codebase review complete — 42 components, 22 API routes, 19 lib modules, 14 Prisma models audited (2026-03-28)
-- [x] ToDo.md created — 22 action items (2 critical, 4 high, 10 medium, 5 low) across 5 sprints
+- [x] todo.md created — aesthetic improvement build prompts for Claude Code
 - [x] Git repo cleaned — 34 garbage temp objects removed via `git gc`, fsmonitor + untrackedcache enabled, credential helper set to manager
-- [x] Asana updated — FullCalendar + drag-drop tasks marked complete, 7 new tasks created from ToDo.md (critical/high security items)
+- [x] Asana updated — FullCalendar + drag-drop tasks marked complete, 7 new tasks created from todo.md (critical/high security items)
 - [x] Notion project hub updated — v0.1.3 version entry, schedule/observability/DB/review status rows added, Phase 2 calendar marked done
 - [x] UI contrast + responsive fixes deployed — gray-700/50 borders, kanban column widths, TopBar bg-gray-900/95, fleet map min-height
 - [x] Live CW data wired — ticket notes, time entries, global search (replaced mock data)

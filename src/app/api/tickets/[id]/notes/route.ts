@@ -5,7 +5,6 @@ import { getTenantCredentials } from '@/lib/auth/credentials'
 import { getTicketNotes } from '@/lib/cw/client'
 import { cachedFetch } from '@/lib/cache/bff-cache'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
-import { getMockNotes } from '@/lib/mock-data'
 import type { TicketNote } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -42,10 +41,11 @@ export async function GET(
     const ticketId = parseInt(params.id, 10)
     if (isNaN(ticketId)) return apiErrors.badRequest('Invalid ticket ID')
 
-    // Mock data fallback when CW not configured
     if (!isCWConfigured()) {
-      const notes = getMockNotes(ticketId)
-      return Response.json(notes)
+      return Response.json(
+        { code: 'SERVICE_UNAVAILABLE', message: 'ConnectWise API not configured', retryable: false },
+        { status: 503 }
+      )
     }
 
     const { tenantId } = session.user

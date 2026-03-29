@@ -5,7 +5,6 @@ import { getTenantCredentials } from '@/lib/auth/credentials'
 import { getTickets, getCompanies, getMembers } from '@/lib/cw/client'
 import { cachedFetch } from '@/lib/cache/bff-cache'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
-import { getMockTickets, getMockMembers } from '@/lib/mock-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,31 +24,11 @@ export async function GET(request: Request) {
 
     if (!q) return Response.json({ tickets: [], companies: [], members: [] })
 
-    // Mock data fallback when CW not configured
     if (!isCWConfigured()) {
-      const allTickets = getMockTickets()
-      const allMembers = getMockMembers()
-
-      const tickets = allTickets.filter(t =>
-        t.summary.toLowerCase().includes(q) ||
-        t.company.toLowerCase().includes(q) ||
-        String(t.id).includes(q)
-      ).slice(0, 8)
-
-      const companyMap = new Map<string, { id: number | undefined; name: string }>()
-      allTickets.forEach(t => {
-        if (!companyMap.has(t.company)) companyMap.set(t.company, { id: t.companyId, name: t.company })
-      })
-      const companies = Array.from(companyMap.values())
-        .filter(c => c.name.toLowerCase().includes(q))
-        .slice(0, 5)
-
-      const members = allMembers.filter(m =>
-        m.name.toLowerCase().includes(q) ||
-        m.identifier.toLowerCase().includes(q)
-      ).slice(0, 5)
-
-      return Response.json({ tickets, companies, members })
+      return Response.json(
+        { code: 'SERVICE_UNAVAILABLE', message: 'ConnectWise API not configured', retryable: false },
+        { status: 503 }
+      )
     }
 
     // Live CW search

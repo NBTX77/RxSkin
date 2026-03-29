@@ -4,23 +4,27 @@
 // NEVER call from client components.
 // ============================================================
 
+import crypto from 'crypto'
+import { prisma } from '@/lib/db/prisma'
 import type { CWCredentials } from '@/lib/cw/client'
 
 /**
- * Simple AES-256-GCM encrypt/decrypt using Node crypto.
- * In production, consider a proper secrets manager (Vault, AWS KMS).
+ * Derive a 256-bit encryption key from the ENCRYPTION_KEY env var
+ * using PBKDF2 with a fixed salt. The salt is not secret — it just
+ * ensures the derived key differs from the raw env var string.
  */
+const PBKDF2_SALT = 'rx-skin-credential-vault-v1'
+const PBKDF2_ITERATIONS = 100_000
+
 function getEncryptionKey(): Buffer {
   const key = process.env.ENCRYPTION_KEY
   if (!key || key.length < 32) {
     throw new Error('ENCRYPTION_KEY must be at least 32 characters')
   }
-  return Buffer.from(key.slice(0, 32), 'utf-8')
+  return crypto.pbkdf2Sync(key, PBKDF2_SALT, PBKDF2_ITERATIONS, 32, 'sha256')
 }
 
 export function encryptCredential(plaintext: string): string {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const crypto = require('crypto')
   const iv = crypto.randomBytes(12)
   const key = getEncryptionKey()
   const cipher = crypto.createCipheriv('aes-256-gcm', key, iv)
@@ -30,12 +34,10 @@ export function encryptCredential(plaintext: string): string {
 }
 
 export function decryptCredential(ciphertext: string): string {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const crypto = require('crypto')
   const data = Buffer.from(ciphertext, 'base64')
-  const iv = data.slice(0, 12)
-  const tag = data.slice(12, 28)
-  const encrypted = data.slice(28)
+  const iv = data.subarray(0, 12)
+  const tag = data.subarray(12, 28)
+  const encrypted = data.subarray(28)
   const key = getEncryptionKey()
   const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv)
   decipher.setAuthTag(tag)
@@ -44,26 +46,55 @@ export function decryptCredential(ciphertext: string): string {
 
 /**
  * Get decrypted CW credentials for a tenant.
- * TODO: Replace stub with real Prisma DB lookup.
+ * Tries DB first (TenantCredential or Tenant table), falls back to env vars in development.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function getTenantCredentials(tenantId: string): Promise<CWCredentials> {
-  // DEV STUB — replace with DB lookup:
-  // const tenant = await db.tenant.findUniqueOrThrow({ where: { id: tenantId } })
-  // return {
-  //   baseUrl: tenant.cwBaseUrl,
-  //   companyId: tenant.cwCompanyId,
-  //   clientId: tenant.cwClientId,
-  //   publicKey: decryptCredential(tenant.cwPublicKey),
-  //   privateKey: decryptCredential(tenant.cwPrivateKey),
-  // }
+  // Try TenantCredential table first (Credential Vault — preferred)
+  try {
+    const credential = await prisma.tenantCredential.findUnique({
+      where: { tenantId_platform: { tenantId, platform: 'connectwise' } },
+    })
 
-  // Dev fallback to env vars for Phase 0 testing
-  return {
-    baseUrl: process.env.CW_BASE_URL ?? '',
-    companyId: process.env.CW_COMPANY_ID ?? '',
-    clientId: process.env.CW_CLIENT_ID ?? '',
-    publicKey: process.env.CW_PUBLIC_KEY ?? '',
-    privateKey: process.env.CW_PRIVATE_KEY ?? '',
+    if (credential?.isActive && credential.credentials) {
+      const creds = credential.credentials as Record<string, string>
+      return {
+        baseUrl: creds.baseUrl ?? '',
+        companyId: creds.companyId ?? '',
+        clientId: creds.clientId ?? '',
+        publicKey: creds.publicKey ? decryptCredential(creds.publicKey) : '',
+        privateKey: creds.privateKey ? decryptCredential(creds.privateKey) : '',
+      }
+    }
+  } catch {
+    // TenantCredential lookup failed — try Tenant table
   }
+
+  // Fallback: try Tenant table (legacy — credentials stored directly on tenant row)
+  try {
+    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } })
+    if (tenant && tenant.cwBaseUrl) {
+      return {
+        baseUrl: tenant.cwBaseUrl,
+        companyId: tenant.cwCompanyId,
+        clientId: tenant.cwClientId,
+        publicKey: decryptCredential(tenant.cwPublicKey),
+        privateKey: decryptCredential(tenant.cwPrivateKey),
+      }
+    }
+  } catch {
+    // Tenant lookup failed — fall through to env var fallback
+  }
+
+  // Dev fallback to env vars (Phase 1 single-tenant mode)
+  if (process.env.NODE_ENV === 'development' || process.env.CW_BASE_URL) {
+    return {
+      baseUrl: process.env.CW_BASE_URL ?? '',
+      companyId: process.env.CW_COMPANY_ID ?? '',
+      clientId: process.env.CW_CLIENT_ID ?? '',
+      publicKey: process.env.CW_PUBLIC_KEY ?? '',
+      privateKey: process.env.CW_PRIVATE_KEY ?? '',
+    }
+  }
+
+  throw new Error(`No CW credentials found for tenant ${tenantId}`)
 }

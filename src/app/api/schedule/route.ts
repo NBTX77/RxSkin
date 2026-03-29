@@ -7,7 +7,7 @@ import { getScheduleEntries, createScheduleEntry } from '@/lib/cw/client'
 import { cachedFetch, invalidateCache } from '@/lib/cache/bff-cache'
 import { deduplicatedFetch } from '@/lib/cache/dedup'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
-import { getMockScheduleEntries } from '@/lib/mock-data'
+import { z } from 'zod'
 import type { ScheduleFilters } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -73,10 +73,11 @@ export async function GET(request: Request) {
     const dateParam = searchParams.get('date') ?? new Date().toISOString().split('T')[0]
     const viewMode = searchParams.get('view') ?? 'week'
 
-    // If CW credentials not configured, return mock data
     if (!isCWConfigured()) {
-      const entries = getMockScheduleEntries()
-      return Response.json(entries)
+      return Response.json(
+        { code: 'SERVICE_UNAVAILABLE', message: 'ConnectWise API not configured', retryable: false },
+        { status: 503 }
+      )
     }
 
     const { tenantId } = session.user
@@ -107,6 +108,13 @@ export async function GET(request: Request) {
   }
 }
 
+const createScheduleSchema = z.object({
+  ticketId: z.number().int().positive(),
+  memberId: z.number().int().positive(),
+  start: z.string().datetime(),
+  end: z.string().datetime(),
+})
+
 /**
  * POST — Create a new schedule entry in ConnectWise.
  */
@@ -116,22 +124,19 @@ export async function POST(request: Request) {
     if (!session?.user) return apiErrors.unauthorized()
 
     const body = await request.json()
-
-    if (!body.ticketId || !body.memberId || !body.start || !body.end) {
-      return Response.json(
-        { error: 'ticketId, memberId, start, and end are required' },
-        { status: 400 }
-      )
+    const parsed = createScheduleSchema.safeParse(body)
+    if (!parsed.success) {
+      return apiErrors.badRequest(parsed.error.issues.map(i => i.message).join(', '))
     }
 
     const { tenantId } = session.user
     const creds = await getTenantCredentials(tenantId)
 
     const newEntry = await createScheduleEntry(creds, {
-      objectId: body.ticketId,
-      member: { id: body.memberId },
-      dateStart: body.start,
-      dateEnd: body.end,
+      objectId: parsed.data.ticketId,
+      member: { id: parsed.data.memberId },
+      dateStart: parsed.data.start,
+      dateEnd: parsed.data.end,
       type: { identifier: 'S' }, // Service
     })
 

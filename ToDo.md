@@ -1,4 +1,4 @@
-# CoworkToDo — RX Skin Deep Review Action Items
+# ToDo — RX Skin Deep Review Action Items
 
 > **Purpose:** Shared task list between Claude Code (local) and Cowork (cloud) for addressing codebase review findings.
 > **Generated:** 2026-03-28 from deep codebase review.
@@ -19,7 +19,7 @@ Both agents should read `CLAUDE.md` at session start and check this file for cur
 ## Critical Issues (Fix Before Production)
 
 ### 1. Encrypted Credential Storage
-- **Status:** NOT STARTED
+- **Status:** DONE ✓ (2026-03-28)
 - **Priority:** CRITICAL
 - **Location:** `rx-skin/src/lib/auth/credentials.ts`
 - **Problem:** `getTenantCredentials()` ignores the `tenantId` parameter and returns env vars directly. Phase 1 workaround — must be replaced before multi-tenant.
@@ -27,28 +27,28 @@ Both agents should read `CLAUDE.md` at session start and check this file for cur
 - **Also:** Fix weak key derivation — currently slices first 32 chars of string. Use proper KDF (PBKDF2 or scrypt).
 
 ### 2. Login Rate Limiting
-- **Status:** NOT STARTED
+- **Status:** DONE ✓ (2026-03-28)
 - **Priority:** CRITICAL
 - **Location:** `rx-skin/src/lib/auth/config.ts`, middleware
 - **Problem:** No rate limiting on login attempts — brute-force attack possible.
 - **Fix:** Add in-memory sliding window rate limiter (IP-based, 5 attempts per 15 min). Consider `upstash/ratelimit` for serverless-friendly implementation.
 
 ### 3. CW OData Filter Injection
-- **Status:** NOT STARTED
+- **Status:** DONE ✓ (2026-03-28)
 - **Priority:** HIGH
 - **Location:** `rx-skin/src/lib/cw/client.ts`
 - **Problem:** User search input inserted unescaped into CW OData filter strings. Example: `status/name="${userInput}"` — a crafted input could alter query scope.
 - **Fix:** Create `escapeCwFilter(value: string)` utility that escapes double quotes and special OData characters. Apply to all filter-building functions.
 
 ### 4. React Error Boundaries
-- **Status:** NOT STARTED
+- **Status:** DONE ✓ (2026-03-28)
 - **Priority:** HIGH
 - **Location:** `rx-skin/src/components/`
 - **Problem:** Zero error boundaries in entire component tree. Unhandled error in Sidebar, TopBar, or GlobalSearch crashes the whole app.
 - **Fix:** Add error boundary wrapper around `DashboardShell` children and each major feature section (tickets, projects, schedule, ops, admin). Create a reusable `<ErrorBoundary>` component with fallback UI and error reporting.
 
 ### 5. Mock Data Fallback → 503
-- **Status:** NOT STARTED
+- **Status:** DONE ✓ (2026-03-28)
 - **Priority:** HIGH
 - **Location:** 8 API routes (`/api/projects`, `/api/projects/[id]`, `/api/schedule`, `/api/search`, `/api/tickets`, `/api/tickets/[id]`, `/api/tickets/[id]/notes`, `/api/tickets/[id]/time-entries`)
 - **Problem:** Routes return fake/mock data when CW credentials are missing instead of failing. In production, this silently serves wrong data.
@@ -59,7 +59,7 @@ Both agents should read `CLAUDE.md` at session start and check this file for cur
 ## High Priority Improvements
 
 ### 6. Security Headers
-- **Status:** NOT STARTED
+- **Status:** DONE ✓ (2026-03-28)
 - **Priority:** HIGH
 - **Location:** `rx-skin/next.config.js` or middleware
 - **Fix:** Add CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy via `next.config.js` headers config or middleware.
@@ -75,7 +75,7 @@ Both agents should read `CLAUDE.md` at session start and check this file for cur
   - Priority dot indicators need `aria-label` not just `title`
 
 ### 8. Input Validation Standardization
-- **Status:** NOT STARTED
+- **Status:** DONE ✓ (2026-03-28)
 - **Priority:** MEDIUM
 - **Problem:** Mix of Zod validation and inline manual checks across API routes.
 - **Fix:** Standardize all POST/PATCH routes on Zod schemas. Create shared validators for common patterns (dates, CW IDs, pagination params).

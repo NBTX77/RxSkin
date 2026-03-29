@@ -9,7 +9,6 @@ import { getTickets, createTicket } from '@/lib/cw/client'
 import { cachedFetch, invalidateCache } from '@/lib/cache/bff-cache'
 import { deduplicatedFetch } from '@/lib/cache/dedup'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
-import { getMockTickets } from '@/lib/mock-data'
 import { z } from 'zod'
 import type { TicketFilters } from '@/types'
 
@@ -26,19 +25,11 @@ export async function GET(request: Request) {
     const session = await auth()
     if (!session?.user) return apiErrors.unauthorized()
 
-    // If CW credentials not configured, return mock data for testing
     if (!isCWConfigured()) {
-      let tickets = getMockTickets()
-      const { searchParams } = new URL(request.url)
-      const searchTerm = searchParams.get('search')?.toLowerCase()
-      if (searchTerm) {
-        tickets = tickets.filter(t =>
-          t.summary.toLowerCase().includes(searchTerm) ||
-          t.company.toLowerCase().includes(searchTerm) ||
-          String(t.id).includes(searchTerm)
-        )
-      }
-      return Response.json(tickets)
+      return Response.json(
+        { code: 'SERVICE_UNAVAILABLE', message: 'ConnectWise API not configured', retryable: false },
+        { status: 503 }
+      )
     }
 
     const { tenantId } = session.user

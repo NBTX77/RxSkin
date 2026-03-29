@@ -8,7 +8,6 @@ import { getTenantCredentials } from '@/lib/auth/credentials'
 import { getTicket, updateTicket } from '@/lib/cw/client'
 import { cachedFetch, invalidateCacheKey, invalidateCache } from '@/lib/cache/bff-cache'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
-import { getMockTicketById } from '@/lib/mock-data'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
@@ -30,11 +29,11 @@ export async function GET(
     const ticketId = parseInt(params.id, 10)
     if (isNaN(ticketId)) return apiErrors.badRequest('Invalid ticket ID')
 
-    // Mock data fallback
     if (!isCWConfigured()) {
-      const ticket = getMockTicketById(ticketId)
-      if (!ticket) return apiErrors.badRequest('Ticket not found')
-      return Response.json(ticket)
+      return Response.json(
+        { code: 'SERVICE_UNAVAILABLE', message: 'ConnectWise API not configured', retryable: false },
+        { status: 503 }
+      )
     }
 
     const { tenantId } = session.user

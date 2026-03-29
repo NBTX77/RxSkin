@@ -8,8 +8,16 @@ import { getTenantCredentials } from '@/lib/auth/credentials'
 import { updateScheduleEntry, deleteScheduleEntry } from '@/lib/cw/client'
 import { invalidateCache } from '@/lib/cache/bff-cache'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
+import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+
+const rescheduleSchema = z.object({
+  dateStart: z.string().datetime().optional(),
+  dateEnd: z.string().datetime().optional(),
+}).refine(data => data.dateStart || data.dateEnd, {
+  message: 'At least one of dateStart or dateEnd is required',
+})
 
 /**
  * PATCH — Reschedule an entry (change dateStart/dateEnd).
@@ -25,21 +33,21 @@ export async function PATCH(
 
     const entryId = Number(params.id)
     if (!entryId || isNaN(entryId)) {
-      return Response.json({ error: 'Invalid entry ID' }, { status: 400 })
+      return apiErrors.badRequest('Invalid entry ID')
     }
 
     const body = await request.json()
+    const parsed = rescheduleSchema.safeParse(body)
+    if (!parsed.success) {
+      return apiErrors.badRequest(parsed.error.issues.map(i => i.message).join(', '))
+    }
+
     const patches: Record<string, unknown>[] = []
-
-    if (body.dateStart) {
-      patches.push({ op: 'replace', path: '/dateStart', value: body.dateStart })
+    if (parsed.data.dateStart) {
+      patches.push({ op: 'replace', path: '/dateStart', value: parsed.data.dateStart })
     }
-    if (body.dateEnd) {
-      patches.push({ op: 'replace', path: '/dateEnd', value: body.dateEnd })
-    }
-
-    if (patches.length === 0) {
-      return Response.json({ error: 'No updates provided' }, { status: 400 })
+    if (parsed.data.dateEnd) {
+      patches.push({ op: 'replace', path: '/dateEnd', value: parsed.data.dateEnd })
     }
 
     const { tenantId } = session.user

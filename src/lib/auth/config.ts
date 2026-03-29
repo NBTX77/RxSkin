@@ -6,7 +6,42 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { z } from 'zod'
+import { headers } from 'next/headers'
 import type { UserRole, DepartmentCode } from '@/types'
+
+// ── Login Rate Limiter ───────────────────────────────────────
+// In-memory sliding window: max 5 failed attempts per IP per 15 minutes.
+// Resets on successful login. Cleared periodically to prevent memory leak.
+
+const LOGIN_MAX_ATTEMPTS = 5
+const LOGIN_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
+
+const loginAttempts = new Map<string, { count: number; firstAttempt: number }>()
+
+// Purge stale entries every 5 minutes
+setInterval(() => {
+  const now = Date.now()
+  for (const [ip, data] of loginAttempts) {
+    if (now - data.firstAttempt > LOGIN_WINDOW_MS) {
+      loginAttempts.delete(ip)
+    }
+  }
+}, 5 * 60 * 1000).unref()
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const entry = loginAttempts.get(ip)
+  if (!entry || now - entry.firstAttempt > LOGIN_WINDOW_MS) {
+    loginAttempts.set(ip, { count: 1, firstAttempt: now })
+    return true
+  }
+  entry.count++
+  return entry.count <= LOGIN_MAX_ATTEMPTS
+}
+
+function clearRateLimit(ip: string): void {
+  loginAttempts.delete(ip)
+}
 
 // Extend NextAuth types to include our custom fields
 declare module 'next-auth' {
@@ -59,6 +94,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const parsed = loginSchema.safeParse(credentials)
         if (!parsed.success) return null
 
+        // Rate limit by IP
+        const headersList = await headers()
+        const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+        if (!checkRateLimit(ip)) {
+          throw new Error('Too many login attempts. Try again in 15 minutes.')
+        }
+
         // Phase 1 credentials — will be replaced by Azure AD SSO in Phase 2
         const adminEmail = process.env.ADMIN_EMAIL ?? process.env.DEV_ADMIN_EMAIL
         const adminPassword = process.env.ADMIN_PASSWORD ?? process.env.DEV_ADMIN_PASSWORD
@@ -68,6 +110,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           parsed.data.email === adminEmail &&
           parsed.data.password === adminPassword
         ) {
+          clearRateLimit(ip)
           return {
             id: 'dev-user-1',
             email: parsed.data.email,

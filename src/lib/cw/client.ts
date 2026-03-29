@@ -37,6 +37,14 @@ export class CWApiError extends Error {
 }
 
 /**
+ * Escape a string value for use in CW OData filter conditions.
+ * Prevents injection by escaping double quotes and backslashes.
+ */
+function escapeCwFilter(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
+
+/**
  * Build the Authorization header value for CW API Key auth.
  * Format: Basic Base64(companyId+publicKey:privateKey)
  */
@@ -135,12 +143,12 @@ export async function getTickets(
 
   const conditions: string[] = []
   if (filters.status?.length) {
-    conditions.push(filters.status.map(s => `status/name="${s}"`).join(' OR '))
+    conditions.push(filters.status.map(s => `status/name="${escapeCwFilter(s)}"`).join(' OR '))
   }
   if (filters.boardId) conditions.push(`board/id=${filters.boardId}`)
   if (filters.companyId) conditions.push(`company/id=${filters.companyId}`)
-  if (filters.assignedTo) conditions.push(`owner/identifier="${filters.assignedTo}"`)
-  if (filters.search) conditions.push(`summary contains "${filters.search}"`)
+  if (filters.assignedTo) conditions.push(`owner/identifier="${escapeCwFilter(filters.assignedTo)}"`)
+  if (filters.search) conditions.push(`summary contains "${escapeCwFilter(filters.search)}"`)
   if (conditions.length) params.set('conditions', conditions.join(' AND '))
 
   params.set('orderBy', 'lastUpdated desc')
@@ -279,20 +287,20 @@ export async function getProjects(
   const conditions: string[] = []
   if (filters.closedFlag === false) conditions.push('closedFlag=false')
   if (filters.closedFlag === true) conditions.push('closedFlag=true')
-  if (filters.board) conditions.push(`board/name="${filters.board}"`)
+  if (filters.board) conditions.push(`board/name="${escapeCwFilter(filters.board)}"`)
   // Support filtering by multiple CW department names (OR logic)
   if (filters.cwDepartments && filters.cwDepartments.length > 0) {
     if (filters.cwDepartments.length === 1) {
-      conditions.push(`department/name="${filters.cwDepartments[0]}"`)
+      conditions.push(`department/name="${escapeCwFilter(filters.cwDepartments[0])}"`)
     } else {
-      const deptClauses = filters.cwDepartments.map(d => `department/name="${d}"`).join(' OR ')
+      const deptClauses = filters.cwDepartments.map(d => `department/name="${escapeCwFilter(d)}"`).join(' OR ')
       conditions.push(`(${deptClauses})`)
     }
   }
-  if (filters.status) conditions.push(`status/name="${filters.status}"`)
-  if (filters.managerId) conditions.push(`manager/identifier="${filters.managerId}"`)
+  if (filters.status) conditions.push(`status/name="${escapeCwFilter(filters.status)}"`)
+  if (filters.managerId) conditions.push(`manager/identifier="${escapeCwFilter(filters.managerId)}"`)
   if (filters.companyId) conditions.push(`company/id=${filters.companyId}`)
-  if (filters.search) conditions.push(`name contains "${filters.search}"`)
+  if (filters.search) conditions.push(`name contains "${escapeCwFilter(filters.search)}"`)
   if (conditions.length) params.set('conditions', conditions.join(' AND '))
 
   params.set('orderBy', 'id desc')

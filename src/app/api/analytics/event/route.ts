@@ -7,23 +7,24 @@
 import { auth } from '@/lib/auth/config'
 import prisma from '@/lib/db/prisma'
 import { getDefaultTenantId } from '@/lib/instrumentation/tenant-context'
+import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
 
-interface IncomingEvent {
-  eventType: string
-  eventName: string
-  page?: string
-  component?: string
-  metadata?: Record<string, unknown>
-}
+const eventSchema = z.object({
+  eventType: z.string().min(1).max(50),
+  eventName: z.string().min(1).max(100),
+  page: z.string().max(500).optional(),
+  component: z.string().max(200).optional(),
+  metadata: z.record(z.unknown()).optional(),
+})
 
-interface EventBatch {
-  sessionId: string
-  viewport?: string
-  userAgent?: string
-  events: IncomingEvent[]
-}
+const eventBatchSchema = z.object({
+  sessionId: z.string().min(1).max(200),
+  viewport: z.string().max(50).optional(),
+  userAgent: z.string().max(500).optional(),
+  events: z.array(eventSchema).min(1).max(50),
+})
 
 export async function POST(request: Request) {
   try {
@@ -32,14 +33,13 @@ export async function POST(request: Request) {
     const userId = session?.user?.id
     const department = session?.user?.department
 
-    const body = (await request.json()) as EventBatch
-
-    if (!body.sessionId || !Array.isArray(body.events) || body.events.length === 0) {
+    const body = await request.json()
+    const parsed = eventBatchSchema.safeParse(body)
+    if (!parsed.success) {
       return Response.json({ ok: false, error: 'Invalid payload' }, { status: 400 })
     }
 
-    // Cap batch size to prevent abuse
-    const events = body.events.slice(0, 50)
+    const events = parsed.data.events
 
     const tenantId = await getDefaultTenantId()
 
@@ -48,15 +48,15 @@ export async function POST(request: Request) {
       data: events.map((e) => ({
         tenantId,
         userId: userId ?? null,
-        sessionId: body.sessionId,
+        sessionId: parsed.data.sessionId,
         eventType: e.eventType,
         eventName: e.eventName,
         page: e.page ?? null,
         component: e.component ?? null,
         metadata: e.metadata ?? {},
         department: department ?? null,
-        viewport: body.viewport ?? null,
-        userAgent: body.userAgent?.slice(0, 500) ?? null,
+        viewport: parsed.data.viewport ?? null,
+        userAgent: parsed.data.userAgent ?? null,
       })),
     })
 
