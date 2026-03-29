@@ -360,19 +360,101 @@ CREDENTIAL_ENCRYPTION_KEY=             # 256-bit key for AES-256-GCM
 
 ---
 
-## AI Assistant Rules (Read Every Session)
+## Cowork ↔ Claude Code Collaboration Model
 
-1. **Always read this file first** before starting any work
+RX Skin is built using a **two-AI workflow**. Read this before every session.
+
+### Who Does What
+
+| Role | Tool | Responsibilities |
+|------|------|-----------------|
+| **Cowork** (cloud) | Claude desktop app | Planning, architecture decisions, task spec writing, design direction, research, doc updates, Asana/Notion sync |
+| **Claude Code** (local, on Travis's machine) | CLI in `rx-skin/` directory | All file creation/editing, running `next build`, git commits, pushing to GitHub |
+
+### The Shared Task Log: `todo.md`
+
+`todo.md` lives one level up from this file, at the workspace root (`CW- Rx Skin/todo.md`). It is the **single source of truth** for what needs to be built.
+
+- **Cowork writes tasks** into `todo.md` — with full specs, file paths, and implementation details
+- **Claude Code reads `todo.md`** at the start of each local session, works through tasks top to bottom, and marks each one complete when done
+- **Task status markers:**
+  - `[ ]` — pending, not started
+  - `[~]` — in progress (Claude Code is working on it)
+  - `[x]` — complete (code written, build passes, committed)
+- Claude Code should **commit each task separately** with a conventional commit message, then mark it `[x]` in `todo.md` and commit that update too
+- Cowork will add new tasks to `todo.md` between sessions — Claude Code picks them up next time it runs
+
+### Rules for Claude Code
+
+1. **Always read `../todo.md` first** — it has the current task queue. Do not ask Travis what to work on — read the task list.
 2. **Never commit secrets or credentials** — use `.env.local` only
 3. **BFF layer is sacred** — CW API calls are always server-side only
 4. **Tenant ID must be in every query** — never skip tenant scoping
 5. **TypeScript strict mode** — no `any` types without explicit justification
 6. **Mobile-first** — every component must work on 375px width
 7. **Performance budget:** First contentful paint < 1.5s; API calls < 300ms cached
-8. **Test before marking complete** — unit tests for utils, integration tests for API routes
-9. **Document architectural decisions** in `docs/ARCHITECTURE.md` as you make them
-10. **Check Asana** for open tasks before starting new work
+8. **All API routes + dashboard layout need `export const dynamic = 'force-dynamic'`** or `next build` fails
+9. **Run `next build` after each task** to confirm TypeScript is clean before committing
+10. **Document architectural decisions** in `docs/ARCHITECTURE.md` as you make them
 11. When in doubt about CW API behavior — check `docs/INTEGRATIONS.md` first, then CW developer docs
+12. **NEVER write hardcoded dark-only classes** — always use the light/dark pattern. See Theming Rules below.
+
+### After Completing Each Task
+
+1. Run `next build` — confirm it passes with no TypeScript errors
+2. Git commit the code: `feat: <task name>`
+3. Update `../todo.md` — change `[ ]` to `[x]`, move task to "Completed Tasks" section
+4. Git commit the todo update: `chore: mark task X complete in todo.md`
+5. Push both commits to `main`
+
+**Never mark a task complete if the build fails or TypeScript errors exist.**
+
+---
+
+## Theming Rules — MANDATORY for All New Components
+
+RX Skin supports light and dark mode. `ThemeProvider` toggles a `dark` class on `<html>`. Tailwind's `darkMode: 'class'` strategy means `dark:` prefixes only activate when that class is present.
+
+**The rule: base styles = light mode. `dark:` = dark override. Always.**
+
+```tsx
+// ✅ CORRECT — theme-aware
+<div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50">
+  <p className="text-gray-900 dark:text-white">Title</p>
+  <p className="text-gray-600 dark:text-gray-400">Subtitle</p>
+</div>
+
+// ❌ WRONG — dark-only, breaks light mode
+<div className="bg-gray-900 border border-gray-700/50">
+  <p className="text-white">Title</p>
+  <p className="text-gray-400">Subtitle</p>
+</div>
+```
+
+### Standard Color Mappings
+
+| Purpose | Light mode class | Dark mode class |
+|---------|-----------------|-----------------|
+| Page background | `bg-gray-50` | `dark:bg-gray-950` |
+| Card / panel | `bg-white` | `dark:bg-gray-900` |
+| Secondary card | `bg-gray-50` | `dark:bg-gray-800/80` |
+| Input background | `bg-white` | `dark:bg-gray-800` |
+| Primary text | `text-gray-900` | `dark:text-white` |
+| Secondary text | `text-gray-600` | `dark:text-gray-400` |
+| Muted / placeholder | `text-gray-500` | `dark:text-gray-500` |
+| Primary border | `border-gray-200` | `dark:border-gray-700/50` |
+| Secondary border | `border-gray-100` | `dark:border-gray-800` |
+| Input border | `border-gray-300` | `dark:border-gray-700/50` |
+| Row hover | `hover:bg-gray-50` | `dark:hover:bg-gray-800/50` |
+| Table divider | `divide-gray-100` | `dark:divide-gray-800` |
+| Sidebar | `bg-white` | `dark:bg-gray-900` |
+
+### What Does NOT Need `dark:` Variants
+- Accent/status colors (`text-blue-400`, `text-red-400`, `text-green-400`, etc.) — readable in both modes
+- Opacity-based badge backgrounds (`bg-blue-500/10`, `bg-red-950`) — work in both modes
+- Pure utility classes (`rounded-xl`, `flex`, `gap-3`, `p-4`) — no color involved
+
+> **Why this rule exists:** The entire app was originally built dark-only with no `dark:` prefixes. When light mode was toggled, every component stayed gray. Task 10 in `todo.md` was created to fix this retroactively. Don't create more debt.
 
 ---
 
@@ -549,11 +631,4 @@ Full research document: `RX-Skin-Middleware-Workflow-Research.docx` in workspace
 
 ---
 
-## Known Dev Environment Issues
-
-- `next dev` Tailwind CSS broken (PostCSS ESM/CJS conflict) — use `next start` for local review
-- `next.config.js` must be CJS format — `.mjs` duplicate deleted
-- `AUTH_TRUST_HOST=1` required in `.env.local` for NextAuth v5 localhost
-- Stale duplicate config files (`.mjs` and `.ts` variants) have been deleted
-- `middleware.ts` exists for route protection — may conflict with Node v24 edge runtime (monitor)
-- **All API routes and dashboard layout require `export const dynamic = 'force-dynamic'`** — without this, `next build` fail
+## Known Dev Environmen

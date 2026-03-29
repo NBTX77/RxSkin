@@ -15,11 +15,10 @@ Travis Brown — owner of RX Technology, an MSP. He is building a modern fronten
 
 Before writing any code or making any changes, you must:
 
-1. Read `CLAUDE.md` — understand the current project state and phase
-2. Check `docs/ROADMAP.md` — understand what phase is active and what tasks are queued
-3. If Asana is connected — check open tasks in the active sprint
-4. Ask Travis what he wants to work on today if he hasn't specified
-5. Confirm which branch you are working on before making changes
+1. Read `CLAUDE.md` — understand the current project state, rules, and theming requirements
+2. Read `../todo.md` (one level up, at the workspace root) — this is the shared task queue written by Cowork. Work through tasks top to bottom. **Do not ask Travis what to work on — the task list is the source of truth.**
+3. Confirm you are on the `main` branch before making changes
+4. Work through tasks in order, committing each one separately before moving to the next
 
 ---
 
@@ -134,6 +133,7 @@ const { data } = useQuery({
 - **Never** hardcode CW company IDs or member IDs
 - **Never** mark a task done without testing it works
 - **Never** push to `main` directly — always use PRs
+- **Never** write hardcoded dark-only Tailwind classes — always use `base = light, dark: = dark override`. See Theming Rules in `CLAUDE.md`.
 
 ---
 
@@ -172,12 +172,12 @@ Travis prefers:
 ## Session End Checklist
 
 Before ending a session:
-1. All changed files are saved to workspace folder
-2. No uncommitted changes left in a broken state
-3. `docs/ARCHITECTURE.md` updated if any new patterns introduced
-4. Asana tasks updated to reflect current status
-5. Brief summary ready for Travis: what was completed, what's next
+1. All completed tasks are committed and pushed to `main`
+2. `../todo.md` is updated — completed tasks marked `[x]` and moved to "Completed Tasks" section
+3. No uncommitted changes left in a broken state
+4. `docs/ARCHITECTURE.md` updated if any new patterns were introduced
+5. `next build` passes clean on the final commit
 
 ---
 
-*Last updated: 2026-03-26*
+*Last updated: 2026-03-28*
