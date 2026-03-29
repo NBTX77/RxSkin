@@ -29,6 +29,7 @@ import {
   MessageSquare,
   CreditCard,
   ShieldCheck,
+  HardDrive,
 } from 'lucide-react'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 import { ToolsSection } from '@/components/layout/ToolsSection'
@@ -67,6 +68,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/dispatch', label: 'Dispatch', icon: LayoutGrid },
       { href: '/team', label: 'Team', icon: Users },
       { href: '/fleet', label: 'Fleet Map', icon: Map },
+      { href: '/datto', label: 'Backup', icon: HardDrive },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
     expandableSections: {
@@ -151,6 +153,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/financials', label: 'Financials', icon: DollarSign },
       { href: '/cbr', label: 'CBR', icon: ClipboardCheck },
       { href: '/fleet', label: 'Fleet Map', icon: Map },
+      { href: '/datto', label: 'Backup', icon: HardDrive },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
   },

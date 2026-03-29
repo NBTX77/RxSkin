@@ -48,12 +48,8 @@ export class ScalePadApiError extends Error {
 
 interface ScalePadPaginatedResponse {
   data: Record<string, unknown>[]
-  meta?: {
-    current_page?: number
-    last_page?: number
-    total?: number
-    per_page?: number
-  }
+  total_count?: number
+  next_cursor?: string | null
 }
 
 // ── Credentials ────────────────────────────────────────────────
@@ -137,7 +133,8 @@ async function scalePadFetch<T>(
 
 /**
  * Fetch all pages from a paginated ScalePad endpoint.
- * ScalePad uses page-based pagination with page_size up to 200.
+ * ScalePad uses cursor-based pagination: pass cursor= query param, response
+ * includes next_cursor for subsequent pages (null when done).
  */
 async function scalePadFetchAllPages(
   basePath: string,
@@ -145,12 +142,12 @@ async function scalePadFetchAllPages(
   pageSize = 200
 ): Promise<Record<string, unknown>[]> {
   const allData: Record<string, unknown>[] = []
-  let page = 1
-  let hasMore = true
+  let cursor: string | undefined = undefined
 
-  while (hasMore) {
+  while (true) {
     const separator = basePath.includes('?') ? '&' : '?'
-    const path = `${basePath}${separator}page=${page}&page_size=${pageSize}`
+    const cursorParam: string = cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''
+    const path = `${basePath}${separator}page_size=${pageSize}${cursorParam}`
 
     const response = await scalePadFetch<ScalePadPaginatedResponse>(path, creds)
 
@@ -158,15 +155,11 @@ async function scalePadFetchAllPages(
       allData.push(...response.data)
     }
 
-    const meta = response.meta
-    if (meta && meta.current_page != null && meta.last_page != null) {
-      hasMore = meta.current_page < meta.last_page
+    if (response.next_cursor) {
+      cursor = response.next_cursor
     } else {
-      // If no pagination meta, assume single page
-      hasMore = false
+      break
     }
-
-    page++
   }
 
   return allData
@@ -201,147 +194,104 @@ export async function getScalePadClient(
 // ── Hardware Assets ────────────────────────────────────────────
 
 /**
- * Get hardware assets, optionally filtered by client ID.
- * ScalePad returns all assets — filter client-side by clientId.
+ * Get hardware assets, optionally filtered by client ID (client-side filter).
+ * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientHardwareAssets(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRHardwareAsset[]> {
-  const path = clientId
-    ? `/v1/hardware_assets?client_id=${encodeURIComponent(clientId)}`
-    : '/v1/hardware_assets'
-  const raw = await scalePadFetchAllPages(path, creds)
+  const raw = await scalePadFetchAllPages('/v1/hardware_assets', creds)
   const assets = raw.map(normalizeHardwareAsset)
-
-  if (clientId) {
-    return assets.filter((a) => a.clientId === clientId)
-  }
-  return assets
+  return clientId ? assets.filter((a) => a.clientId === clientId) : assets
 }
 
 // ── Hardware Lifecycles ────────────────────────────────────────
 
 /**
- * Get hardware lifecycle/warranty data, optionally filtered by client.
+ * Get hardware lifecycle/warranty data, optionally filtered by client (client-side).
+ * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientHardwareLifecycles(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRHardwareLifecycle[]> {
-  const path = clientId
-    ? `/v1/hardware_lifecycles?client_id=${encodeURIComponent(clientId)}`
-    : '/v1/hardware_lifecycles'
-  const raw = await scalePadFetchAllPages(path, creds)
+  const raw = await scalePadFetchAllPages('/v1/hardware_lifecycles', creds)
   const lifecycles = raw.map(normalizeHardwareLifecycle)
-
-  if (clientId) {
-    return lifecycles.filter((l) => l.clientId === clientId)
-  }
-  return lifecycles
+  return clientId ? lifecycles.filter((l) => l.clientId === clientId) : lifecycles
 }
 
 // ── SaaS Assets ────────────────────────────────────────────────
 
 /**
- * Get SaaS/license assets, optionally filtered by client ID.
+ * Get SaaS/license assets, optionally filtered by client ID (client-side).
+ * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientSaaSAssets(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRSaaSAsset[]> {
-  const path = clientId
-    ? `/v1/saas_assets?client_id=${encodeURIComponent(clientId)}`
-    : '/v1/saas_assets'
-  const raw = await scalePadFetchAllPages(path, creds)
+  const raw = await scalePadFetchAllPages('/v1/saas_assets', creds)
   const assets = raw.map(normalizeSaaSAsset)
-
-  if (clientId) {
-    return assets.filter((a) => a.clientId === clientId)
-  }
-  return assets
+  return clientId ? assets.filter((a) => a.clientId === clientId) : assets
 }
 
 // ── Opportunities ──────────────────────────────────────────────
 
 /**
- * Get opportunities, optionally filtered by client ID.
+ * Get opportunities, optionally filtered by client ID (client-side).
+ * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientOpportunities(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBROpportunity[]> {
-  const path = clientId
-    ? `/v1/opportunities?client_id=${encodeURIComponent(clientId)}`
-    : '/v1/opportunities'
-  const raw = await scalePadFetchAllPages(path, creds)
+  const raw = await scalePadFetchAllPages('/v1/opportunities', creds)
   const opportunities = raw.map(normalizeOpportunity)
-
-  if (clientId) {
-    return opportunities.filter((o) => o.clientId === clientId)
-  }
-  return opportunities
+  return clientId ? opportunities.filter((o) => o.clientId === clientId) : opportunities
 }
 
 // ── Contracts ──────────────────────────────────────────────────
 
 /**
- * Get contracts, optionally filtered by client ID.
+ * Get contracts, optionally filtered by client ID (client-side).
+ * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientContracts(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRContract[]> {
-  const path = clientId
-    ? `/v1/contracts?client_id=${encodeURIComponent(clientId)}`
-    : '/v1/contracts'
-  const raw = await scalePadFetchAllPages(path, creds)
+  const raw = await scalePadFetchAllPages('/v1/contracts', creds)
   const contracts = raw.map(normalizeContract)
-
-  if (clientId) {
-    return contracts.filter((c) => c.clientId === clientId)
-  }
-  return contracts
+  return clientId ? contracts.filter((c) => c.clientId === clientId) : contracts
 }
 
 // ── Initiatives ────────────────────────────────────────────────
 
 /**
- * Get initiatives, optionally filtered by client ID.
+ * Get initiatives, optionally filtered by client ID (client-side).
+ * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientInitiatives(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRInitiative[]> {
-  const path = clientId
-    ? `/v1/initiatives?client_id=${encodeURIComponent(clientId)}`
-    : '/v1/initiatives'
-  const raw = await scalePadFetchAllPages(path, creds)
+  const raw = await scalePadFetchAllPages('/v1/initiatives', creds)
   const initiatives = raw.map(normalizeInitiative)
-
-  if (clientId) {
-    return initiatives.filter((i) => i.clientId === clientId)
-  }
-  return initiatives
+  return clientId ? initiatives.filter((i) => i.clientId === clientId) : initiatives
 }
 
 // ── Action Items ───────────────────────────────────────────────
 
 /**
- * Get action items, optionally filtered by client ID.
+ * Get action items, optionally filtered by client ID (client-side).
+ * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientActionItems(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRActionItem[]> {
-  const path = clientId
-    ? `/v1/action_items?client_id=${encodeURIComponent(clientId)}`
-    : '/v1/action_items'
-  const raw = await scalePadFetchAllPages(path, creds)
+  const raw = await scalePadFetchAllPages('/v1/action_items', creds)
   const items = raw.map(normalizeActionItem)
-
-  if (clientId) {
-    return items.filter((a) => a.clientId === clientId)
-  }
-  return items
+  return clientId ? items.filter((a) => a.clientId === clientId) : items
 }
