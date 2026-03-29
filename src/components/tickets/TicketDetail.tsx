@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Fragment, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import type { Ticket, TicketNote, TimeEntry } from '@/types'
@@ -10,6 +10,7 @@ import { useTimeTracker } from '@/contexts/TimeTrackerContext'
 import {
   ArrowLeft, Clock, Building2, User, MessageSquare, Send,
   CheckCircle2, Calendar, AlertCircle, Timer, Tag, ArrowUpCircle,
+  ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
@@ -29,6 +30,86 @@ const STATUS_STYLES: Record<string, string> = {
   'Closed': 'text-gray-500 bg-gray-500/10 border-gray-500/20',
 }
 
+// --- Part B: Rich text parser for CW notes ---
+const HTML_ENTITIES: Record<string, string> = {
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'",
+  '&nbsp;': ' ',
+}
+
+function decodeHtmlEntities(text: string): string {
+  return text.replace(/&(?:amp|lt|gt|quot|#39|nbsp);/g, (match) => HTML_ENTITIES[match] ?? match)
+}
+
+function renderNoteContent(raw: string): ReactNode[] {
+  const decoded = decodeHtmlEntities(raw)
+  const lines = decoded.split('\n')
+
+  return lines.map((line, lineIdx) => {
+    // Tokenize each line: bold, markdown links, raw URLs
+    const tokens: ReactNode[] = []
+    // Regex: **bold** | [text](url) | raw URLs
+    const pattern = /(\*\*(.+?)\*\*)|(\[([^\]]+)\]\((https?:\/\/[^\s)]+)\))|(https?:\/\/[^\s<]+)/g
+    let lastIndex = 0
+    let match: RegExpExecArray | null
+
+    while ((match = pattern.exec(line)) !== null) {
+      // Push plain text before match
+      if (match.index > lastIndex) {
+        tokens.push(line.slice(lastIndex, match.index))
+      }
+
+      if (match[1]) {
+        // **bold**
+        tokens.push(<strong key={`${lineIdx}-b-${match.index}`} className="font-semibold">{match[2]}</strong>)
+      } else if (match[3]) {
+        // [text](url)
+        tokens.push(
+          <a
+            key={`${lineIdx}-a-${match.index}`}
+            href={match[5]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:underline"
+          >
+            {match[4]}
+          </a>
+        )
+      } else if (match[6]) {
+        // Raw URL
+        tokens.push(
+          <a
+            key={`${lineIdx}-u-${match.index}`}
+            href={match[6]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:underline"
+          >
+            {match[6]}
+          </a>
+        )
+      }
+
+      lastIndex = match.index + match[0].length
+    }
+
+    // Remaining plain text
+    if (lastIndex < line.length) {
+      tokens.push(line.slice(lastIndex))
+    }
+
+    return (
+      <Fragment key={lineIdx}>
+        {tokens.length > 0 ? tokens : '\u00A0'}
+        {lineIdx < lines.length - 1 && <br />}
+      </Fragment>
+    )
+  })
+}
+
 interface TicketDetailProps {
   ticketId: number
 }
@@ -44,6 +125,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
   const [showTimeForm, setShowTimeForm] = useState(false)
   const [timeHours, setTimeHours] = useState(0.5)
   const [timeNotes, setTimeNotes] = useState('')
+  const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set())
   const { startTimer, activeTicketId: timerTicketId, isRunning: timerRunning } = useTimeTracker()
 
   const { data: ticket, isLoading: ticketLoading } = useQuery<Ticket>({
@@ -220,24 +302,51 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
 
           {/* Activity feed */}
           {activeTab === 'notes' ? (
-            <div className="space-y-3">
-              {notes.map((note) => (
-                <div key={note.id} className={`rounded-xl border p-4 ${note.isInternal ? 'border-yellow-500/20 bg-yellow-500/5' : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900'}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-[10px] font-bold text-gray-700 dark:text-gray-300">
-                      {note.createdBy.split(' ').map(n => n[0]).join('')}
+            <div className="max-h-[60vh] overflow-y-auto space-y-3 pr-1">
+              {notes.map((note) => {
+                const isLong = note.text.length > 500
+                const isExpanded = expandedNotes.has(note.id)
+                const displayText = isLong && !isExpanded ? note.text.slice(0, 300) + '...' : note.text
+
+                return (
+                  <div key={note.id} className={`rounded-xl border p-4 max-w-full overflow-hidden ${note.isInternal ? 'border-yellow-500/20 bg-yellow-500/5' : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[10px] font-bold text-gray-700 dark:text-gray-300">
+                        {note.createdBy.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{note.createdBy}</span>
+                      {note.isInternal && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 font-medium">Internal</span>
+                      )}
+                      <span className="text-xs text-gray-600 ml-auto">
+                        {(() => { try { return formatDistanceToNow(new Date(note.createdAt), { addSuffix: true }) } catch { return 'Unknown' } })()}
+                      </span>
                     </div>
-                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{note.createdBy}</span>
-                    {note.isInternal && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 font-medium">Internal</span>
+                    <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed break-words overflow-hidden">
+                      {renderNoteContent(displayText)}
+                    </div>
+                    {isLong && (
+                      <button
+                        onClick={() => {
+                          setExpandedNotes((prev) => {
+                            const next = new Set(prev)
+                            if (next.has(note.id)) {
+                              next.delete(note.id)
+                            } else {
+                              next.add(note.id)
+                            }
+                            return next
+                          })
+                        }}
+                        className="mt-2 flex items-center gap-1 text-xs font-medium text-blue-500 hover:text-blue-400 transition-colors"
+                      >
+                        {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                        {isExpanded ? 'Show less' : 'Show more'}
+                      </button>
                     )}
-                    <span className="text-xs text-gray-600 ml-auto">
-                      {(() => { try { return formatDistanceToNow(new Date(note.createdAt), { addSuffix: true }) } catch { return 'Unknown' } })()}
-                    </span>
                   </div>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{note.text}</p>
-                </div>
-              ))}
+                )
+              })}
               {notes.length === 0 && (
                 <p className="text-center text-gray-600 py-8 text-sm">No notes yet</p>
               )}
@@ -269,7 +378,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
         </div>
 
         {/* Right: Metadata sidebar (1/3 width) */}
-        <div className="space-y-4">
+        <div className="lg:sticky lg:top-20 lg:self-start space-y-4">
           {/* Key info */}
           <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-4">
             <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Details</h3>
@@ -467,9 +576,12 @@ function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: strin
 }
 
 function formatDate(dateStr: string): string {
+  if (!dateStr) return '\u2014'
   try {
-    return format(new Date(dateStr), 'MMM d, h:mm a')
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return '\u2014'
+    return format(d, 'MMM d, h:mm a')
   } catch {
-    return dateStr
+    return '\u2014'
   }
 }
