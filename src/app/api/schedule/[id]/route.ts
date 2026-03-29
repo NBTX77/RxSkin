@@ -42,7 +42,7 @@ export async function PATCH(
       return apiErrors.badRequest(parsed.error.issues.map(i => i.message).join(', '))
     }
 
-    const patches: Record<string, unknown>[] = []
+    const patches: Array<{ op: string; path: string; value: unknown }> = []
     if (parsed.data.dateStart) {
       patches.push({ op: 'replace', path: '/dateStart', value: parsed.data.dateStart })
     }

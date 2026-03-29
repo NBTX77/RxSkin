@@ -5,7 +5,7 @@
 
 import type { ScreenConnectSession } from '@/types'
 import { logApiCall } from '@/lib/instrumentation/api-logger'
-import { getDefaultTenantId } from '@/lib/instrumentation/tenant-context'
+import { resolveTenantId } from '@/lib/instrumentation/tenant-context'
 
 export interface ControlCredentials {
   baseUrl: string
@@ -115,7 +115,7 @@ export async function getAccessSessions(
     throw err
   } finally {
     const elapsed = Math.round(performance.now() - start)
-    getDefaultTenantId()
+    resolveTenantId()
       .then((tenantId) => {
         logApiCall(
           { tenantId, platform: 'control', endpoint, method: 'POST' },
@@ -175,7 +175,7 @@ export async function getSessionDetails(
     throw err
   } finally {
     const elapsed = Math.round(performance.now() - start)
-    getDefaultTenantId()
+    resolveTenantId()
       .then((tenantId) => {
         logApiCall(
           { tenantId, platform: 'control', endpoint, method: 'POST' },

@@ -1,7 +1,7 @@
 'use client'
 
 import type { Project, DepartmentCode } from '@/types'
-import { DEPARTMENTS } from '@/types'
+import { DEPARTMENTS, isDepartmentCode, parseDepartmentCode } from '@/types'
 import { BudgetGauge } from './BudgetGauge'
 import {
   AlertTriangle,
@@ -29,8 +29,8 @@ interface DeptSummary {
 
 function getDeptFromBoard(board: string): DepartmentCode {
   for (const [code, config] of Object.entries(DEPARTMENTS)) {
-    if (config.cwBoards.some((b) => board.includes(b.trim()) || b.trim().includes(board))) {
-      return code as DepartmentCode
+    if (isDepartmentCode(code) && config.cwBoards.some((b) => board.includes(b.trim()) || b.trim().includes(board))) {
+      return code
     }
   }
   return 'IT'
@@ -50,7 +50,7 @@ export function ProjectPortfolioView({
   // Group projects by department
   const deptMap = new Map<DepartmentCode, Project[]>()
   for (const p of projects) {
-    const dept = (p.department as DepartmentCode) || getDeptFromBoard(p.board)
+    const dept = parseDepartmentCode(p.department) || getDeptFromBoard(p.board)
     if (!deptMap.has(dept)) deptMap.set(dept, [])
     deptMap.get(dept)!.push(p)
   }
@@ -125,11 +125,6 @@ export function ProjectPortfolioView({
       {/* Department heatmap cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {deptSummaries.map((dept) => {
-          const pct =
-            dept.totalBudget > 0
-              ? (dept.totalActual / dept.totalBudget) * 100
-              : 0
-
           return (
             <div
               key={dept.code}

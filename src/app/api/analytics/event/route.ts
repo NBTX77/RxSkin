@@ -6,7 +6,8 @@
 
 import { auth } from '@/lib/auth/config'
 import prisma from '@/lib/db/prisma'
-import { getDefaultTenantId } from '@/lib/instrumentation/tenant-context'
+import { resolveTenantId } from '@/lib/instrumentation/tenant-context'
+import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
 
     const events = parsed.data.events
 
-    const tenantId = await getDefaultTenantId()
+    const tenantId = await resolveTenantId()
 
     // Bulk insert events (fire and forget — respond immediately)
     const insertPromise = prisma.analyticsEvent.createMany({
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
         eventName: e.eventName,
         page: e.page ?? null,
         component: e.component ?? null,
-        metadata: e.metadata ?? {},
+        metadata: (e.metadata ?? {}) as Prisma.InputJsonValue,
         department: department ?? null,
         viewport: parsed.data.viewport ?? null,
         userAgent: parsed.data.userAgent ?? null,

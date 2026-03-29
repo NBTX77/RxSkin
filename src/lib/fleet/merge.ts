@@ -104,7 +104,6 @@ export function mergeFleetData(input: MergeInput): MergeOutput {
 
   // Build member lookup by name (lowercased) for fuzzy matching
   const memberByName = new Map(members.map((m) => [m.name.toLowerCase(), m]))
-  const memberById = new Map(members.map((m) => [m.id, m]))
 
   // Group schedule entries by member ID
   const scheduleByMember = new Map<number, ScheduleEntry[]>()

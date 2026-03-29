@@ -10,7 +10,7 @@ import { cachedFetch, invalidateCache } from '@/lib/cache/bff-cache'
 import { deduplicatedFetch } from '@/lib/cache/dedup'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 import { z } from 'zod'
-import type { Project, ProjectFilters, DepartmentCode } from '@/types'
+import type { ProjectFilters, DepartmentCode } from '@/types'
 import { DEPARTMENTS } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
     const departmentFilter = searchParams.get('department') as DepartmentCode | undefined
 
     // Map department to CW department names for filtering
-    let board = boardFilter
+    const board = boardFilter
     let cwDepartments: string[] | undefined
     if (departmentFilter && departmentFilter in DEPARTMENTS) {
       const deptConfig = DEPARTMENTS[departmentFilter]

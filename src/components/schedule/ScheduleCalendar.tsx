@@ -52,6 +52,13 @@ function getEventColor(entry: ScheduleEntry): string {
   return '#3b82f6' // blue default
 }
 
+/** Extract ScheduleEntry from FullCalendar event's extendedProps (set in events memo). */
+function getEntry(event: { extendedProps: Record<string, unknown> }): ScheduleEntry | null {
+  const entry = event.extendedProps.entry
+  if (entry && typeof entry === 'object' && 'id' in entry) return entry as ScheduleEntry
+  return null
+}
+
 export function ScheduleCalendar() {
   const calendarRef = useRef<FullCalendar>(null)
   const [currentDate, setCurrentDate] = useState(() => new Date().toISOString().split('T')[0])
@@ -90,11 +97,11 @@ export function ScheduleCalendar() {
   // Handle drag-and-drop rescheduling
   const handleEventDrop = useCallback(
     (info: EventDropArg) => {
-      const entry = info.event.extendedProps.entry as ScheduleEntry
+      const entry = getEntry(info.event)
       const newStart = info.event.start?.toISOString()
       const newEnd = info.event.end?.toISOString()
 
-      if (!newStart || !newEnd) {
+      if (!entry || !newStart || !newEnd) {
         info.revert()
         return
       }
@@ -114,11 +121,11 @@ export function ScheduleCalendar() {
   // Handle event resize (extend/shorten duration)
   const handleEventResize = useCallback(
     (info: { event: EventDropArg['event']; revert: () => void }) => {
-      const entry = info.event.extendedProps.entry as ScheduleEntry
+      const entry = getEntry(info.event)
       const newStart = info.event.start?.toISOString()
       const newEnd = info.event.end?.toISOString()
 
-      if (!newStart || !newEnd) {
+      if (!entry || !newStart || !newEnd) {
         info.revert()
         return
       }
@@ -137,8 +144,8 @@ export function ScheduleCalendar() {
 
   // Handle clicking an event to view details
   const handleEventClick = useCallback((info: EventClickArg) => {
-    const entry = info.event.extendedProps.entry as ScheduleEntry
-    setSelectedEvent(entry)
+    const entry = getEntry(info.event)
+    if (entry) setSelectedEvent(entry)
   }, [])
 
   // Handle date selection — open create entry form

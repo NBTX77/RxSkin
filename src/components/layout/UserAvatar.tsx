@@ -6,12 +6,10 @@ import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
 import {
   User,
-  Settings,
   Shield,
   LogOut,
   ChevronDown,
 } from 'lucide-react'
-import type { UserRole } from '@/types'
 
 export function UserAvatar() {
   const { data: session } = useSession()
@@ -19,7 +17,7 @@ export function UserAvatar() {
   const menuRef = useRef<HTMLDivElement>(null)
 
   const user = session?.user
-  const isAdmin = user?.role === ('ADMIN' as UserRole)
+  const isAdmin = user?.role === 'ADMIN'
 
   // Close dropdown on outside click
   useEffect(() => {

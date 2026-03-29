@@ -3,11 +3,9 @@
 import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
-  BarChart3,
   MousePointer2,
   Flame,
   Eye,
-  TrendingUp,
   AlertCircle,
   Map,
   Clock,

@@ -4,12 +4,10 @@ import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   Search,
-  Filter,
   Shield,
   Key,
   LogIn,
   Globe,
-  ChevronDown,
 } from 'lucide-react'
 
 // ── Mock audit entries ───────────────────────────────────────

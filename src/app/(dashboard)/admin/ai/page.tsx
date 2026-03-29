@@ -3,15 +3,12 @@
 import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
-  Bot,
   MessageSquare,
   Sparkles,
-  Settings,
   ToggleLeft,
   ToggleRight,
   Zap,
   Brain,
-  Eye,
   Lightbulb,
 } from 'lucide-react'
 

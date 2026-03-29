@@ -25,8 +25,6 @@ export function TicketActions({ ticket }: TicketActionsProps) {
   const [showPicker, setShowPicker] = useState(false)
   const [selectedComputer, setSelectedComputer] = useState<AutomateComputer | null>(null)
   const [actionMode, setActionMode] = useState<ActionMode>(null)
-  const [showDropdown, setShowDropdown] = useState(false)
-
   // Launch URL lookup for selected computer
   const { data: controlData, isLoading: controlLoading } = useQuery({
     queryKey: ['control-session', selectedComputer?.computerName],
@@ -41,7 +39,6 @@ export function TicketActions({ ticket }: TicketActionsProps) {
 
   const handleAction = useCallback((mode: ActionMode) => {
     setActionMode(mode)
-    setShowDropdown(false)
     if (!selectedComputer) {
       // Need to pick a computer first
       setShowPicker(true)

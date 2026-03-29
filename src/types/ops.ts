@@ -115,6 +115,43 @@ export interface SamsaraHosClock {
   dutyStatus: string
 }
 
+// ── Fleet Trails ────────────────────────────────
+
+export interface FleetTrailPoint {
+  lat: number
+  lng: number
+  speed: number
+  heading: number
+  time: string
+}
+
+export interface FleetTrail {
+  vehicleId: string
+  vehicleName: string
+  points: FleetTrailPoint[]
+}
+
+export interface FleetTrailsResponse {
+  ok: boolean
+  trails: FleetTrail[]
+  windowStart: string
+  windowEnd: string
+}
+
+export interface SamsaraLocationHistoryPoint {
+  latitude: number
+  longitude: number
+  speedMph: number
+  headingDegrees: number
+  time: string
+}
+
+export interface SamsaraLocationHistoryEntry {
+  vehicleId: string
+  vehicleName: string
+  points: SamsaraLocationHistoryPoint[]
+}
+
 // ── Filter / UI State ────────────────────────────
 
 export type TechFilter = 'all' | 'critical' | 'high' | 'inProgress' | 'multiTech' | 'lowHos'

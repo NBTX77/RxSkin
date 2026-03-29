@@ -10,12 +10,9 @@ import {
   Bell,
   Sun,
   Moon,
-  Monitor,
   Check,
   ExternalLink,
   Mail,
-  Calendar,
-  MessageSquare,
   Phone,
 } from 'lucide-react'
 import { useTheme } from '@/components/theme/ThemeProvider'

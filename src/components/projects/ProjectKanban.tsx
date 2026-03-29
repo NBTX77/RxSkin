@@ -69,7 +69,6 @@ const COLUMN_HEADER_COLOR: Record<string, string> = {
 export function ProjectKanban({
   projects,
   onProjectClick,
-  onStatusChange,
 }: ProjectKanbanProps) {
   return (
     <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 px-2 sm:px-4">

@@ -4,11 +4,10 @@
 // ============================================================
 
 import NextAuth from 'next-auth'
-import type { JWT } from 'next-auth/jwt'
-import type { Session, User } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { z } from 'zod'
 import { headers } from 'next/headers'
+import { parseDepartmentCode, parseUserRole } from '@/types'
 import type { UserRole, DepartmentCode } from '@/types'
 
 // ── Login Rate Limiter ───────────────────────────────────────
@@ -23,11 +22,11 @@ const loginAttempts = new Map<string, { count: number; firstAttempt: number }>()
 // Purge stale entries every 5 minutes
 setInterval(() => {
   const now = Date.now()
-  for (const [ip, data] of loginAttempts) {
+  loginAttempts.forEach((data, ip) => {
     if (now - data.firstAttempt > LOGIN_WINDOW_MS) {
       loginAttempts.delete(ip)
     }
-  }
+  })
 }, 5 * 60 * 1000).unref()
 
 function checkRateLimit(ip: string): boolean {
@@ -120,7 +119,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             tenantId: process.env.TENANT_ID ?? process.env.DEV_TENANT_ID ?? 'rx-technology',
             role: 'ADMIN' as UserRole,
             cwMemberId: process.env.CW_MEMBER_ID ?? process.env.DEV_CW_MEMBER_ID ?? 'TBrown',
-            department: (process.env.DEPARTMENT as DepartmentCode) || (process.env.DEV_DEPARTMENT as DepartmentCode) || 'SI',
+            department: parseDepartmentCode(process.env.DEPARTMENT ?? process.env.DEV_DEPARTMENT, 'SI'),
           }
         }
 
@@ -135,23 +134,36 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
 
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: User & Record<string, unknown> }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id
         token.tenantId = user.tenantId
         token.role = user.role
         token.cwMemberId = user.cwMemberId
         token.department = user.department
+        token.issuedAt = Math.floor(Date.now() / 1000)
       }
+
+      // Sliding session: refresh token if past the halfway point (4 hours)
+      const SESSION_MAX_AGE = 8 * 60 * 60 // 8 hours in seconds
+      const REFRESH_THRESHOLD = SESSION_MAX_AGE / 2 // 4 hours
+      const issuedAt = (token.issuedAt as number) ?? 0
+      const elapsed = Math.floor(Date.now() / 1000) - issuedAt
+
+      if (issuedAt > 0 && elapsed > REFRESH_THRESHOLD) {
+        token.issuedAt = Math.floor(Date.now() / 1000)
+        token.exp = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE
+      }
+
       return token
     },
 
-    async session({ session, token }: { session: Session; token: JWT & Record<string, unknown> }) {
-      session.user.id = token.id as string
-      session.user.tenantId = token.tenantId as string
-      session.user.role = token.role as UserRole
-      session.user.cwMemberId = token.cwMemberId as string | undefined
-      session.user.department = (token.department as DepartmentCode) || 'IT'
+    async session({ session, token }) {
+      session.user.id = String(token.id ?? '')
+      session.user.tenantId = String(token.tenantId ?? '')
+      session.user.role = parseUserRole(token.role, 'VIEWER')
+      session.user.cwMemberId = token.cwMemberId ? String(token.cwMemberId) : undefined
+      session.user.department = parseDepartmentCode(token.department, 'IT')
       return session
     },
   },

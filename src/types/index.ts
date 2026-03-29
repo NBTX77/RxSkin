@@ -135,6 +135,18 @@ export interface Member {
 
 export type DepartmentCode = 'IT' | 'SI' | 'AM' | 'GA' | 'LT'
 
+const VALID_DEPT_CODES = new Set<string>(['IT', 'SI', 'AM', 'GA', 'LT'])
+
+/** Type guard: validates a string is a valid DepartmentCode. */
+export function isDepartmentCode(value: unknown): value is DepartmentCode {
+  return typeof value === 'string' && VALID_DEPT_CODES.has(value)
+}
+
+/** Safely parse a string to DepartmentCode, returning fallback if invalid. */
+export function parseDepartmentCode(value: unknown, fallback: DepartmentCode = 'IT'): DepartmentCode {
+  return isDepartmentCode(value) ? value : fallback
+}
+
 export interface DepartmentConfig {
   code: DepartmentCode
   name: string
@@ -191,8 +203,8 @@ export const DEPARTMENTS: Record<DepartmentCode, DepartmentConfig> = {
 export function cwDeptToRxDept(cwDeptName: string | undefined): DepartmentCode {
   if (!cwDeptName) return 'IT'  // default
   for (const [code, config] of Object.entries(DEPARTMENTS)) {
-    if (config.cwDepartments.includes(cwDeptName)) {
-      return code as DepartmentCode
+    if (isDepartmentCode(code) && config.cwDepartments.includes(cwDeptName)) {
+      return code
     }
   }
   return 'IT'  // fallback
@@ -253,6 +265,18 @@ export interface PaginatedResponse<T> {
 // ── Auth ──────────────────────────────────────────────────────
 
 export type UserRole = 'ADMIN' | 'TECH' | 'VIEWER'
+
+const VALID_ROLES = new Set<string>(['ADMIN', 'TECH', 'VIEWER'])
+
+/** Type guard: validates a string is a valid UserRole. */
+export function isUserRole(value: unknown): value is UserRole {
+  return typeof value === 'string' && VALID_ROLES.has(value)
+}
+
+/** Safely parse a string to UserRole, returning fallback if invalid. */
+export function parseUserRole(value: unknown, fallback: UserRole = 'VIEWER'): UserRole {
+  return isUserRole(value) ? value : fallback
+}
 
 export interface SessionUser {
   id: string

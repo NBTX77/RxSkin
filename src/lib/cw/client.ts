@@ -3,10 +3,10 @@
 // NEVER import this in client components — server-side only.
 // ============================================================
 
-import type { Ticket, TicketFilters, TicketNote, TimeEntry, ScheduleEntry, ScheduleFilters, Company, Member, Project, ProjectFilters } from '@/types'
+import type { Ticket, TicketFilters, ScheduleEntry, ScheduleFilters, Company, Member, Project, ProjectFilters } from '@/types'
 import { normalizeTicket, normalizeScheduleEntry, normalizeCompany, normalizeMember, normalizeProject } from './normalizers'
 import { logApiCall } from '@/lib/instrumentation/api-logger'
-import { getDefaultTenantId } from '@/lib/instrumentation/tenant-context'
+import { resolveTenantId } from '@/lib/instrumentation/tenant-context'
 
 export interface CWCredentials {
   baseUrl: string
@@ -151,7 +151,7 @@ async function cwFetch<T>(
 
   // Log the final attempt
   const elapsed = Math.round(performance.now() - start)
-  getDefaultTenantId()
+  resolveTenantId()
     .then((tenantId) => {
       logApiCall(
         { tenantId, platform: 'connectwise', endpoint: path, method },

@@ -8,9 +8,10 @@ import type {
   SamsaraVehicleLocation,
   SamsaraDriver,
   SamsaraHosClock,
+  SamsaraLocationHistoryEntry,
 } from '@/types/ops'
 import { logApiCall } from '@/lib/instrumentation/api-logger'
-import { getDefaultTenantId } from '@/lib/instrumentation/tenant-context'
+import { resolveTenantId } from '@/lib/instrumentation/tenant-context'
 
 export interface SamsaraCredentials {
   apiToken: string
@@ -76,7 +77,7 @@ async function samsaraFetch<T>(
     throw err
   } finally {
     const elapsed = Math.round(performance.now() - start)
-    getDefaultTenantId()
+    resolveTenantId()
       .then((tenantId) => {
         logApiCall(
           { tenantId, platform: 'samsara', endpoint: path, method },
@@ -205,6 +206,48 @@ export async function getHosClocks(creds: SamsaraCredentials): Promise<SamsaraHo
     cycleTimeRemainingMs: h.clocks.cycle.timeRemainingMs,
     breakTimeRemainingMs: h.clocks.break.timeRemainingMs,
     dutyStatus: h.currentDutyStatus.dutyStatus,
+  }))
+}
+
+// ── Vehicle Location History ─────────────────────
+
+interface SamsaraLocationFeedResponse {
+  data: Array<{
+    id: string
+    name: string
+    locations: Array<{
+      latitude: number
+      longitude: number
+      speedMilesPerHour: number
+      heading: number
+      time: string
+    }>
+  }>
+}
+
+export async function getVehicleLocationHistory(
+  creds: SamsaraCredentials,
+  startTime: string,
+  endTime: string
+): Promise<SamsaraLocationHistoryEntry[]> {
+  const params = new URLSearchParams({
+    startTime,
+    endTime,
+  })
+  const res = await samsaraFetch<SamsaraLocationFeedResponse>(
+    creds,
+    `/fleet/vehicles/locations/feed?${params}`
+  )
+  return res.data.map((v) => ({
+    vehicleId: v.id,
+    vehicleName: v.name,
+    points: (v.locations ?? []).map((loc) => ({
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+      speedMph: loc.speedMilesPerHour ?? 0,
+      headingDegrees: loc.heading ?? 0,
+      time: loc.time,
+    })),
   }))
 }
 

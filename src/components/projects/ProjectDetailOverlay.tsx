@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import type { Project } from '@/types'
-import { X, FolderKanban, Building2, User, Calendar, DollarSign } from 'lucide-react'
+import { X, FolderKanban, Building2, User, DollarSign } from 'lucide-react'
 import { BudgetGauge } from './BudgetGauge'
 
 interface ProjectDetailOverlayProps {

@@ -38,36 +38,82 @@ export interface ApiCallResult {
   errorMessage?: string
 }
 
+// ── Batched Log Queue ─────────────────────────────────────────
+// Collects API call logs and flushes them in bulk to reduce DB write pressure.
+// Flushes every FLUSH_INTERVAL_MS or when the queue reaches FLUSH_THRESHOLD.
+
+const FLUSH_INTERVAL_MS = 5_000
+const FLUSH_THRESHOLD = 25
+
+interface LogEntry {
+  tenantId: string
+  platform: string
+  endpoint: string
+  method: string
+  statusCode: number | null
+  responseTimeMs: number
+  cacheHit: boolean
+  requestPayloadSize: number | null
+  responsePayloadSize: number | null
+  errorCode: string | null
+  errorMessage: string | null
+  userId: string | null
+}
+
+let logQueue: LogEntry[] = []
+let flushTimer: ReturnType<typeof setInterval> | null = null
+
+function ensureFlushTimer(): void {
+  if (flushTimer) return
+  flushTimer = setInterval(() => {
+    flushLogQueue()
+  }, FLUSH_INTERVAL_MS)
+  // Allow process to exit without waiting for timer
+  if (typeof flushTimer === 'object' && 'unref' in flushTimer) {
+    flushTimer.unref()
+  }
+}
+
+function flushLogQueue(): void {
+  if (logQueue.length === 0) return
+  const batch = logQueue
+  logQueue = []
+
+  prisma.apiCallLog
+    .createMany({ data: batch })
+    .catch((err) => {
+      console.error(`[api-logger] Failed to flush ${batch.length} log entries:`, err?.message)
+    })
+}
+
 /**
- * Log an API call to the database. Fire-and-forget — errors are
- * swallowed to avoid disrupting the main request flow.
+ * Log an API call to the database. Batches writes for efficiency —
+ * flushes every 5s or at 25 queued events. Fire-and-forget.
  */
 export function logApiCall(
   context: ApiCallContext,
   result: ApiCallResult
 ): void {
-  // Fire and forget — don't await, don't block
-  prisma.apiCallLog
-    .create({
-      data: {
-        tenantId: context.tenantId,
-        platform: context.platform,
-        endpoint: context.endpoint,
-        method: context.method ?? 'GET',
-        statusCode: result.statusCode,
-        responseTimeMs: result.responseTimeMs,
-        cacheHit: context.cacheHit ?? false,
-        requestPayloadSize: result.requestPayloadSize,
-        responsePayloadSize: result.responsePayloadSize,
-        errorCode: result.errorCode,
-        errorMessage: result.errorMessage?.slice(0, 1000), // Truncate long errors
-        userId: context.userId,
-      },
-    })
-    .catch((err) => {
-      // Log to console but never throw — observability must not break the app
-      console.error('[api-logger] Failed to log API call:', err?.message)
-    })
+  logQueue.push({
+    tenantId: context.tenantId,
+    platform: context.platform,
+    endpoint: context.endpoint,
+    method: context.method ?? 'GET',
+    statusCode: result.statusCode ?? null,
+    responseTimeMs: result.responseTimeMs,
+    cacheHit: context.cacheHit ?? false,
+    requestPayloadSize: result.requestPayloadSize ?? null,
+    responsePayloadSize: result.responsePayloadSize ?? null,
+    errorCode: result.errorCode ?? null,
+    errorMessage: result.errorMessage?.slice(0, 1000) ?? null,
+    userId: context.userId ?? null,
+  })
+
+  ensureFlushTimer()
+
+  if (logQueue.length >= FLUSH_THRESHOLD) {
+    flushLogQueue()
+  }
 }
 
 /**

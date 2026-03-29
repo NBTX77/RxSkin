@@ -14,18 +14,18 @@ export function ScheduleHoldList() {
   const [sort, setSort] = useState<ScheduleHoldSort>('priority')
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; ticket: ScheduleHoldTicket } | null>(null)
 
-  const priorityOrder: Record<string, number> = {
-    Critical: 0,
-    'Priority 1 - Critical': 0,
-    High: 1,
-    'Priority 2 - High': 1,
-    Medium: 2,
-    'Priority 3 - Medium': 2,
-    Low: 3,
-    'Priority 4 - Low': 3,
-  }
-
   const sorted = useMemo(() => {
+    const priorityOrder: Record<string, number> = {
+      Critical: 0,
+      'Priority 1 - Critical': 0,
+      High: 1,
+      'Priority 2 - High': 1,
+      Medium: 2,
+      'Priority 3 - Medium': 2,
+      Low: 3,
+      'Priority 4 - Low': 3,
+    }
+
     if (!holds) return []
     let result = [...holds]
 

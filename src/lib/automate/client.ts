@@ -5,7 +5,7 @@
 
 import type { AutomateComputer, AutomateScript, ScriptRunResult } from '@/types'
 import { logApiCall } from '@/lib/instrumentation/api-logger'
-import { getDefaultTenantId } from '@/lib/instrumentation/tenant-context'
+import { resolveTenantId } from '@/lib/instrumentation/tenant-context'
 
 export interface AutomateCredentials {
   baseUrl: string
@@ -126,7 +126,7 @@ async function automateFetch<T>(
     throw err
   } finally {
     const elapsed = Math.round(performance.now() - start)
-    getDefaultTenantId()
+    resolveTenantId()
       .then((tenantId) => {
         logApiCall(
           { tenantId, platform: 'automate', endpoint: path, method },
@@ -293,7 +293,7 @@ function normalizeScript(raw: Record<string, unknown>): AutomateScript {
     description: (prop(raw, 'Comments', 'comments') ?? '') as string,
     folder: (prop(raw, 'FullFolderPath', 'fullFolderPath') ?? folder?.Name ?? '') as string,
     hasParameters: params.length > 0,
-    parameters: params,
+    parameters: params.map(String),
   }
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
