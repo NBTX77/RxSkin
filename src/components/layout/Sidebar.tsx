@@ -24,6 +24,7 @@ import {
   LayoutGrid,
 } from 'lucide-react'
 import { useDepartment } from '@/components/department/DepartmentProvider'
+import { ToolsSection } from '@/components/layout/ToolsSection'
 import type { DepartmentCode } from '@/types'
 
 interface NavItem {
@@ -303,6 +304,11 @@ export function Sidebar() {
           )
         })}
       </nav>
+
+      {/* Tools section */}
+      <div className="border-t border-gray-200 dark:border-gray-800 py-1">
+        <ToolsSection collapsed={!isHovered} />
+      </div>
 
       {/* Bottom: minimal branding */}
       {isHovered && (
