@@ -89,3 +89,27 @@
 **Decision:** Route users to department-specific dashboards and nav based on CW member defaultDepartment
 
 **Why:** 5 departments (IT, SI, AM, GA, LT) have fundamentally different workflows. A single dashboard can't serve a technician and an accountant equally. Per-dept nav, board filtering, and view defaults reduce cognitive load.
+
+---
+
+## 12. Floating Timer Widget with React Context (2026-03-29)
+
+**Decision:** TimeTrackerProvider as React Context with localStorage persistence, not server-side state
+
+**Why:** Timer needs sub-second UI updates (every 1s tick). Server round-trips would add latency. localStorage survives page refreshes and tab closes. visibilitychange API handles idle detection. Time entry is only POSTed to CW when the user stops the timer — not on every tick.
+
+---
+
+## 13. Batch Close API Pattern (2026-03-29)
+
+**Decision:** Single POST /api/tickets/[id]/close endpoint orchestrates status + time + note + notification
+
+**Why:** Closing a ticket in CW requires 3-4 separate API calls (status PATCH, time entry POST, note POST, client notification). A batch endpoint gives the frontend one call with one loading state, and the server handles partial failures gracefully (returns per-action success/failure).
+
+---
+
+## 14. FullCalendar Resource Timeline for Dispatch (2026-03-29)
+
+**Decision:** Use @fullcalendar/resource-timeline for the dispatch board instead of a custom grid
+
+**Why:** Resource timeline provides drag-between-rows (reassign tech), external event drops (schedule unscheduled tickets), and resize — all out of box. Building this from scratch with dnd-kit would take weeks. Same FullCalendar ecosystem as the existing schedule page.

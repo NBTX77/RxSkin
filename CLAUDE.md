@@ -585,6 +585,13 @@ Interactive React mockups in `rx-skin/docs/mockups/`: `mockup-IT-Dashboard.jsx`,
 - [x] Prisma schema committed to repo — `prisma/schema.prisma` (14 models, 384 lines)
 - [x] Build script updated — `prisma generate && next build` (fixes Vercel @prisma/client init)
 - [x] Vercel deployment GREEN — commit 690392e, all UI + data + instrumentation changes live at rxtech.app
+- [x] Phase 3 aesthetic improvements complete (todo.md Tasks 1–15) — badge system, virtualized table, error boundaries, breadcrumbs, collapsible sidebar, dept switcher on logo, kanban overflow fix, drag-to-reorder columns, full light mode (52 files)
+- [x] Codebase review cleanup complete — 9/9 sections of CODE-REVIEW-CLEANUP-PROMPT.md executed, QA bugs reconciled, stale files deleted, docs updated
+- [x] Known issues resolved — PostCSS ESM/CJS fix, test infrastructure (Vitest + Playwright), calendar clipping fix, mock-data removal
+- [x] Timer Widget — floating real-time timer, TimeTrackerProvider context, localStorage persistence, idle detection, auto-pause on tab away (commit 7efc316)
+- [x] Quick Close Workflow — batch close API (POST /api/tickets/[id]/close), enhanced QuickClosePanel with time presets, work type dropdown, client notification toggle (commit f9611e5)
+- [x] Dispatch Board — /dispatch route, FullCalendar resource timeline, drag-assign techs, unscheduled ticket sidebar, capacity indicators (commit b838594)
+- [x] Team Visibility — /team route, tech workload grid, capacity bars, WorkloadSummary KPIs, department filter (commit 402fc47)
 - [ ] Credential Vault — migrate env var creds to encrypted DB (`TenantCredential` table)
 - [ ] Azure AD multi-tenant app registration + NextAuth provider
 - [ ] Microsoft Graph BFF routes (mail, calendar, presence, Teams)

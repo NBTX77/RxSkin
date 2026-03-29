@@ -7,9 +7,9 @@
 
 ## Current Status
 
-**Last Completed Phase:** Phase 1A + Phase 3 UI Polish
+**Last Completed Phase:** Phase 1A + Phase 1B + Phase 3 UI Polish + Codebase Review
 **Active Priorities:** Credential Vault, Azure AD integration, Graph/Webex BFF routes
-**Overall Progress:** ~40% of full vision
+**Overall Progress:** ~50% of full vision
 
 ---
 
@@ -130,6 +130,19 @@ Foundation work before any feature development.
 
 ---
 
+## Phase 1B — Cross-Cutting Features ✅ Complete (2026-03-29)
+
+**Goal:** High-value features used across IT and SI departments — timer, quick close, dispatch, team workload.
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Timer Widget | ✅ Done | Floating timer, TimeTrackerProvider context, localStorage persistence, idle detection, auto-pause on tab away |
+| Quick Close Workflow | ✅ Done | Batch close API (POST /api/tickets/[id]/close), enhanced QuickClosePanel with time presets, work type, client notification toggle |
+| Dispatch Board | ✅ Done | /dispatch route, FullCalendar resource timeline, drag-assign techs, unscheduled ticket sidebar, capacity indicators |
+| Team Visibility | ✅ Done | /team route, tech workload grid, capacity bars (green/yellow/red), WorkloadSummary KPIs, department filter |
+
+---
+
 ## Current Priorities — In Progress
 
 These are the next items to be built, in priority order.
@@ -170,7 +183,7 @@ These are the next items to be built, in priority order.
 
 ---
 
-## Phase 1B — SI Department Experience (Planned)
+## Phase 1C — SI Department Experience (Planned)
 
 **Goal:** Full Systems Integration department workflow — project-first kanban, job scheduling, materials tracking.
 
@@ -333,7 +346,9 @@ Ideas captured for future consideration — not yet assigned to a phase.
 | v0.1.2 | 2026-03-28 | Department routing, projects board, schedule, observability |
 | v0.1.3 | 2026-03-28 | Schedule calendar, cron sync, UI contrast fixes, live CW data |
 | v0.2.0 | 2026-03-29 | Phase 3 UI polish complete (15 tasks), collapsible sidebar, light mode, skeletons |
-| v0.3.0 | TBD | Credential Vault + Azure AD + Graph/Webex integration |
+| v0.2.1 | 2026-03-29 | Codebase review cleanup, known issues resolved, test infrastructure |
+| v0.3.0 | 2026-03-29 | Phase 1B features: timer widget, quick close, dispatch board, team workload |
+| v0.4.0 | TBD | Credential Vault + Azure AD + Graph/Webex integration |
 | v1.0.0 | TBD | Full production release |
 
 ---
