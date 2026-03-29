@@ -21,19 +21,19 @@ interface KanbanColumn {
 const KANBAN_COLUMNS: KanbanColumn[] = [
   {
     id: 'new',
-    name: '10 New',
+    name: 'New',
     color: 'blue',
     statusFilter: (status) => status.includes('10'),
   },
   {
     id: 'handoff',
-    name: '20 Incomplete handoff',
+    name: 'Incomplete Handoff',
     color: 'orange',
     statusFilter: (status) => status.includes('20'),
   },
   {
     id: 'assigned-pm',
-    name: '30 Assigned to PM',
+    name: 'Assigned to PM',
     color: 'yellow',
     statusFilter: (status) => status.includes('30'),
   },
@@ -43,12 +43,6 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
     color: 'cyan',
     statusFilter: (status) =>
       status.includes('31') || status.includes('33') || status.includes('34'),
-  },
-  {
-    id: 'completed',
-    name: '50 Completed',
-    color: 'green',
-    statusFilter: (status) => status.includes('50'),
   },
 ]
 
