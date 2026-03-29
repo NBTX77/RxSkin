@@ -1,11 +1,29 @@
 'use client'
 
 import { Search } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 import { UserAvatar } from './UserAvatar'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 
+function getBreadcrumb(pathname: string): { section: string; detail?: string } {
+  if (pathname === '/dashboard') return { section: 'My Day' }
+  if (pathname === '/tickets') return { section: 'Tickets' }
+  if (pathname.startsWith('/tickets/')) return { section: 'Tickets', detail: `#${pathname.split('/').pop()}` }
+  if (pathname === '/projects') return { section: 'Projects' }
+  if (pathname.startsWith('/projects/')) return { section: 'Projects', detail: `#${pathname.split('/').pop()}` }
+  if (pathname === '/schedule') return { section: 'Schedule' }
+  if (pathname === '/companies') return { section: 'Companies' }
+  if (pathname.startsWith('/companies/')) return { section: 'Companies', detail: pathname.split('/').pop() }
+  if (pathname.startsWith('/ops')) return { section: 'Ops Hub' }
+  if (pathname.startsWith('/settings')) return { section: 'Settings' }
+  if (pathname.startsWith('/admin')) return { section: 'Admin' }
+  return { section: 'Dashboard' }
+}
+
 export function TopBar() {
   const { config } = useDepartment()
+  const pathname = usePathname()
+  const breadcrumb = getBreadcrumb(pathname)
 
   const getColorBg = (color: string): string => {
     const colorMap: Record<string, string> = {
@@ -28,8 +46,16 @@ export function TopBar() {
         <span className="text-white font-semibold text-sm">RX Skin</span>
       </div>
 
-      {/* Left: Breadcrumb area on desktop */}
-      <div className="hidden lg:block" />
+      {/* Left: Breadcrumb on desktop */}
+      <div className="hidden lg:flex items-center gap-1.5 text-sm">
+        <span className="text-gray-900 dark:text-gray-300 font-medium">{breadcrumb.section}</span>
+        {breadcrumb.detail && (
+          <>
+            <span className="text-gray-400 dark:text-gray-600">/</span>
+            <span className="text-gray-500">{breadcrumb.detail}</span>
+          </>
+        )}
+      </div>
 
       {/* Right: Search + Avatar */}
       <div className="flex items-center gap-2">
