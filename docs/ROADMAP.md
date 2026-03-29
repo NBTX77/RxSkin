@@ -241,116 +241,61 @@ Architecture fully designed (2026-03-28). Research document: `RX-Skin-Middleware
 |-----------|-------|--------|
 | **Phase 1 (MVP)** | React Flow canvas, workflow CRUD, BullMQ execution, manual triggers, DAG validation | Designed |
 | **Phase 2 (AI)** | Claude API for NLP workflow creation, 5-10 MSP templates, AI error diagnosis | Designed |
-| **Phase 3 (Advanced)** | Scheduled + webhook triggers, parallel execution, data transforms, pattern mining | Designed |
-| **Phase 4 (Scale)** | Temporal.io migration (if needed), anomaly detection, execution heatmaps | Designed |
-
-### Key Decisions
-- Visual editor: React Flow (xyflow)
-- Execution engine: BullMQ on Redis (Phase 1), Temporal.io considered for Phase 3+
-- Node types: Trigger (green), Action (blue), Condition (orange), Transform (purple), Error Handler (red)
-- Admin routes: `/admin/workflows`, `/admin/workflows/[id]/edit`, `/admin/workflows/templates`, `/admin/workflows/map`
-- Security: Credentials never exposed to frontend, tenant-scoped RLS, RBAC (admin creates, tech triggers)
+| **Phase 3 (Advanced)** | Scheduled + webhook triggers, parallel execution, data transforms | Designed |
+| **Phase 4 (Scale)** | Temporal.io migration, anomaly detection, multi-tenant sharing | Designed |
 
 ---
 
-## Phase 3 — Leadership Dashboard (Planned)
+## Phase 17 — SmileBack CSAT/NPS Integration (Planned — 2026-03-29)
 
-**Goal:** Executive KPIs, portfolio heatmap, utilization metrics, cross-department drill-down.
+**Goal:** Integrate SmileBack customer satisfaction data (CSAT + NPS) throughout the dashboard. Surface on tickets, per-tech, per-company, executive dashboard, and Account Management CBR views.
 
-- [ ] Exec dashboard with summary KPIs
-- [ ] Project portfolio heatmap (all departments)
-- [ ] Technician utilization report
-- [ ] Financial overview (revenue, margins, billing)
-- [ ] Department drill-down views
+| Task | Description | Status |
+|------|------------|--------|
+| Task 68 | SmileBack BFF client + types + normalizers | Pending |
+| Task 69 | SmileBack BFF API routes (5 endpoints + batch) | Pending |
+| Task 70 | SmileBack React hooks (TanStack Query) | Pending |
+| Task 71 | Ticket detail — survey response card | Pending |
+| Task 72 | Ticket list — survey badge icons | Pending |
+| Task 73 | Executive dashboard — CSAT/NPS KPI cards + charts | Pending |
+| Task 74 | Tech performance — CSAT per tech on /team + My Day | Pending |
+| Task 75 | CBR dashboard — per-client CSAT/NPS for AMs | Pending |
+| Task 76 | SmileBack webhook receiver + local DB cache | Pending |
+| Task 77 | Admin integration card (Credential Vault) | Pending |
+| Task 78 | Deploy + update all documentation | Pending |
 
+### Key Design Decisions
+- SmileBack API is **read-only** — data flows SmileBack → RX Skin (never the other way)
+- BFF cache: 5 min for reviews, 10 min for summaries
+- Webhook receiver stores survey responses in local `SurveyResponse` Prisma table for fast access
+- CSAT integrated into ScalePad health score at 20% weight for CBR reports
+- Batch endpoint for ticket list badges (avoids N+1 API calls)
 ---
 
-## Phase 4 — Company Hub & Full Integrations (Planned)
+## Phase 18 — Cisco Meraki MSP Dashboard (Planned — 2026-03-29)
 
-**Goal:** Rich per-company dashboard pulling data from all connected tools.
+**Goal:** Build a full Meraki network monitoring dashboard inside the IT department section. One API key covers all customer organizations. Dashboard surfaces device health, WAN uplinks, wireless stats, alerts, licensing, and firmware status across all managed orgs.
 
-### Company Detail Page
-- [ ] Overview tab: contacts, agreements, SLA status
-- [ ] Tickets tab: filtered to company
-- [ ] Devices tab: CW configurations + Intune devices
-- [ ] Network tab: Auvik/Meraki data
-- [ ] Backup tab: Datto/Acronis status
-- [ ] M365 tab: users, licenses, compliance
+| Task | Description | Status |
+|------|------------|--------|
+| Task 79 | Meraki BFF client + TypeScript types (Bearer auth, 429 retry, Link header pagination) | Pending |
+| Task 80 | Meraki BFF API routes (14 endpoints + dashboard aggregation) | Pending |
+| Task 81 | Meraki React hooks (TanStack Query, 13 hooks) | Pending |
+| Task 82 | Meraki dashboard page + sidebar nav (7 tabs: Overview, Devices, Networks, Alerts, WAN, Wireless, Licensing) | Pending |
+| Task 83 | Meraki device detail overlay (switch ports, appliance uplinks, AP SSIDs) | Pending |
+| Task 84 | Meraki network detail view (clients, wireless stats, device list) | Pending |
+| Task 85 | Meraki org selector + cross-org aggregation | Pending |
+| Task 86 | Meraki webhook receiver (HMAC-SHA256 verification) | Pending |
+| Task 87 | Meraki admin integration card (Credential Vault) | Pending |
+| Task 88 | Meraki cron sync + BFF cache layer | Pending |
+| Task 89 | Deploy + update all documentation | Pending |
 
-### Additional Integrations
-- [ ] Auvik API client + network health on company page
-- [ ] Meraki API client + WAN status
-- [ ] Datto API client + backup health
-- [ ] Acronis API client + backup health
-- [ ] Fortinet API client + VPN/firewall status
-- [ ] SentinelOne integration
-- [ ] Passportal integration (password vault per company)
-- [ ] ScalePad integration (asset lifecycle, warranties)
-
----
-
-## Phase 5 — Advanced Features & External Access (Future)
-
-### Reporting & Dashboards
-- [ ] Ticket aging report
-- [ ] SLA compliance dashboard
-- [ ] Company health scorecard
-- [ ] Export to PDF / CSV
-
-### Notifications
-- [ ] In-app notification center
-- [ ] Browser push notifications
-- [ ] Email digest (daily/weekly)
-
-### Time & Billing
-- [ ] Time entry summary dashboard
-- [ ] Billable vs non-billable breakdown
-- [ ] Approval workflow
-
-### Multi-Tenant / Client Portal
-- [ ] Tenant management admin UI
-- [ ] Per-tenant branding (logo, colors)
-- [ ] Client login — limited view (their own tickets)
-- [ ] Client approval workflow
-
-### Mobile App (PWA)
-- [ ] Progressive Web App configuration
-- [ ] Offline mode: view cached tickets
-- [ ] Push notifications on mobile
-- [ ] Add to home screen prompt
-
----
-
-## Backlog (Unscheduled)
-
-Ideas captured for future consideration — not yet assigned to a phase.
-
-- AI-powered ticket classification and routing
-- Natural language ticket creation (voice → ticket)
-- Automated ticket dispatch by technician skill/availability
-- Client satisfaction surveys linked to ticket resolution
-- IT documentation module (Confluence-style)
-- Integration with IT Glue for documentation
-- Slack/Teams notifications for ticket updates
-- Two-way SMS with clients via Twilio
-- Recurring maintenance schedule templates
-
----
-
-## Version History
-
-| Version | Date | Description |
-|---------|------|-------------|
-| v0.1.0 | 2026-03-26 | Phase 0 complete — project scaffolded, CW API connected |
-| v0.1.1 | 2026-03-27 | Ticket list, detail, BFF routes, admin panel |
-| v0.1.2 | 2026-03-28 | Department routing, projects board, schedule, observability |
-| v0.1.3 | 2026-03-28 | Schedule calendar, cron sync, UI contrast fixes, live CW data |
-| v0.2.0 | 2026-03-29 | Phase 3 UI polish complete (15 tasks), collapsible sidebar, light mode, skeletons |
-| v0.2.1 | 2026-03-29 | Codebase review cleanup, known issues resolved, test infrastructure |
-| v0.3.0 | 2026-03-29 | Phase 1B features: timer widget, quick close, dispatch board, team workload |
-| v0.4.0 | TBD | Credential Vault + Azure AD + Graph/Webex integration |
-| v1.0.0 | TBD | Full production release |
-
----
-
-*Last updated: 2026-03-29*
+### Key Design Decisions
+- **Single API key = all orgs** — MSP pattern; one Bearer token covers every customer organization
+- **Org-level endpoints preferred** — `/organizations/{orgId}/devices/statuses` instead of per-device calls (10x more efficient)
+- **Rate limit per-org** — 10 req/sec per org; stagger requests across orgs for MSP scale
+- **RFC 5988 pagination** — Link headers, NOT JSON body metadata; must parse response headers
+- **IT + LT sidebar nav** — `/meraki` route visible to IT and Leadership departments
+- **Cache TTLs:** Device statuses 5min, orgs 1hr, licensing 24hr, alerts 2min
+- **Webhook receiver** for real-time device offline/online alerts (reduces polling)
+- **Cross-CW integration planned** — Map Meraki orgId → CW companyId for client-level network health

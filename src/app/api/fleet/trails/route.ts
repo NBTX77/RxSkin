@@ -13,10 +13,13 @@ export const dynamic = 'force-dynamic'
 const TRAIL_CACHE_TTL_MS = 10 * 1000 // 10 seconds — tight for real-time feel
 const TRAIL_WINDOW_MS = 30 * 60 * 1000 // 30 minutes
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await auth()
     if (!session?.user) return apiErrors.unauthorized()
+
+    const { searchParams } = new URL(request.url)
+    const vehicleId = searchParams.get('vehicleId')
 
     if (!isSamsaraConfigured()) {
       return Response.json({
@@ -28,7 +31,9 @@ export async function GET() {
     }
 
     const { tenantId } = session.user
-    const cacheKey = `${tenantId}:fleet:trails`
+    const cacheKey = vehicleId
+      ? `${tenantId}:fleet:trails:${vehicleId}`
+      : `${tenantId}:fleet:trails`
 
     const data = await cachedFetch<FleetTrailsResponse>(
       cacheKey,
@@ -43,9 +48,13 @@ export async function GET() {
           now.toISOString()
         )
 
+        const filtered = vehicleId
+          ? trails.filter((t) => t.vehicleId === vehicleId)
+          : trails
+
         return {
           ok: true,
-          trails: trails.map((t) => ({
+          trails: filtered.map((t) => ({
             vehicleId: t.vehicleId,
             vehicleName: t.vehicleName,
             points: t.points.map((p) => ({

@@ -12,7 +12,6 @@ import {
   Settings,
   ChevronDown,
   Map,
-  BarChart3,
   FolderKanban,
   FileCheck,
   FileText,
@@ -61,8 +60,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/schedule', label: 'Schedule', icon: Calendar },
       { href: '/dispatch', label: 'Dispatch', icon: LayoutGrid },
       { href: '/team', label: 'Team', icon: Users },
-      { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
-      { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
+      { href: '/fleet', label: 'Fleet Map', icon: Map },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
   },
@@ -76,8 +74,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/schedule', label: 'Job Scheduler', icon: Calendar },
       { href: '/dispatch', label: 'Dispatch', icon: LayoutGrid },
       { href: '/team', label: 'Team', icon: Users },
-      { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
-      { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
+      { href: '/fleet', label: 'Fleet Map', icon: Map },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
   },
@@ -92,8 +89,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/agreements', label: 'Agreements', icon: FileCheck },
       { href: '/opportunities', label: 'Opportunities', icon: TrendingUp },
       { href: '/cbr', label: 'CBR', icon: ClipboardCheck },
-      { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
-      { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
+      { href: '/fleet', label: 'Fleet Map', icon: Map },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
   },
@@ -107,8 +103,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/invoices', label: 'Invoices', icon: DollarSign },
       { href: '/purchase-orders', label: 'Purchase Orders', icon: Package },
       { href: '/agreements', label: 'Agreements', icon: FileCheck },
-      { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
-      { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
+      { href: '/fleet', label: 'Fleet Map', icon: Map },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
   },
@@ -123,8 +118,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/documents', label: 'Documents', icon: FileText },
       { href: '/financials', label: 'Financials', icon: DollarSign },
       { href: '/cbr', label: 'CBR', icon: ClipboardCheck },
-      { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
-      { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
+      { href: '/fleet', label: 'Fleet Map', icon: Map },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
   },
@@ -134,7 +128,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { department, config, canSwitch, switchDepartment, allDepartments } = useDepartment()
-  const [expandedSection, setExpandedSection] = useState<string | null>(pathname.startsWith('/ops') ? 'Ops' : null)
+  const [expandedSection, setExpandedSection] = useState<string | null>(pathname.startsWith('/fleet') ? 'Ops' : null)
   const [isHovered, setIsHovered] = useState(false)
   const [deptPopoverOpen, setDeptPopoverOpen] = useState(false)
   const deptRef = useRef<HTMLDivElement>(null)

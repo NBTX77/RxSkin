@@ -8,7 +8,7 @@ const navItems = [
   { href: '/dashboard', label: 'My Day', icon: Sun },
   { href: '/tickets', label: 'Tickets', icon: Ticket },
   { href: '/schedule', label: 'Schedule', icon: Calendar },
-  { href: '/ops/fleet-map', label: 'Fleet', icon: Map },
+  { href: '/fleet', label: 'Fleet', icon: Map },
   { href: '/companies', label: 'Companies', icon: Building2 },
 ]
 
@@ -20,7 +20,7 @@ export function MobileNav() {
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = label === 'Fleet'
-            ? pathname.startsWith('/ops')
+            ? pathname.startsWith('/fleet')
             : pathname === href || pathname.startsWith(href + '/')
           return (
             <Link

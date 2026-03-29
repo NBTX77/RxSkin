@@ -12,13 +12,14 @@
 | Microsoft Graph (M365) | 2 | ✅ REST | OAuth 2.0 Client Credentials | Multi-tenant per client |
 | ConnectWise Automate | 2 | ✅ REST | API Key / OAuth | RMM data |
 | Auvik | 3 | ✅ REST | Basic Auth (API token) | Network topology |
-| Cisco Meraki | 3 | ✅ REST | API Key (header) | Network/wifi/devices |
+| Cisco Meraki | 18 | ✅ REST | Bearer token (API Key) | Network/wifi/devices/alerts/licensing |
 | Datto BCDR | 3 | ✅ REST | API Key | Backup status |
 | Acronis | 3 | ✅ REST | OAuth 2.0 | Backup status |
 | Fortinet FortiGate | 3 | ✅ REST | API Key | Firewall status |
 | Webex (Cisco) | 3 | ✅ REST | OAuth 2.0 | Phone system + calling |
 | Passportal | 4 | ❌ No public API | iframe embed | Password vault |
 | Scalepad | 4 | ❌ No public API | Data export sync | Asset lifecycle |
+| SmileBack | 17 | ✅ REST | API Key | CSAT/NPS customer satisfaction |
 
 ---
 
@@ -286,32 +287,154 @@ GET    /tenants                      List Auvik tenants (client orgs)
 
 ---
 
-## Cisco Meraki
+## Cisco Meraki (Phase 18)
 
 ### Overview
-Meraki provides cloud-managed networking (switches, APs, security appliances). REST API is clean and well-documented.
+Cisco Meraki provides cloud-managed networking: switches (MS), access points (MR), security appliances (MX), cameras (MV), and sensors (MT). The Dashboard API v1 is a RESTful API for programmatic management and monitoring at scale. For MSPs, a single API key grants access to all managed customer organizations.
+
+**Meraki Org:** Rx Technology (ID: `718324140565595403`)
+**Networks:** "Lab" + "RX Technology" (103 clients, 1.15 TB usage)
 
 ### Authentication
-- **Method:** API Key in header
-- **Header:** `X-Cisco-Meraki-API-Key: {apiKey}`
+- **Method:** Bearer token in `Authorization` header
+- **Header:** `Authorization: Bearer {MERAKI_API_KEY}`
 - **Base URL:** `https://api.meraki.com/api/v1/`
+- **MSP pattern:** One API key covers ALL organizations the admin manages
+- **Key generation:** Meraki Dashboard → Organization → API & Webhooks → API keys tab → Generate
+- **Note:** SAML-authenticated admins cannot generate API keys — requires local (non-SAML) admin account
+
+### Rate Limits
+| Limit | Value | Notes |
+|-------|-------|-------|
+| Sustained rate | 10 req/sec per org | Hard limit across all API clients for that org |
+| Burst allowance | +10 extra in first second | Total of 30 requests in 2 seconds |
+| Per-source-IP | 100 req/sec global | Shared across all API clients from same IP |
+| Webhook alerts | 25 per 10 min per event type per network | Excess alerts logged but not delivered |
+
+**429 Handling:** Read `Retry-After` header (seconds), implement exponential backoff, cap at 10 min.
+
+### Pagination
+- **Standard:** RFC 5988 Link headers (cursor-based), NOT JSON body metadata
+- **Parameters:** `perPage` (max varies by endpoint), `startingAfter`, `endingBefore`
+- **Parse pattern:** Extract `rel="next"` URL from `Link` response header
+- **Known limits:** Devices: perPage max 1000, Networks: max 50, Clients: max 100
 
 ### Key Endpoints
+
+**Organization-Level (most efficient for MSP dashboards):**
 ```
-GET    /organizations                List organizations (clients)
-GET    /organizations/{id}/networks  Networks in org
-GET    /organizations/{id}/devices   All devices in org
-GET    /networks/{id}/devices        Devices in network
-GET    /networks/{id}/clients        Connected clients
-GET    /networks/{id}/alerts/history Alert history
-GET    /devices/{serial}/clients     Clients on device
-GET    /organizations/{id}/uplinks/statuses  WAN uplink status
+GET    /organizations                              List all accessible orgs
+GET    /organizations/{orgId}                      Single org details
+GET    /organizations/{orgId}/networks             Networks in org
+GET    /organizations/{orgId}/devices              All devices in org (paginated)
+GET    /organizations/{orgId}/devices/statuses     Device health (online/offline/alerting/dormant)
+GET    /organizations/{orgId}/appliance/uplinks/statuses   WAN uplink status (MX/Z devices)
+GET    /organizations/{orgId}/alerts               Recent alerts
+GET    /organizations/{orgId}/licenses             License state + expiration
+GET    /organizations/{orgId}/firmware/upgrades     Firmware upgrade status
+GET    /organizations/{orgId}/vpnStatuses          Site-to-site VPN peer status
+GET    /organizations/{orgId}/configurationChanges Change log (audit trail)
+GET    /organizations/{orgId}/switch/ports/statuses All switch ports in org (bulk)
 ```
 
-### Integration Strategy
-- Map Meraki `organizationId` → ConnectWise `companyId`
-- Show network health on company dashboard
-- Surface WAN uplink alerts as priority indicators
+**Network-Level:**
+```
+GET    /networks/{networkId}/clients               Connected clients (with usage)
+GET    /networks/{networkId}/wireless/ssids         SSIDs on network
+GET    /networks/{networkId}/wireless/connectionStats  Wireless connection stats
+GET    /networks/{networkId}/wireless/failedConnections Failed connection events
+GET    /networks/{networkId}/wireless/clientCountHistory Client count over time
+```
+
+**Device-Level:**
+```
+GET    /devices/{serial}                           Single device detail
+GET    /devices/{serial}/switch/ports/statuses     Switch port statuses
+GET    /devices/{serial}/lldp/cdp                  LLDP/CDP neighbor info
+GET    /devices/{serial}/clients                   Clients on specific device
+```
+
+### Data Model
+
+**Device Status Values:** `online`, `alerting`, `offline`, `dormant`
+
+**Uplink Status Values:** `active`, `ready`, `connecting`, `not connected`, `failed`
+
+**License States:** `active`, `expired`, `recentlyQueued`, `unusedActive`, `unused`
+
+**Product Types:** `appliance`, `switch`, `wireless`, `camera`, `sensor`, `cellularGateway`
+
+### Webhook Events
+- **Endpoint:** `POST /api/meraki/webhooks` (BFF receiver)
+- **Verification:** HMAC-SHA256 signature in request header, verified against `MERAKI_WEBHOOK_SECRET`
+- **Key alert types:** `device_went_offline`, `device_came_online`, `vpn_connectivity_change`, `rogue_ap_detected`, `new_dhcp_lease`, `settings_changed`, `uplink_status_changed`, `sensor_alert`
+- **Rate limit:** 25 alerts per 10 min per event type per network (deduplicated)
+
+### Integration Strategy (Phase 18 — IT Department Dashboard)
+
+**10 Dashboard Views:**
+1. **Overview** — Device health donut (online/offline/alerting), devices by product type, org cards
+2. **Devices** — Searchable table across all orgs: name, model, serial, network, status, IP, firmware
+3. **Networks** — Network cards grouped by org: product types, device count, client count
+4. **Alerts** — Reverse-chronological alert feed, filterable by type/org/time
+5. **WAN** — Uplink status table: WAN1/WAN2/Cellular, public IP, ISP, failover detection
+6. **Wireless** — Per-network SSID stats, connection success rate, client count trends
+7. **Licensing** — License table with expiration highlighting (red=expired, amber=30 days)
+8. **Device Detail Overlay** — Switch: port statuses; Appliance: uplink detail; AP: SSID/client info
+9. **Network Detail** — Drill-down: device list, top clients by usage, wireless connection health
+10. **Org Selector** — Filter all views to single org or "All Organizations" aggregate
+
+**Cross-CW Integration:**
+- Map Meraki `organizationId` → ConnectWise `companyId` for client-level network health
+- Surface WAN uplink alerts as priority indicators on company dashboard
+- Link device alerts to CW ticket creation
+
+### BFF Routes (14 endpoints)
+```
+GET    /api/meraki/organizations                      All orgs (cached 1hr)
+GET    /api/meraki/organizations/[orgId]/devices       Device statuses
+GET    /api/meraki/organizations/[orgId]/networks      Networks
+GET    /api/meraki/organizations/[orgId]/uplinks       Appliance uplink statuses
+GET    /api/meraki/organizations/[orgId]/alerts        Recent alerts
+GET    /api/meraki/organizations/[orgId]/licensing     License state
+GET    /api/meraki/organizations/[orgId]/firmware      Firmware upgrade status
+GET    /api/meraki/organizations/[orgId]/vpn           VPN peer statuses
+GET    /api/meraki/organizations/[orgId]/changelog     Change log entries
+GET    /api/meraki/networks/[networkId]/clients        Connected clients
+GET    /api/meraki/networks/[networkId]/wireless       Wireless connection stats
+GET    /api/meraki/devices/[serial]/ports              Switch port statuses
+GET    /api/meraki/devices/[serial]/detail             Single device detail
+GET    /api/meraki/dashboard                           Aggregated dashboard data (all orgs)
+POST   /api/meraki/webhooks                            Webhook receiver
+```
+
+### Cache TTLs
+| Data | TTL | Reason |
+|------|-----|--------|
+| Organizations | 1 hour | Rarely change |
+| Device statuses | 5 min | Core health data |
+| Uplinks | 5 min | WAN health critical |
+| Alerts | 2 min | Time-sensitive |
+| Networks | 15 min | Moderate change rate |
+| Licensing | 24 hours | Very stable |
+| Firmware | 1 hour | Stable |
+| Clients | 5 min | Dynamic |
+
+### Environment Variables
+```
+MERAKI_API_KEY=                    # Meraki Dashboard API key (Bearer token)
+MERAKI_WEBHOOK_SECRET=             # Shared secret for webhook signature verification
+```
+
+### Known Quirks
+1. **SAML admin restriction** — SAML-authenticated dashboard admins cannot generate API keys; need local admin account
+2. **Link header pagination** — Uses HTTP Link headers (RFC 5988), NOT JSON body — must parse response headers
+3. **Endpoint hierarchy** — Some endpoints are org-level, some network-level, some device-level; org-level is most efficient for MSP bulk queries
+4. **Async action batches** — Some write operations return batch IDs that must be polled for status
+5. **Rate limit per-org** — 10 req/sec is per org, not global; 50 orgs × 10 = 500 req/sec possible if staggered
+6. **Device serial format** — Serials are like `Q2XX-XXXX-XXXX`; always use as string, never parse
+7. **Timestamps** — All UTC ISO 8601; store as-is, convert on display
+8. **Download URLs** — Some file/snapshot endpoints return temporary pre-signed URLs (similar to Graph `@microsoft.graph.downloadUrl`)
 
 ---
 
@@ -593,4 +716,131 @@ When adding a new platform integration:
 
 ---
 
-*Last updated: 2026-03-26*
+## SmileBack (Customer Satisfaction — CSAT/NPS)
+
+### Overview
+SmileBack is the native ConnectWise customer feedback platform. It captures CSAT ratings (Positive/Neutral/Negative) triggered at ticket closure and NPS scores (0–10) via scheduled campaigns. Survey data links directly to CW tickets, technicians, companies, and contacts.
+
+### Authentication
+- **Method:** API Key
+- **Base URL:** `https://app.smileback.io`
+- **API Docs:** `https://app.smileback.io/api/docs/` (Swagger, requires SmileBack login)
+- **Header:** API Key obtained from SmileBack Admin → API Credentials page
+- **Credentials:** Stored in `.env.local` as `SMILEBACK_API_KEY`; also configurable via Admin → Integrations (Credential Vault)
+
+### Rate Limits
+- 100 API calls per connection per 60 seconds
+- BFF cache reduces actual API calls (5 min for reviews, 10 min for summaries)
+- Not a bottleneck for RX Skin's usage pattern
+
+### Data Model
+
+#### CSAT Review
+| Field | Type | Description |
+|-------|------|-------------|
+| Rating | string | `Positive`, `Neutral`, or `Negative` |
+| Comment | string (optional) | Customer's text comment |
+| Company | string | CW company name |
+| Contact | string | Customer's full name |
+| Contact Email | string | Customer's email |
+| Ticket ID | string | ConnectWise ticket ID (critical for ticket linkage) |
+| Ticket Title | string | CW ticket summary |
+| Ticket Agents | string | Comma-separated tech names (critical for per-tech scoring) |
+| Ticket Segment | string | CW board/department name |
+| Permalink | string | URL to view review in SmileBack |
+| Has Marketing Permission | boolean | Customer consent for testimonials |
+| Created At | datetime | When the survey was submitted |
+
+#### NPS Response
+| Field | Type | Description |
+|-------|------|-------------|
+| Score | integer | 0–10 (Promoter: 9–10, Passive: 7–8, Detractor: 0–6) |
+| Comment | string (optional) | Customer's text comment |
+| Company | string | CW company name |
+| Contact | string | Customer's full name |
+| Campaign | string | NPS campaign name |
+| Created At | datetime | When the response was submitted |
+
+### Key API Operations
+
+#### Read-Only Data Retrieval
+```
+GET    /api/v3/csat/reviews          List CSAT reviews (filterable by date, company, rating, agent, board)
+GET    /api/v3/csat/companies        List companies with CSAT data
+GET    /api/v3/csat/contacts         List contacts with CSAT data
+GET    /api/v3/nps/responses         List NPS responses (filterable by date, campaign, score)
+GET    /api/v3/nps/campaigns         List NPS campaigns
+GET    /api/v3/prj/surveys           List project survey results
+```
+
+Note: Exact endpoint paths should be confirmed via the Swagger docs at `app.smileback.io/api/docs/`. The above are inferred from the Data Replication API v3.3.
+
+#### Webhook Triggers (Real-Time Push)
+SmileBack supports webhook triggers for real-time notifications:
+
+| Trigger | Fires When | Key Data |
+|---------|-----------|----------|
+| `CSAT_received` | Customer submits ticket satisfaction rating | Rating, Comment, Ticket ID, Agents, Company |
+| `NPS_received` | Customer submits NPS survey response | Score, Comment, Company, Campaign |
+| `PRJ_received` | Customer submits project survey result | Scores, Project Name, Phase Status |
+
+Webhook filters available: Rating, Agents, Boards, Companies, Contacts, Comments-only, Marketing permissions.
+
+### CSAT Scoring Methodology
+```
+CSAT % = (Positive count / Total responses) × 100
+
+Positive = 😊 (mapped to score 100)
+Neutral  = 😐 (mapped to score 50)
+Negative = 😞 (mapped to score 0)
+```
+
+### NPS Scoring Methodology
+```
+NPS = % Promoters (9–10) − % Detractors (0–6)
+
+Range: −100 to +100
+Excellent: 50+
+Good: 20–49
+Needs Improvement: 0–19
+At Risk: Below 0
+```
+
+### Integration Strategy
+SmileBack data surfaces across multiple RX Skin views:
+
+1. **Ticket Detail** — Survey response card (rating + comment) on tickets with feedback
+2. **Ticket List** — Small survey badge (Smile/Meh/Frown icon) on tickets with responses
+3. **Executive Dashboard** — CSAT % and NPS KPI cards + breakdown charts + recent feedback
+4. **Team Page** — Per-tech CSAT scores and review counts
+5. **My Day Dashboard** — Logged-in tech's personal CSAT score and monthly trend
+6. **CBR Dashboard** — Per-client CSAT + NPS for Account Managers, integrated into health score
+7. **Admin Integrations** — SmileBack credential management (API key + webhook secret)
+
+### BFF Routes
+```
+GET    /api/smileback                    CSAT overview + summary (date range, company, rating filters)
+GET    /api/smileback/nps                NPS overview + summary (date range, campaign filters)
+GET    /api/smileback/ticket/{ticketId}  Survey response for a specific CW ticket
+GET    /api/smileback/tech               Per-technician CSAT scores
+GET    /api/smileback/company            Per-company CSAT + NPS scores
+POST   /api/smileback/tickets/batch      Batch survey lookup for ticket list badges
+POST   /api/webhooks/smileback           Webhook receiver for real-time survey events
+```
+
+### Environment Variables
+```
+SMILEBACK_API_KEY=                # API Key from SmileBack Admin → API Credentials
+SMILEBACK_WEBHOOK_SECRET=         # Secret for validating incoming webhooks
+```
+
+### Known Quirks
+- SmileBack API is read-only — cannot create or modify surveys via API
+- Only North America instance (`app.smileback.io`) confirmed; other regional instances may differ
+- `Ticket Agents` field is comma-separated — must be parsed and split for per-tech aggregation
+- Company name matching between SmileBack and CW is by display name (not ID) — fuzzy matching may be needed
+- Rate limit (100/60s) is per connection, not per endpoint
+
+---
+
+*Last updated: 2026-03-29*
