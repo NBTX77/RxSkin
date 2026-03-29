@@ -6,7 +6,7 @@ import type { Ticket, ScheduleEntry } from '@/types'
 import { TicketCard } from '@/components/tickets/TicketCard'
 import {
   Clock, Ticket as TicketIcon, Calendar, AlertTriangle,
-  CheckCircle2, ChevronRight, Mail, Cloud,
+  CheckCircle2, ChevronRight, Mail, Cloud, Shield,
 } from 'lucide-react'
 import { KPICard } from '@/components/ui/KPICard'
 import { format } from 'date-fns'
@@ -201,6 +201,18 @@ function M365WidgetsRow() {
     retry: false,
   })
 
+  const { data: securityData } = useQuery({
+    queryKey: ['m365-security-alerts'],
+    queryFn: async () => {
+      const res = await fetch('/api/m365/security/risky-users')
+      if (!res.ok) return null
+      return res.json()
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  })
+  const riskyUserCount = securityData?.riskyUsers?.length ?? 0
+
   // Don't render widgets if both return not-connected
   if (mailData === null && calData === null) return null
   // Don't render if both errored
@@ -211,7 +223,7 @@ function M365WidgetsRow() {
   const events: Array<{id: string; subject: string; start?: {dateTime?: string}; location?: {displayName?: string}}> = calData?.value || calData?.events || []
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {/* Inbox Preview */}
       {mailData !== null && (
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
@@ -282,6 +294,34 @@ function M365WidgetsRow() {
           )}
         </div>
       )}
+
+      {/* Security Alerts */}
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+          <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+            <Shield size={15} className="text-blue-400" />
+            Security Alerts
+          </h2>
+          <Link href="/m365/security" className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-0.5">
+            Open <ChevronRight size={12} />
+          </Link>
+        </div>
+        <div className="px-4 py-6 text-center">
+          {securityData === null ? (
+            <p className="text-sm text-gray-400">No data</p>
+          ) : riskyUserCount > 0 ? (
+            <div>
+              <p className="text-2xl font-bold text-red-500">{riskyUserCount}</p>
+              <p className="text-sm text-red-500 mt-1">risky users detected</p>
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm font-medium text-emerald-500">No alerts</p>
+              <p className="text-xs text-gray-500 mt-1">All users clear</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

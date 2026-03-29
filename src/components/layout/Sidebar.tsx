@@ -27,6 +27,8 @@ import {
   Mail,
   CalendarDays,
   MessageSquare,
+  CreditCard,
+  ShieldCheck,
 } from 'lucide-react'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 import { ToolsSection } from '@/components/layout/ToolsSection'
@@ -75,6 +77,8 @@ const departmentNav: DepartmentNavConfig = {
           { href: '/m365/mail', label: 'Mail', icon: Mail },
           { href: '/m365/calendar', label: 'Calendar', icon: CalendarDays },
           { href: '/m365/teams', label: 'Teams', icon: MessageSquare },
+          { href: '/m365/licenses', label: 'Licenses', icon: CreditCard },
+          { href: '/m365/security', label: 'Security', icon: ShieldCheck },
         ],
       },
     },
@@ -100,6 +104,8 @@ const departmentNav: DepartmentNavConfig = {
           { href: '/m365/mail', label: 'Mail', icon: Mail },
           { href: '/m365/calendar', label: 'Calendar', icon: CalendarDays },
           { href: '/m365/teams', label: 'Teams', icon: MessageSquare },
+          { href: '/m365/licenses', label: 'Licenses', icon: CreditCard },
+          { href: '/m365/security', label: 'Security', icon: ShieldCheck },
         ],
       },
     },
