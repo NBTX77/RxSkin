@@ -29,7 +29,7 @@ import {
   Calendar,
   Building2,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { KPICard } from '@/components/ui/KPICard'
 import { useFinancialsData } from '@/hooks/useFinancialsData'
 import type {
   InvoiceSummary,
@@ -66,33 +66,6 @@ function formatDate(dateStr: string): string {
   } catch {
     return dateStr
   }
-}
-
-// ── KPI Card ─────────────────────────────────────────────────
-
-interface KPICardProps {
-  label: string
-  value: string
-  icon: LucideIcon
-  colorClass: string
-  subtitle?: string
-}
-
-function KPICard({ label, value, icon: Icon, colorClass, subtitle }: KPICardProps) {
-  return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-      <div className="flex items-start justify-between mb-3">
-        <div className={`${colorClass} p-2 rounded-lg`}>
-          <Icon className="w-4 h-4 text-white" />
-        </div>
-      </div>
-      <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">{label}</p>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
-      {subtitle && (
-        <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
-      )}
-    </div>
-  )
 }
 
 // ── Custom Tooltips ──────────────────────────────────────────
@@ -595,43 +568,43 @@ export function FinancialsDashboard() {
         </div>
 
         {/* KPI STRIP */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           <KPICard
             label="Outstanding Balance"
             value={formatCurrency(kpis.totalOutstandingBalance)}
             icon={DollarSign}
-            colorClass="bg-red-500"
+            color="bg-red-500"
           />
           <KPICard
             label="Open Invoices"
             value={String(kpis.openInvoicesCount)}
             icon={FileText}
-            colorClass="bg-blue-500"
+            color="bg-blue-500"
           />
           <KPICard
             label="MRR"
             value={formatCurrency(kpis.monthlyRecurringRevenue)}
             icon={TrendingUp}
-            colorClass="bg-emerald-500"
+            color="bg-emerald-500"
             subtitle="Monthly Recurring Revenue"
           />
           <KPICard
             label="Active Agreements"
             value={String(kpis.activeAgreementsCount)}
             icon={Handshake}
-            colorClass="bg-cyan-500"
+            color="bg-cyan-500"
           />
           <KPICard
             label="Open POs"
             value={String(kpis.openPOsCount)}
             icon={ShoppingCart}
-            colorClass="bg-orange-500"
+            color="bg-orange-500"
           />
           <KPICard
             label="Budget Utilization"
             value={`${kpis.projectBudgetUtilization}%`}
             icon={PieChart}
-            colorClass={kpis.projectBudgetUtilization > 100 ? 'bg-red-500' : 'bg-yellow-500'}
+            color={kpis.projectBudgetUtilization > 100 ? 'bg-red-500' : 'bg-yellow-500'}
             subtitle="Project hours used"
           />
         </div>

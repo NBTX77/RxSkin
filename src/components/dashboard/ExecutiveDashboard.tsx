@@ -31,9 +31,9 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { KPICard } from '@/components/ui/KPICard'
 import {
   useExecutiveData,
-  type ExecutiveKPI,
   type DepartmentPerformance,
   type ProjectHealthEntry,
   type ExecutiveHighlight,
@@ -263,10 +263,21 @@ export function ExecutiveDashboard() {
         </div>
 
         {/* KPI STRIP */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
-          {kpis.map((kpi) => (
-            <KPICard key={kpi.label} kpi={kpi} />
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+          {kpis.map((kpi) => {
+            const IconComponent = KPI_ICON_MAP[kpi.label] ?? Info
+            const colorClass = KPI_COLOR_MAP[kpi.label] ?? 'bg-gray-500'
+            return (
+              <KPICard
+                key={kpi.label}
+                icon={IconComponent}
+                color={colorClass}
+                label={kpi.label}
+                value={kpi.value}
+                subtitle={kpi.phase2 ? 'Phase 2' : undefined}
+              />
+            )
+          })}
         </div>
 
         {/* DEPARTMENT PERFORMANCE CARDS */}
@@ -463,32 +474,6 @@ function DataStatusBanner({
           </ul>
         )}
       </div>
-    </div>
-  )
-}
-
-function KPICard({ kpi }: { kpi: ExecutiveKPI }) {
-  const IconComponent = KPI_ICON_MAP[kpi.label] ?? Info
-  const colorClass = KPI_COLOR_MAP[kpi.label] ?? 'bg-gray-500'
-
-  return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-      <div className="flex items-start justify-between mb-3">
-        <div className={`${colorClass} p-2 rounded-lg`}>
-          <IconComponent className="w-4 h-4 text-white" />
-        </div>
-        {kpi.phase2 && (
-          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5">
-            Phase 2
-          </span>
-        )}
-      </div>
-      <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
-        {kpi.label}
-      </p>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-        {kpi.value}
-      </p>
     </div>
   )
 }

@@ -8,6 +8,7 @@ import {
   Clock, Ticket as TicketIcon, Calendar, AlertTriangle,
   CheckCircle2, ChevronRight,
 } from 'lucide-react'
+import { KPICard } from '@/components/ui/KPICard'
 import { format } from 'date-fns'
 import Link from 'next/link'
 import { TicketCardSkeleton } from '@/components/ui/TicketCardSkeleton'
@@ -48,31 +49,30 @@ export function MyDayClient() {
   return (
     <div className="space-y-6">
       {/* Stats row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard
-          icon={<TicketIcon size={18} />}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <KPICard
+          icon={TicketIcon}
+          color="bg-blue-500"
           label="Open Tickets"
-          value={String(openTickets.length)}
-          color="blue"
-          emphasis
+          value={openTickets.length}
         />
-        <StatCard
-          icon={<Clock size={18} />}
+        <KPICard
+          icon={Clock}
+          color="bg-purple-500"
           label="My Tickets"
-          value={String(myTickets.length)}
-          color="purple"
+          value={myTickets.length}
         />
-        <StatCard
-          icon={<Calendar size={18} />}
+        <KPICard
+          icon={Calendar}
+          color="bg-emerald-500"
           label="Scheduled Today"
-          value={String(todaySchedule.length)}
-          color="green"
+          value={todaySchedule.length}
         />
-        <StatCard
-          icon={<AlertTriangle size={18} />}
+        <KPICard
+          icon={AlertTriangle}
+          color="bg-red-500"
           label="High Priority"
-          value={String(criticalTickets.length)}
-          color="red"
+          value={criticalTickets.length}
         />
       </div>
 
@@ -165,37 +165,6 @@ export function MyDayClient() {
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function StatCard({
-  icon,
-  label,
-  value,
-  color,
-  emphasis = false,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  color: 'blue' | 'purple' | 'green' | 'red'
-  emphasis?: boolean
-}) {
-  const styles = {
-    blue:   emphasis ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-500/5 border-blue-500/20 text-blue-400',
-    purple: 'bg-purple-500/5 border-purple-500/20 text-purple-400',
-    green:  'bg-green-500/5 border-green-500/20 text-green-400',
-    red:    'bg-red-500/5 border-red-500/20 text-red-400',
-  }
-
-  return (
-    <div className={`rounded-xl border px-4 py-2 ${styles[color]}`}>
-      <div className="flex items-center gap-2 mb-0.5 opacity-70">
-        {icon}
-        <span className={`text-sm ${emphasis ? 'font-semibold' : 'font-medium'} text-gray-600 dark:text-gray-400`}>{label}</span>
-      </div>
-      <p className={`${emphasis ? 'text-3xl font-extrabold' : 'text-2xl font-bold'} text-gray-900 dark:text-white`}>{value}</p>
     </div>
   )
 }
