@@ -16,7 +16,7 @@ import type { EventInput, EventDropArg, DateSelectArg, EventClickArg } from '@fu
 import type { ScheduleEntry } from '@/types'
 import { useScheduleEntries, useRescheduleEntry, useCreateScheduleEntry } from '@/hooks/useScheduleEntries'
 import { ScheduleEventDetail } from './ScheduleEventDetail'
-import { Calendar, ChevronLeft, ChevronRight, RefreshCw, Loader2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, RefreshCw, Loader2, X } from 'lucide-react'
 
 type ViewMode = 'timeGridDay' | 'timeGridWeek' | 'dayGridTwoWeek' | 'dayGridMonth' | 'listWeek'
 
@@ -195,8 +195,6 @@ export function ScheduleCalendar() {
       {/* Header toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <Calendar className="h-5 w-5 text-blue-400" />
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Schedule</h1>
           {isFetching && (
             <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
           )}

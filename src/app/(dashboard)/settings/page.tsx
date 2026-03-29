@@ -32,8 +32,6 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Settings</h1>
-
       {/* Tab bar */}
       <div className="flex gap-1 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
         {tabs.map(({ id, label, icon: Icon }) => (
