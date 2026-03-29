@@ -23,6 +23,7 @@ import {
   ShoppingCart,
   LayoutDashboard,
   Users,
+  LayoutGrid,
 } from 'lucide-react'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 import type { DepartmentCode } from '@/types'
@@ -57,6 +58,8 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/tickets', label: 'Tickets', icon: Ticket },
       { href: '/projects', label: 'Projects', icon: FolderKanban },
       { href: '/schedule', label: 'Schedule', icon: Calendar },
+      { href: '/dispatch', label: 'Dispatch', icon: LayoutGrid },
+      { href: '/team', label: 'Team', icon: Users },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
     expandableSections: {
@@ -78,6 +81,8 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/projects', label: 'Project Board', icon: FolderKanban },
       { href: '/tickets', label: 'Service Queue', icon: Ticket },
       { href: '/schedule', label: 'Job Scheduler', icon: Calendar },
+      { href: '/dispatch', label: 'Dispatch', icon: LayoutGrid },
+      { href: '/team', label: 'Team', icon: Users },
       { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],

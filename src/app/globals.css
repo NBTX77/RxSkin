@@ -321,3 +321,146 @@ html.light .fleet-popup-ticket {
 .rx-calendar .fc .fc-scrollgrid {
   min-width: 500px;
 }
+
+/* ── Dispatch Board — Resource Timeline Overrides ── */
+
+/* Resource area (left panel with tech names) */
+.rx-dispatch-calendar .fc .fc-datagrid-cell-frame {
+  padding: 0;
+}
+
+.rx-dispatch-calendar .fc .fc-datagrid-cell-main {
+  overflow: visible;
+}
+
+/* Resource area header */
+.rx-dispatch-calendar .fc .fc-datagrid-header .fc-datagrid-cell-frame {
+  background: #111827;
+  border-color: #374151;
+}
+
+html.light .rx-dispatch-calendar .fc .fc-datagrid-header .fc-datagrid-cell-frame {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.rx-dispatch-calendar .fc .fc-datagrid-header .fc-datagrid-cell-cushion {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+html.light .rx-dispatch-calendar .fc .fc-datagrid-header .fc-datagrid-cell-cushion {
+  color: #64748b;
+}
+
+/* Resource lane rows */
+.rx-dispatch-calendar .fc .fc-timeline-lane {
+  border-color: #1f2937;
+}
+
+html.light .rx-dispatch-calendar .fc .fc-timeline-lane {
+  border-color: #f1f5f9;
+}
+
+/* Resource lane alternating backgrounds */
+.rx-dispatch-calendar .fc .fc-datagrid-body tr:nth-child(even) .fc-datagrid-cell-frame {
+  background: rgba(17, 24, 39, 0.3);
+}
+
+html.light .rx-dispatch-calendar .fc .fc-datagrid-body tr:nth-child(even) .fc-datagrid-cell-frame {
+  background: rgba(248, 250, 252, 0.5);
+}
+
+/* Timeline header (time slots) */
+.rx-dispatch-calendar .fc .fc-timeline-header-row th {
+  background: #111827;
+  border-color: #374151;
+}
+
+html.light .rx-dispatch-calendar .fc .fc-timeline-header-row th {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.rx-dispatch-calendar .fc .fc-timeline-slot-cushion {
+  color: #9ca3af;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+html.light .rx-dispatch-calendar .fc .fc-timeline-slot-cushion {
+  color: #64748b;
+}
+
+/* Timeline grid lines */
+.rx-dispatch-calendar .fc .fc-timeline-slot {
+  border-color: #1f2937;
+}
+
+html.light .rx-dispatch-calendar .fc .fc-timeline-slot {
+  border-color: #f1f5f9;
+}
+
+/* Now indicator */
+.rx-dispatch-calendar .fc .fc-timeline-now-indicator-line {
+  border-color: #ef4444;
+  border-width: 2px;
+}
+
+/* Scrollbar for resource area */
+.rx-dispatch-calendar .fc .fc-datagrid-body {
+  scrollbar-width: thin;
+  scrollbar-color: #374151 transparent;
+}
+
+html.light .rx-dispatch-calendar .fc .fc-datagrid-body {
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* Resource label custom content — keep avatar white */
+.dispatch-resource-label .bg-blue-600 span {
+  color: #ffffff !important;
+}
+
+/* Divider between resource area and timeline */
+.rx-dispatch-calendar .fc .fc-resource-timeline-divider {
+  width: 3px;
+  background: #374151;
+  cursor: col-resize;
+}
+
+html.light .rx-dispatch-calendar .fc .fc-resource-timeline-divider {
+  background: #e2e8f0;
+}
+
+/* Events in dispatch view */
+.rx-dispatch-calendar .fc .fc-timeline-event {
+  border-radius: 0.375rem;
+  border-width: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  min-height: 28px;
+}
+
+.rx-dispatch-calendar .fc .fc-timeline-event:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+.rx-dispatch-calendar .fc .fc-event-dragging {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  opacity: 0.85;
+}
+
+/* Mobile: hide resource area label text, show only avatar */
+@media (max-width: 640px) {
+  .rx-dispatch-calendar .fc .fc-datagrid-cell-main p {
+    display: none;
+  }
+  .rx-dispatch-calendar .fc .fc-datagrid-cell-main .dispatch-resource-label > div:last-child {
+    display: none;
+  }
+}

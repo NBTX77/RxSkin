@@ -15,8 +15,9 @@ export const dynamic = 'force-dynamic'
 const rescheduleSchema = z.object({
   dateStart: z.string().datetime().optional(),
   dateEnd: z.string().datetime().optional(),
-}).refine(data => data.dateStart || data.dateEnd, {
-  message: 'At least one of dateStart or dateEnd is required',
+  memberId: z.number().int().positive().optional(),
+}).refine(data => data.dateStart || data.dateEnd || data.memberId, {
+  message: 'At least one of dateStart, dateEnd, or memberId is required',
 })
 
 /**
@@ -48,6 +49,9 @@ export async function PATCH(
     }
     if (parsed.data.dateEnd) {
       patches.push({ op: 'replace', path: '/dateEnd', value: parsed.data.dateEnd })
+    }
+    if (parsed.data.memberId) {
+      patches.push({ op: 'replace', path: '/member/id', value: parsed.data.memberId })
     }
 
     const { tenantId } = session.user
