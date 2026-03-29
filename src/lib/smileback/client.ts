@@ -26,6 +26,7 @@ import {
 // ── Constants ────────────────────────────────────────────────
 
 const SMILEBACK_BASE_URL = 'https://app.smileback.io'
+const SMILEBACK_TOKEN_PATH = '/api/v1/auth/token'
 const RATE_LIMIT_MAX = 100
 const RATE_LIMIT_WINDOW_MS = 60_000
 const MAX_RETRIES = 3
@@ -33,6 +34,7 @@ const INITIAL_BACKOFF_MS = 1_000
 
 const CACHE_TTL_REVIEWS_MS = 5 * 60 * 1_000   // 5 minutes for reviews
 const CACHE_TTL_SUMMARY_MS = 10 * 60 * 1_000  // 10 minutes for summaries
+const TOKEN_EXPIRY_BUFFER_MS = 60 * 1_000      // refresh 1 minute before expiry
 
 // ── Error Class ──────────────────────────────────────────────
 
@@ -110,14 +112,55 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+// ── OAuth2 Token Cache ────────────────────────────────────────
+
+interface OAuthToken {
+  accessToken: string
+  expiresAt: number // epoch ms
+}
+
+let cachedToken: OAuthToken | null = null
+
+async function getAccessToken(): Promise<string> {
+  const now = Date.now()
+  if (cachedToken && cachedToken.expiresAt - TOKEN_EXPIRY_BUFFER_MS > now) {
+    return cachedToken.accessToken
+  }
+
+  const clientId = process.env.SMILEBACK_CLIENT_ID ?? ''
+  const clientSecret = process.env.SMILEBACK_CLIENT_SECRET ?? ''
+
+  const response = await fetch(`${SMILEBACK_BASE_URL}${SMILEBACK_TOKEN_PATH}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ client_id: clientId, client_secret: clientSecret }),
+  })
+
+  if (!response.ok) {
+    const body = await response.text()
+    throw new SmileBackApiError(response.status, `Auth failed: ${body}`)
+  }
+
+  const data = (await response.json()) as {
+    access_token: string
+    expires_in?: number
+    token_type?: string
+  }
+
+  cachedToken = {
+    accessToken: data.access_token,
+    expiresAt: now + (data.expires_in ?? 3600) * 1_000,
+  }
+
+  return cachedToken.accessToken
+}
+
 // ── SmileBack Client ─────────────────────────────────────────
 
 class SmileBackClient {
-  private apiKey: string
   private baseUrl: string
 
   constructor() {
-    this.apiKey = process.env.SMILEBACK_API_KEY ?? ''
     this.baseUrl = SMILEBACK_BASE_URL
   }
 
@@ -125,21 +168,20 @@ class SmileBackClient {
    * Check whether SmileBack API credentials are configured.
    */
   isConfigured(): boolean {
-    return !!process.env.SMILEBACK_API_KEY
+    return !!(process.env.SMILEBACK_CLIENT_ID && process.env.SMILEBACK_CLIENT_SECRET)
   }
 
   // ── Core Fetch ───────────────────────────────────────────
 
   /**
-   * Internal fetch wrapper with auth, rate limiting, retry on 429,
+   * Internal fetch wrapper with OAuth2 Bearer auth, rate limiting, retry on 429,
    * and API call instrumentation.
    */
   private async fetchAPI<T>(
     path: string,
     params?: Record<string, string | undefined>
   ): Promise<T> {
-    // Refresh key on each call in case env reloaded
-    this.apiKey = process.env.SMILEBACK_API_KEY ?? ''
+    const token = await getAccessToken()
 
     // Build URL with query params
     const url = new URL(`${this.baseUrl}${path}`)
@@ -165,7 +207,7 @@ class SmileBackClient {
         const response = await fetch(url.toString(), {
           method: 'GET',
           headers: {
-            Authorization: `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${token}`,
             Accept: 'application/json',
             'Content-Type': 'application/json',
           },
