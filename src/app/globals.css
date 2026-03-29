@@ -293,3 +293,31 @@ html.light .fleet-popup-ticket {
   color: #64748b;
   border-top-color: #e2e8f0;
 }
+
+/* ── FullCalendar time axis clipping fix ── */
+
+/* Prevent time labels from wrapping and set a readable size */
+.rx-calendar .fc .fc-timegrid-slot-label {
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+/* On small screens, constrain the time axis column to prevent clipping */
+@media (max-width: 640px) {
+  .rx-calendar .fc .fc-timegrid-axis {
+    width: 40px !important;
+    min-width: 40px !important;
+  }
+  .rx-calendar .fc .fc-timegrid-slot-label {
+    font-size: 10px;
+    padding: 0 2px !important;
+  }
+}
+
+/* Ensure the calendar grid itself has a sensible min-width so scroll kicks in */
+.rx-calendar .fc .fc-timegrid {
+  min-width: 500px;
+}
+.rx-calendar .fc .fc-scrollgrid {
+  min-width: 500px;
+}

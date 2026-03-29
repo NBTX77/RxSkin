@@ -252,7 +252,7 @@ export function ScheduleCalendar() {
       </div>
 
       {/* Calendar */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-2 sm:p-4 overflow-x-auto">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-2 sm:p-4 overflow-x-auto min-w-0">
         {isLoading ? (
           <div className="flex h-96 items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
