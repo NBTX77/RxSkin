@@ -33,6 +33,16 @@ function nestedNum(obj: unknown, key: string): number | undefined {
   return undefined
 }
 
+function normalizePriority(raw: string): string {
+  const lower = raw.toLowerCase()
+  if (lower.includes('critical') || lower.includes('priority 1')) return 'Critical'
+  if (lower.includes('high') || lower.includes('priority 2')) return 'High'
+  if (lower.includes('medium') || lower.includes('priority 3')) return 'Medium'
+  if (lower.includes('low') || lower.includes('priority 4')) return 'Low'
+  if (lower.includes('do not respond')) return 'Low'
+  return 'Medium'
+}
+
 // ── Ticket ────────────────────────────────────────────────────
 
 export function normalizeTicket(raw: Record<string, unknown>): Ticket {
@@ -41,7 +51,7 @@ export function normalizeTicket(raw: Record<string, unknown>): Ticket {
     summary: str(raw.summary),
     status: nested(raw.status, 'name') || 'Unknown',
     statusId: nestedNum(raw.status, 'id'),
-    priority: nested(raw.priority, 'name') || 'Medium',
+    priority: normalizePriority(nested(raw.priority, 'name') || 'Medium'),
     priorityId: nestedNum(raw.priority, 'id'),
     board: nested(raw.board, 'name') || 'Unknown',
     boardId: nestedNum(raw.board, 'id'),
