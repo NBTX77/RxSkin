@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { KPICard } from '@/components/ui/KPICard'
+import { ProjectDetailOverlay } from '@/components/projects/ProjectDetailOverlay'
 import {
   useExecutiveData,
   type DepartmentPerformance,
@@ -231,6 +232,7 @@ function DashboardError({ error, onRetry }: { error: Error; onRetry: () => void 
 export function ExecutiveDashboard() {
   const [hoveredProject, setHoveredProject] = useState<string | null>(null)
   const [, setSelectedDept] = useState<string | null>(null)
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
 
   const { data, isLoading, isError, error, refetch } = useExecutiveData()
 
@@ -250,7 +252,7 @@ export function ExecutiveDashboard() {
     <div className="flex-1 overflow-auto">
       <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8">
         {/* DATA STATUS BANNER */}
-        <DataStatusBanner dataStatus={dataStatus} fetchedAt={fetchedAt} errors={data.errors} />
+        <DataStatusBanner dataStatus={dataStatus} errors={data.errors} />
 
         {/* HEADER */}
         <div>
@@ -313,6 +315,7 @@ export function ExecutiveDashboard() {
                     projects={projectHealth.it}
                     hoveredProject={hoveredProject}
                     onHover={setHoveredProject}
+                    onProjectClick={setSelectedProjectId}
                   />
                 )}
                 {projectHealth.si.length > 0 && (
@@ -323,6 +326,7 @@ export function ExecutiveDashboard() {
                     projects={projectHealth.si}
                     hoveredProject={hoveredProject}
                     onHover={setHoveredProject}
+                    onProjectClick={setSelectedProjectId}
                   />
                 )}
                 {projectHealth.ga.length > 0 && (
@@ -333,6 +337,7 @@ export function ExecutiveDashboard() {
                     projects={projectHealth.ga}
                     hoveredProject={hoveredProject}
                     onHover={setHoveredProject}
+                    onProjectClick={setSelectedProjectId}
                   />
                 )}
 
@@ -430,6 +435,14 @@ export function ExecutiveDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Project Detail Overlay */}
+      {selectedProjectId !== null && (
+        <ProjectDetailOverlay
+          projectId={selectedProjectId}
+          onClose={() => setSelectedProjectId(null)}
+        />
+      )}
     </div>
   )
 }
@@ -438,25 +451,13 @@ export function ExecutiveDashboard() {
 
 function DataStatusBanner({
   dataStatus,
-  fetchedAt,
   errors,
 }: {
   dataStatus: 'live' | 'partial'
-  fetchedAt: string
   errors: string[]
 }) {
   if (dataStatus === 'live') {
-    return (
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50">
-        <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-        <p className="text-sm text-emerald-700 dark:text-emerald-300">
-          Live Data — All metrics sourced from ConnectWise in real time.
-        </p>
-        <span className="ml-auto text-xs text-emerald-600 dark:text-emerald-400 flex-shrink-0">
-          {formatTimeAgo(fetchedAt)}
-        </span>
-      </div>
-    )
+    return null
   }
 
   return (
@@ -510,10 +511,6 @@ function DepartmentCard({
             <span className="text-gray-500 dark:text-gray-400">Projects</span>
             <span className="text-gray-900 dark:text-white font-medium">{dept.projects}</span>
           </div>
-          <div className="flex justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-            <span className="text-gray-500 dark:text-gray-400">Members</span>
-            <span className="text-gray-900 dark:text-white font-medium">{dept.members}</span>
-          </div>
         </div>
       </div>
     </div>
@@ -548,6 +545,7 @@ interface ProjectSectionProps {
   projects: ProjectHealthEntry[]
   hoveredProject: string | null
   onHover: (id: string | null) => void
+  onProjectClick: (id: number) => void
 }
 
 function ProjectSection({
@@ -557,6 +555,7 @@ function ProjectSection({
   projects,
   hoveredProject,
   onHover,
+  onProjectClick,
 }: ProjectSectionProps) {
   return (
     <div>
@@ -574,12 +573,13 @@ function ProjectSection({
           return (
             <div
               key={projKey}
-              className={`${getStatusColor(proj.status)} rounded p-2 text-xs font-medium text-white text-center cursor-pointer transition-all hover:shadow-lg ${
+              className={`${getStatusColor(proj.status)} rounded p-2 text-xs font-medium text-white text-center cursor-pointer transition-all hover:shadow-lg hover:opacity-90 ${
                 hoveredProject === projKey ? 'ring-2 ring-white/50 scale-105' : ''
               }`}
               title={`${proj.name} - ${getStatusLabel(proj.status)} (${proj.utilizationPct}% of budget)`}
               onMouseEnter={() => onHover(projKey)}
               onMouseLeave={() => onHover(null)}
+              onClick={() => onProjectClick(proj.id)}
             >
               {shortName}
             </div>
