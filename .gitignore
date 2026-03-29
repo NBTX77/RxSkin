@@ -7,7 +7,7 @@
 .yarn/install-state.gz
 
 # testing
-/coverage
+# (see Test outputs section below)
 
 # next.js
 /.next/
@@ -32,9 +32,10 @@ yarn-error.log*
 .env.development
 .env.production
 
-# Playwright
-playwright-report/
-test-results/
+# Test outputs
+/coverage
+/playwright-report
+/test-results
 
 # Prisma local db
 prisma/*.db
