@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import { queryKeys } from '@/lib/query-keys'
 import type { Ticket, TicketFilters } from '@/types'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { AlertCircle, RefreshCw, Search, LayoutGrid, List } from 'lucide-react'
 import { TicketCard } from './TicketCard'
 import Link from 'next/link'
@@ -158,57 +159,100 @@ export function TicketListClient() {
           )}
         </div>
       ) : (
-        /* Table view */
-        <div className="rounded-xl border border-gray-800 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-800 bg-gray-900">
-                <th className="text-left px-4 py-3 text-gray-400 font-medium w-16">#</th>
-                <th className="text-left px-4 py-3 text-gray-400 font-medium">Summary</th>
-                <th className="text-left px-4 py-3 text-gray-400 font-medium hidden lg:table-cell">Company</th>
-                <th className="text-left px-4 py-3 text-gray-400 font-medium">Status</th>
-                <th className="text-left px-4 py-3 text-gray-400 font-medium hidden xl:table-cell">Assigned</th>
-                <th className="text-left px-4 py-3 text-gray-400 font-medium w-8">P</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-800">
-              {tickets?.map((ticket) => {
-                const priorityColor = PRIORITY_COLORS[ticket.priority] ?? 'bg-gray-500'
-                const statusColor = STATUS_COLORS[ticket.status] ?? 'text-gray-400 bg-gray-800 border-gray-700'
-                return (
-                  <tr key={ticket.id} className="hover:bg-gray-800/50 cursor-pointer transition-colors">
-                    <td className="px-4 py-3">
-                      <Link href={`/tickets/${ticket.id}`} className="text-gray-500 font-mono text-xs hover:text-blue-400">
-                        {ticket.id}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link href={`/tickets/${ticket.id}`} className="text-gray-100 font-medium line-clamp-1 hover:text-white">
-                        {ticket.summary}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-gray-400 hidden lg:table-cell">{ticket.company}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border ${statusColor}`}>
-                        {ticket.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-400 hidden xl:table-cell text-sm">{ticket.assignedTo ?? '—'}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block w-2.5 h-2.5 rounded-full ${priorityColor}`} role="img" aria-label={`Priority: ${ticket.priority}`} />
-                    </td>
-                  </tr>
-                )
-              })}
-              {tickets?.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-gray-500">No tickets found</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        /* Virtualized table view */
+        <VirtualizedTicketTable tickets={tickets ?? []} />
       )}
+    </div>
+  )
+}
+
+// ── Virtualized Table ────────────────────────────────────
+
+const ROW_HEIGHT = 48
+
+function VirtualizedTicketTable({ tickets }: { tickets: Ticket[] }) {
+  const parentRef = useRef<HTMLDivElement>(null)
+
+  const virtualizer = useVirtualizer({
+    count: tickets.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 10,
+  })
+
+  if (tickets.length === 0) {
+    return (
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 py-12 text-center text-gray-500">
+        No tickets found
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+      {/* Fixed header */}
+      <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex text-sm">
+          <div className="w-16 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium">#</div>
+          <div className="flex-1 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium">Summary</div>
+          <div className="w-40 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium hidden lg:block">Company</div>
+          <div className="w-36 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium">Status</div>
+          <div className="w-32 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium hidden xl:block">Assigned</div>
+          <div className="w-8 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium">P</div>
+        </div>
+      </div>
+
+      {/* Scrollable virtualized body */}
+      <div
+        ref={parentRef}
+        className="overflow-auto"
+        style={{ maxHeight: '70vh' }}
+      >
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {virtualizer.getVirtualItems().map((virtualRow) => {
+            const ticket = tickets[virtualRow.index]
+            const priorityColor = PRIORITY_COLORS[ticket.priority] ?? 'bg-gray-500'
+            const statusColor = STATUS_COLORS[ticket.status] ?? 'text-gray-400 bg-gray-800 border-gray-700'
+            return (
+              <div
+                key={ticket.id}
+                className="absolute top-0 left-0 w-full flex items-center text-sm border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+                style={{
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+              >
+                <div className="w-16 px-4">
+                  <Link href={`/tickets/${ticket.id}`} className="text-gray-500 font-mono text-xs hover:text-blue-400">
+                    {ticket.id}
+                  </Link>
+                </div>
+                <div className="flex-1 px-4 min-w-0">
+                  <Link href={`/tickets/${ticket.id}`} className="text-gray-900 dark:text-gray-100 font-medium truncate block hover:text-blue-600 dark:hover:text-white">
+                    {ticket.summary}
+                  </Link>
+                </div>
+                <div className="w-40 px-4 text-gray-600 dark:text-gray-400 truncate hidden lg:block">{ticket.company}</div>
+                <div className="w-36 px-4">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border ${statusColor}`}>
+                    {ticket.status}
+                  </span>
+                </div>
+                <div className="w-32 px-4 text-gray-600 dark:text-gray-400 text-sm truncate hidden xl:block">{ticket.assignedTo ?? '—'}</div>
+                <div className="w-8 px-4">
+                  <span className={`inline-block w-2.5 h-2.5 rounded-full ${priorityColor}`} role="img" aria-label={`Priority: ${ticket.priority}`} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
