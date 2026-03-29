@@ -24,6 +24,9 @@ import {
   LayoutGrid,
   ClipboardCheck,
   Cloud,
+  Mail,
+  CalendarDays,
+  MessageSquare,
 } from 'lucide-react'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 import { ToolsSection } from '@/components/layout/ToolsSection'
@@ -69,6 +72,9 @@ const departmentNav: DepartmentNavConfig = {
         icon: Cloud,
         items: [
           { href: '/m365/users', label: 'Users & Groups', icon: Users },
+          { href: '/m365/mail', label: 'Mail', icon: Mail },
+          { href: '/m365/calendar', label: 'Calendar', icon: CalendarDays },
+          { href: '/m365/teams', label: 'Teams', icon: MessageSquare },
         ],
       },
     },
@@ -91,6 +97,9 @@ const departmentNav: DepartmentNavConfig = {
         icon: Cloud,
         items: [
           { href: '/m365/users', label: 'Users & Groups', icon: Users },
+          { href: '/m365/mail', label: 'Mail', icon: Mail },
+          { href: '/m365/calendar', label: 'Calendar', icon: CalendarDays },
+          { href: '/m365/teams', label: 'Teams', icon: MessageSquare },
         ],
       },
     },
