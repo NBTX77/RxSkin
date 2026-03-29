@@ -11,6 +11,7 @@ import type {
   MerakiLicenseOverview,
   MerakiClient,
   MerakiSSID,
+  MerakiSwitchPortStatus,
   MerakiDashboardOverview,
 } from '@/types/meraki'
 
@@ -135,6 +136,19 @@ export function useMerakiSSIDs(networkId?: string) {
     ),
     enabled: !!networkId || true,
     staleTime: 600_000,
+  })
+}
+
+// ── Switch Port Statuses ────────────────────────────────────
+
+export function useMerakiSwitchPorts(serial?: string) {
+  return useQuery({
+    queryKey: ['meraki', 'switch-ports', serial],
+    queryFn: () => merakiFetch<MerakiSwitchPortStatus[]>(
+      `/api/meraki/switch-ports${serial ? `?serial=${encodeURIComponent(serial)}` : ''}`
+    ),
+    enabled: !!serial,
+    staleTime: 300_000,
   })
 }
 

@@ -9,6 +9,9 @@ import { getTenantCredentials } from '@/lib/auth/credentials'
 import { getProjects, getCompanies, getTickets } from '@/lib/cw/client'
 import { getCachedProjects, getCachedCompanies, recordSyncError } from '@/lib/cache/write-through'
 import { getDefaultTenantId } from '@/lib/instrumentation/tenant-context'
+import { getMerakiCredentials, isMerakiConfigured } from '@/lib/meraki/credentials'
+import { getOrganizations, getDeviceStatuses, getUplinkStatuses } from '@/lib/meraki/client'
+import { cachedFetch } from '@/lib/cache/bff-cache'
 import prisma from '@/lib/db/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -116,6 +119,34 @@ export async function GET(request: Request) {
       const errMsg = err instanceof Error ? err.message : String(err)
       results.tickets = { status: 'error', error: errMsg }
       await recordSyncError(tenantId, 'tickets', errMsg)
+    }
+
+    // Sync Meraki (if configured)
+    if (isMerakiConfigured()) {
+      const merakiStart = performance.now()
+      try {
+        const merakiCreds = getMerakiCredentials()!
+        const orgs = await cachedFetch('meraki:organizations', () => getOrganizations(merakiCreds), 3600_000)
+
+        let deviceCount = 0
+        for (const org of orgs) {
+          const [devices, uplinks] = await Promise.allSettled([
+            cachedFetch(`meraki:devices:${org.id}`, () => getDeviceStatuses(merakiCreds, org.id), 300_000),
+            cachedFetch(`meraki:uplinks:${org.id}`, () => getUplinkStatuses(merakiCreds, org.id), 300_000),
+          ])
+          if (devices.status === 'fulfilled') deviceCount += devices.value.length
+          void uplinks
+        }
+
+        results.meraki = {
+          status: 'success',
+          count: deviceCount,
+          ms: Math.round(performance.now() - merakiStart),
+        }
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : String(err)
+        results.meraki = { status: 'error', error: errMsg }
+      }
     }
 
     const allOk = Object.values(results).every((r) => r.status === 'success')

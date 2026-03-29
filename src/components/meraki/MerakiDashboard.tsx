@@ -13,6 +13,8 @@ import {
   ChevronDown,
   RefreshCw,
 } from 'lucide-react'
+import { MerakiDeviceDetail } from './MerakiDeviceDetail'
+import { MerakiNetworkDetail } from './MerakiNetworkDetail'
 import {
   useMerakiOverview,
   useMerakiOrganizations,
@@ -255,6 +257,7 @@ function DevicesTab({ orgId }: { orgId?: string }) {
   const { data: devicesRes, isLoading } = useMerakiDevices(orgId)
   const [filter, setFilter] = useState<'all' | 'online' | 'alerting' | 'offline'>('all')
   const [search, setSearch] = useState('')
+  const [selectedDevice, setSelectedDevice] = useState<MerakiDeviceStatus | null>(null)
 
   if (isLoading) return <LoadingState />
 
@@ -313,7 +316,7 @@ function DevicesTab({ orgId }: { orgId?: string }) {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {filtered.map(device => (
-                <DeviceRow key={device.serial} device={device} />
+                <DeviceRow key={device.serial} device={device} onClick={() => setSelectedDevice(device)} />
               ))}
               {filtered.length === 0 && (
                 <tr>
@@ -324,11 +327,15 @@ function DevicesTab({ orgId }: { orgId?: string }) {
           </table>
         </div>
       </div>
+
+      {selectedDevice && (
+        <MerakiDeviceDetail device={selectedDevice} onClose={() => setSelectedDevice(null)} />
+      )}
     </div>
   )
 }
 
-function DeviceRow({ device }: { device: MerakiDeviceStatus }) {
+function DeviceRow({ device, onClick }: { device: MerakiDeviceStatus; onClick: () => void }) {
   const statusColors: Record<string, string> = {
     online: 'bg-green-500',
     alerting: 'bg-amber-500',
@@ -337,7 +344,10 @@ function DeviceRow({ device }: { device: MerakiDeviceStatus }) {
   }
 
   return (
-    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+    <tr
+      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+      onClick={onClick}
+    >
       <td className="px-4 py-3">
         <span className={`inline-block w-2 h-2 rounded-full ${statusColors[device.status] || 'bg-gray-400'}`} />
       </td>
@@ -361,59 +371,74 @@ function DeviceRow({ device }: { device: MerakiDeviceStatus }) {
 
 function NetworksTab({ orgId }: { orgId?: string }) {
   const { data: networksRes, isLoading } = useMerakiNetworks(orgId)
+  const [selectedNetwork, setSelectedNetwork] = useState<{ net: MerakiNetwork; summary?: MerakiNetworkSummary } | null>(null)
 
   if (isLoading) return <LoadingState />
 
   const items = networksRes?.data ?? []
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      {items.map((item, i) => {
-        // Handle both MerakiNetworkSummary and MerakiNetwork
-        const net = 'network' in item ? (item as MerakiNetworkSummary).network : (item as MerakiNetwork)
-        const summary = 'network' in item ? (item as MerakiNetworkSummary) : null
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {items.map((item, i) => {
+          // Handle both MerakiNetworkSummary and MerakiNetwork
+          const net = 'network' in item ? (item as MerakiNetworkSummary).network : (item as MerakiNetwork)
+          const summary = 'network' in item ? (item as MerakiNetworkSummary) : undefined
 
-        return (
-          <div key={net.id || i} className="rounded-xl border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-4">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="font-medium text-gray-900 dark:text-white text-sm">{net.name}</h3>
-                <p className="text-xs text-gray-500 mt-0.5">{net.productTypes?.join(', ')}</p>
+          return (
+            <button
+              key={net.id || i}
+              onClick={() => setSelectedNetwork({ net, summary })}
+              className="text-left rounded-xl border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-4 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-sm transition-all"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h3 className="font-medium text-gray-900 dark:text-white text-sm">{net.name}</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">{net.productTypes?.join(', ')}</p>
+                </div>
+                <Network className="w-4 h-4 text-gray-400" />
               </div>
-              <Network className="w-4 h-4 text-gray-400" />
-            </div>
 
-            {summary && (
-              <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                <div className="text-center">
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">{summary.deviceCount}</p>
-                  <p className="text-[10px] text-gray-500">Devices</p>
+              {summary && (
+                <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{summary.deviceCount}</p>
+                    <p className="text-[10px] text-gray-500">Devices</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-green-500">{summary.onlineDevices}</p>
+                    <p className="text-[10px] text-gray-500">Online</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{summary.clientCount}</p>
+                    <p className="text-[10px] text-gray-500">Clients</p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-green-500">{summary.onlineDevices}</p>
-                  <p className="text-[10px] text-gray-500">Online</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">{summary.clientCount}</p>
-                  <p className="text-[10px] text-gray-500">Clients</p>
-                </div>
-              </div>
-            )}
+              )}
 
-            {net.tags && net.tags.length > 0 && (
-              <div className="flex gap-1 mt-3 flex-wrap">
-                {net.tags.map(tag => (
-                  <span key={tag} className="px-1.5 py-0.5 text-[10px] rounded bg-blue-500/10 text-blue-500">{tag}</span>
-                ))}
-              </div>
-            )}
-          </div>
-        )
-      })}
-      {items.length === 0 && (
-        <div className="col-span-full text-center py-12 text-gray-500">No networks found</div>
+              {net.tags && net.tags.length > 0 && (
+                <div className="flex gap-1 mt-3 flex-wrap">
+                  {net.tags.map(tag => (
+                    <span key={tag} className="px-1.5 py-0.5 text-[10px] rounded bg-blue-500/10 text-blue-500">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </button>
+          )
+        })}
+        {items.length === 0 && (
+          <div className="col-span-full text-center py-12 text-gray-500">No networks found</div>
+        )}
+      </div>
+
+      {selectedNetwork && (
+        <MerakiNetworkDetail
+          network={selectedNetwork.net}
+          summary={selectedNetwork.summary}
+          onClose={() => setSelectedNetwork(null)}
+        />
       )}
-    </div>
+    </>
   )
 }
 
