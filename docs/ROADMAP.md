@@ -7,279 +7,300 @@
 
 ## Current Status
 
-**Active Phase:** Phase 1 — Foundation & Core Ticketing
-**Phase 1 Target Completion:** TBD
-**Overall Progress:** 0% (project kickoff)
+**Last Completed Phase:** Phase 1A + Phase 3 UI Polish
+**Active Priorities:** Credential Vault, Azure AD integration, Graph/Webex BFF routes
+**Overall Progress:** ~40% of full vision
 
 ---
 
-## Phase 0 — Project Setup ✅ In Progress
+## Phase 0 — Project Setup ✅ Complete
 
 Foundation work before any feature development.
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Define project scope | ✅ Done | This roadmap |
+| Define project scope | ✅ Done | CLAUDE.md + this roadmap |
 | Architecture documented | ✅ Done | docs/ARCHITECTURE.md |
 | Integrations researched | ✅ Done | docs/INTEGRATIONS.md |
 | CLAUDE.md + INSTRUCTIONS.md written | ✅ Done | |
-| GitHub repository created | ⬜ Pending | |
-| Notion workspace created | ⬜ Pending | |
-| Asana project created | ⬜ Pending | |
-| Next.js project scaffolded | ⬜ Pending | |
-| `.env.example` populated | ⬜ Pending | |
-| Prisma schema (initial) | ⬜ Pending | |
-| ConnectWise API connection tested | ⬜ Pending | |
-| Dev environment confirmed working | ⬜ Pending | |
+| GitHub repository created | ✅ Done | https://github.com/NBTX77/RxSkin |
+| Notion workspace created | ✅ Done | Project hub, accounts registry |
+| Asana project created | ✅ Done | Sprint tasks synced |
+| Next.js project scaffolded | ✅ Done | App Router, TypeScript strict |
+| `.env.example` populated | ✅ Done | All required keys documented |
+| Prisma schema (initial) | ✅ Done | 14 models, 15 tables in Supabase |
+| ConnectWise API connection tested | ✅ Done | 172 tickets, 53 projects, 740 companies verified |
+| Dev environment confirmed working | ✅ Done | Vercel deployment GREEN at rxtech.app |
 
 ---
 
-## Phase 1 — Foundation & Core Ticketing
+## Phase 1A — Foundation & Core Experience ✅ Complete
 
-**Goal:** A working portal where technicians can view, create, edit, and manage service tickets. Mobile-friendly. Authenticated. Connected to real CW data.
+**Goal:** Department-routed portal with tickets, projects, schedule, and ops hub. Connected to live CW data.
 
-### 1.1 Authentication & Session Management
-- [ ] NextAuth.js setup with username/password
-- [ ] JWT session with `tenantId`, `userId`, `role`
-- [ ] Protected routes (middleware redirect to /login)
-- [ ] Logout flow
-- [ ] Session expiry handling
-- [ ] "Remember me" option
+### Authentication & Session Management ✅
+- [x] NextAuth.js setup with username/password (Phase 1 demo credentials)
+- [x] JWT session with `tenantId`, `userId`, `role`
+- [x] Protected routes (middleware redirect to /login)
+- [x] Logout flow via UserAvatar dropdown
 
-### 1.2 Dashboard / Home
-- [ ] Home page with summary widgets:
-  - Open tickets count (by priority)
-  - My tickets today
-  - Schedule overview (today's entries)
-  - Recent activity feed
-- [ ] Responsive layout (desktop sidebar + mobile bottom nav)
-- [ ] Theming: Dark mode + Light mode toggle
-- [ ] Loading skeletons for all data widgets
+### Dashboard & Navigation ✅
+- [x] Department routing — DepartmentProvider, per-dept nav, dept switcher
+- [x] Desktop: Collapsible left sidebar (icon rail w-12, expands w-52 on hover)
+- [x] Mobile: Bottom nav bar (5 main items)
+- [x] Persistent top bar with search (Ctrl+K) + UserAvatar dropdown
+- [x] Dark/light theme support (ThemeProvider + class strategy)
 
-### 1.3 Ticket List
-- [ ] Ticket list page with filters:
-  - Status (New / In Progress / Resolved / Closed)
-  - Board
-  - Priority
-  - Assigned to (technician)
-  - Company
-  - Date range
-- [ ] Search by ticket number or keyword
-- [ ] Sortable columns
-- [ ] Pagination (infinite scroll on mobile, paginated on desktop)
-- [ ] Quick status update from list (dropdown inline)
-- [ ] Bulk actions: assign, close, update status
-- [ ] Mobile card layout vs desktop table layout
-- [ ] Save filter presets
+### Ticket List & Detail ✅
+- [x] Full ticket list UI (search, desktop table, mobile cards)
+- [x] Ticket detail page (`/tickets/[id]`) — notes, time entries, mobile-responsive
+- [x] Live CW data — ticket notes, time entries, global search
+- [x] Remote tools — TicketActions, ComputerPicker, SystemInfoPanel, ScriptRunner
 
-### 1.4 Ticket Detail
-- [ ] Full ticket view:
-  - Summary, status, priority, board
-  - Assigned technician + company + contact
-  - Description / internal notes
-  - Time entries
-  - Attachments
-- [ ] Add note (internal / external toggle)
-- [ ] Log time entry (hours + work type)
-- [ ] Update status, priority, assignment inline
-- [ ] Ticket history / audit log
-- [ ] Mobile-optimized layout
+### Projects Board ✅
+- [x] API routes (`/api/projects`, `/api/projects/[id]`)
+- [x] Department-aware rendering: kanban (IT/SI), financial table (GA), portfolio heatmap (LT), read-only list (AM)
+- [x] Project detail overlay
+- [x] Project status pipeline (10 New → 20 Handoff → 30 PM → 31/33/34 Work → 50 Complete)
 
-### 1.5 Create Ticket
-- [ ] New ticket form:
-  - Company search (type-ahead)
-  - Contact search (filtered by company)
-  - Summary
-  - Description
-  - Board
-  - Priority
-  - Status
-  - Assigned technician
-- [ ] "Quick ticket" mode — minimal fields, fast submit
-- [ ] Save draft functionality
-- [ ] Form validation with clear error messages
-- [ ] Mobile-friendly form layout
+### Schedule / Calendar ✅
+- [x] FullCalendar with Day/Week/2-Week/Month/List views
+- [x] Drag-drop rescheduling + event resize
+- [x] Schedule CRUD API (GET, POST, PATCH, DELETE)
+- [x] ScheduleEventDetail overlay
+- [x] Dark theme + mobile-responsive
 
-### 1.6 ConnectWise API Layer (BFF)
-- [ ] CW API client (`lib/cw/client.ts`)
-- [ ] Auth header injection middleware
-- [ ] API routes for:
-  - `GET /api/tickets` — list
-  - `GET /api/tickets/[id]` — detail
-  - `POST /api/tickets` — create
-  - `PATCH /api/tickets/[id]` — update
-  - `POST /api/tickets/[id]/notes` — add note
-  - `GET /api/companies` — list
-  - `GET /api/members` — list techs
-- [ ] In-memory BFF cache with TTL
-- [ ] Rate limit handling (retry on 429)
-- [ ] Response normalization
-- [ ] Error handling + consistent error shapes
+### Ops Hub ✅
+- [x] Fleet map (Samsara integration)
+- [x] Analytics dashboard
+- [x] Schedule hold list
 
-### 1.7 Database (Prisma + PostgreSQL)
-- [ ] Prisma schema: Tenant, User, CachedTicket, AuditLog
-- [ ] Row-Level Security policies
-- [ ] Database seeder for dev data
-- [ ] Migration management workflow
+### BFF API Layer ✅
+- [x] CW API client + normalizers (tickets, projects, companies, members, schedule)
+- [x] Automate BFF routes (computers, scripts)
+- [x] Control BFF route (session GUID lookup + launch URL)
+- [x] In-memory BFF cache with write-through to DB
+- [x] Rate limit handling, response normalization, error handling
+- [x] API call instrumentation (all 4 clients: CW, Samsara, Automate, Control)
 
-### 1.8 Testing
-- [ ] Unit tests for CW API client
-- [ ] Unit tests for data normalizers
-- [ ] Integration tests for all API routes
-- [ ] E2E test: login → view ticket → update status
-- [ ] E2E test: create ticket end-to-end
+### Database & Observability ✅
+- [x] Supabase PostgreSQL — 15 tables, RLS-ready
+- [x] Prisma client singleton, migration management
+- [x] Write-through cache (memory → DB → API, survives Vercel cold starts)
+- [x] Frontend analytics tracker (batched events, sendBeacon)
+- [x] `<Tracked>` HOC + `usePageView` hook
+- [x] Cron sync endpoint (Vercel cron every 5 min)
+
+### Admin Panel ✅
+- [x] Layout with sidebar nav + orange accent
+- [x] Integrations — Credential Vault UI for 10 platforms
+- [x] Users — role/dept badges, search/filter, add/disable
+- [x] Tenant Settings — company info, board mappings, cache TTLs
+- [x] AI & Bots — provider config, 4 bots, chatbot placement
+- [x] Analytics — click tracking, heatmaps, AI suggestions
+- [x] Audit Log — API calls, credential access, logins, admin actions
+
+### Settings Page ✅
+- [x] Tabbed layout: Profile, Appearance, Connections, Notifications
+- [x] Theme toggle in Appearance tab
 
 ---
 
-## Phase 2 — Scheduling & Calendar
+## Phase 3 UI Polish ✅ Complete (2026-03-29)
 
-**Goal:** Drag-and-drop schedule management. Techs can view and reschedule work visually.
+**Goal:** 15 aesthetic and UX improvements across the entire app.
 
-### 2.1 Schedule Views
-- [ ] FullCalendar integration
-- [ ] Day view
-- [ ] Week view
-- [ ] 2-Week view (custom — FullCalendar doesn't have this natively)
-- [ ] Month view
-- [ ] Agenda/list view (mobile default)
-- [ ] Filter by technician
-- [ ] Color-coded by ticket priority / type
+| Task | Status |
+|------|--------|
+| Priority + status badges (pill style with dot indicators) | ✅ Done |
+| Loading skeletons (ticket list, project kanban, schedule) | ✅ Done |
+| Collapsible sidebar (icon rail default, hover expand overlay) | ✅ Done |
+| Row hover effects + subtle animations | ✅ Done |
+| Project stage badges (color-coded pipeline) | ✅ Done |
+| Empty state illustrations (tickets, projects, schedule) | ✅ Done |
+| Breadcrumb navigation (ticket detail, project detail) | ✅ Done |
+| Accessibility pass (focus rings, aria labels, keyboard nav) | ✅ Done |
+| Error boundaries with retry | ✅ Done |
+| Light mode theme support (full color mapping) | ✅ Done |
+| Time-based greeting in dashboard | ✅ Done |
+| Collapsible sidebar persistence | ✅ Done |
+| Department switcher (admin/LT only, popover on logo) | ✅ Done |
+| Kanban column width fix | ✅ Done |
+| Toolbar merge + column drag | ✅ Done |
 
-### 2.2 Drag and Drop
-- [ ] Drag ticket to reschedule (time change)
-- [ ] Resize event to change duration
-- [ ] Drag unscheduled ticket from queue onto calendar
-- [ ] Optimistic updates (UI responds instantly)
-- [ ] Rollback on API failure
-- [ ] Touch support (mobile drag and drop)
+---
 
-### 2.3 Unscheduled Ticket Queue
-- [ ] Sidebar panel showing unscheduled open tickets
-- [ ] Sort by priority, age, company
-- [ ] Drag from queue → drop on calendar → creates schedule entry
-- [ ] Collapse/expand on mobile
+## Current Priorities — In Progress
 
-### 2.4 Quick Actions from Calendar
-- [ ] Click event → mini-popup with ticket summary + quick actions
-- [ ] "Open ticket" → navigate to ticket detail
-- [ ] "Mark complete" → update status from calendar
-- [ ] "Reassign" → change tech from calendar
+These are the next items to be built, in priority order.
 
-### 2.5 Schedule API Layer
-- [ ] `GET /api/schedule` — list entries (date range)
-- [ ] `POST /api/schedule` — create entry
-- [ ] `PATCH /api/schedule/[id]` — reschedule
-- [ ] `DELETE /api/schedule/[id]` — remove
+### Credential Vault (Security — Critical)
+- [ ] Migrate env var credentials to encrypted DB (`TenantCredential` table)
+- [ ] AES-256-GCM encryption for all stored credentials
+- [ ] `getTenantCredentials(tenantId, platform)` resolver
+- [ ] Admin UI already built — needs backend wiring
 
-### 2.6 Microsoft Graph Integration (M365)
-- [ ] Per-tenant Azure AD credentials storage
+### Azure AD Integration (Auth — High)
+- [ ] Register multi-tenant Azure AD app
+- [ ] NextAuth Azure AD provider (replaces demo credentials)
+- [ ] Single sign-on for all RX Technology techs
+
+### Microsoft Graph BFF Routes (Integration — High)
 - [ ] Graph API client (`lib/graph/client.ts`)
-- [ ] Company detail page: M365 user list
-- [ ] Company detail page: license usage widget
-- [ ] Company detail page: Intune device list
-- [ ] API routes for Graph data
+- [ ] Mail (read, send)
+- [ ] Calendar (read/write)
+- [ ] Presence (online status)
+- [ ] Teams chat (read)
+
+### Webex BFF Routes (Integration — High)
+- [ ] Webex API client
+- [ ] Messaging (read, send)
+- [ ] Call history
+- [ ] Click-to-call
+- [ ] Queue stats
+
+### User OAuth2 Connection Flow
+- [ ] Settings → Connect Microsoft 365 (per-user OAuth2)
+- [ ] Settings → Connect Webex (per-user OAuth2)
+- [ ] Token storage in `UserOAuthToken` table (encrypted, auto-refresh)
+
+### CW Home SSO
+- [ ] Configure Azure AD as external IdP in CW Home
+- [ ] ScreenConnect launch URLs work seamlessly with SSO
 
 ---
 
-## Phase 3 — Company Hub & Integrations Dashboard
+## Phase 1B — SI Department Experience (Planned)
 
-**Goal:** Each client company has a rich dashboard pulling data from all connected tools.
+**Goal:** Full Systems Integration department workflow — project-first kanban, job scheduling, materials tracking.
 
-### 3.1 Company List & Search
-- [ ] Company list with search
-- [ ] Company type filter (managed, prospect, etc.)
-- [ ] Quick stats per company card (open tickets, device count)
+- [ ] SI-specific project kanban (primary view)
+- [ ] Service queue for SI boards
+- [ ] Job scheduler (SI-specific calendar views)
+- [ ] Fleet map integration for SI field techs
+- [ ] Materials tracking
 
-### 3.2 Company Detail Page
+### Department Dashboard Mockups (Created, Not Built)
+5 interactive React mockups exist in `docs/mockups/`:
+- `mockup-IT-Dashboard.jsx` — tickets + projects + timer
+- `mockup-SI-Dashboard.jsx` — project kanban + service queue
+- `mockup-AM-Dashboard.jsx` — accounts + company 360
+- `mockup-GA-Dashboard.jsx` — invoices + POs + financials
+- `mockup-LT-Dashboard.jsx` — exec dashboard + portfolio
+
+Build specs created in `docs/planning/`. Implementation not started.
+
+---
+
+## Phase 2A — Account Management (Planned)
+
+**Goal:** AM department experience — Company 360 view, agreements, opportunity pipeline.
+
+- [ ] My Accounts view
+- [ ] Company 360 page (contacts, agreements, SLA, tickets, devices)
+- [ ] Agreement management
+- [ ] Opportunity pipeline (CW Opportunities board)
+- [ ] Client health scorecard
+
+---
+
+## Phase 2B — Accounting / Procurement (Planned)
+
+**Goal:** G&A department experience — invoices, POs, project financials, time & billing.
+
+- [ ] Invoice list and detail
+- [ ] Purchase order management
+- [ ] Project financials view (budget vs actual)
+- [ ] Time & billing dashboard
+- [ ] Agreement billing management
+- [ ] Product catalog
+
+---
+
+## Phase 2C — Middleware Workflow Engine (Designed, Not Built)
+
+**Goal:** Visual middleware workflow system in Admin Console for cross-system integration pipelines and automation.
+
+Architecture fully designed (2026-03-28). Research document: `RX-Skin-Middleware-Workflow-Research.docx`.
+
+### Engine Phases
+| Sub-Phase | Scope | Status |
+|-----------|-------|--------|
+| **Phase 1 (MVP)** | React Flow canvas, workflow CRUD, BullMQ execution, manual triggers, DAG validation | Designed |
+| **Phase 2 (AI)** | Claude API for NLP workflow creation, 5-10 MSP templates, AI error diagnosis | Designed |
+| **Phase 3 (Advanced)** | Scheduled + webhook triggers, parallel execution, data transforms, pattern mining | Designed |
+| **Phase 4 (Scale)** | Temporal.io migration (if needed), anomaly detection, execution heatmaps | Designed |
+
+### Key Decisions
+- Visual editor: React Flow (xyflow)
+- Execution engine: BullMQ on Redis (Phase 1), Temporal.io considered for Phase 3+
+- Node types: Trigger (green), Action (blue), Condition (orange), Transform (purple), Error Handler (red)
+- Admin routes: `/admin/workflows`, `/admin/workflows/[id]/edit`, `/admin/workflows/templates`, `/admin/workflows/map`
+- Security: Credentials never exposed to frontend, tenant-scoped RLS, RBAC (admin creates, tech triggers)
+
+---
+
+## Phase 3 — Leadership Dashboard (Planned)
+
+**Goal:** Executive KPIs, portfolio heatmap, utilization metrics, cross-department drill-down.
+
+- [ ] Exec dashboard with summary KPIs
+- [ ] Project portfolio heatmap (all departments)
+- [ ] Technician utilization report
+- [ ] Financial overview (revenue, margins, billing)
+- [ ] Department drill-down views
+
+---
+
+## Phase 4 — Company Hub & Full Integrations (Planned)
+
+**Goal:** Rich per-company dashboard pulling data from all connected tools.
+
+### Company Detail Page
 - [ ] Overview tab: contacts, agreements, SLA status
-- [ ] Tickets tab: tickets filtered to company
+- [ ] Tickets tab: filtered to company
 - [ ] Devices tab: CW configurations + Intune devices
-- [ ] Network tab: Auvik/Meraki data (if connected)
-- [ ] Backup tab: Datto/Acronis status (if connected)
+- [ ] Network tab: Auvik/Meraki data
+- [ ] Backup tab: Datto/Acronis status
 - [ ] M365 tab: users, licenses, compliance
 
-### 3.3 RMM Integration (CW Automate)
-- [ ] Automate API client
-- [ ] Agent status on company page
-- [ ] Alert badges for offline agents
-- [ ] Patch compliance widget
-
-### 3.4 Network Monitoring (Auvik)
-- [ ] Auvik API client
-- [ ] Network health summary on company page
-- [ ] Alert count badge
-- [ ] "View in Auvik" deep link
-
-### 3.5 Network Monitoring (Meraki)
-- [ ] Meraki API client
-- [ ] WAN uplink status on company page
-- [ ] Connected client count
-- [ ] "View in Meraki" deep link
-
-### 3.6 Backup Status (Datto)
-- [ ] Datto API client
-- [ ] Backup health badge (good / warning / critical)
-- [ ] Last backup time
-- [ ] "View in Datto" deep link
-
-### 3.7 Backup Status (Acronis)
-- [ ] Acronis API client
-- [ ] Same health badge pattern as Datto
-
-### 3.8 Firewall Status (Fortinet)
-- [ ] Fortinet API client
-- [ ] VPN tunnel health
-- [ ] CPU/memory status
-
-### 3.9 Phone System (Webex Calling)
-- [ ] Webex OAuth flow
-- [ ] View call queues per client
-- [ ] View/edit call forwarding
-- [ ] User extension management
+### Additional Integrations
+- [ ] Auvik API client + network health on company page
+- [ ] Meraki API client + WAN status
+- [ ] Datto API client + backup health
+- [ ] Acronis API client + backup health
+- [ ] Fortinet API client + VPN/firewall status
+- [ ] SentinelOne integration
+- [ ] Passportal integration (password vault per company)
+- [ ] ScalePad integration (asset lifecycle, warranties)
 
 ---
 
-## Phase 4 — Advanced Features & External Access
+## Phase 5 — Advanced Features & External Access (Future)
 
-**Goal:** Power-user features, client-facing portal option, and remaining integrations.
-
-### 4.1 Passportal Integration
-- [ ] iframe embed per company
-- [ ] "Passwords" tab on company detail page
-- [ ] Single sign-on linkage if ever supported
-
-### 4.2 Scalepad Integration
-- [ ] Webhook receiver for lifecycle events
-- [ ] Asset warranty status on company page
-- [ ] Expiring warranty alerts
-- [ ] CSV export sync (automated)
-
-### 4.3 Reporting & Dashboards
-- [ ] Technician utilization report
+### Reporting & Dashboards
 - [ ] Ticket aging report
 - [ ] SLA compliance dashboard
 - [ ] Company health scorecard
 - [ ] Export to PDF / CSV
 
-### 4.4 Notifications
+### Notifications
 - [ ] In-app notification center
-- [ ] Browser push notifications (opt-in)
+- [ ] Browser push notifications
 - [ ] Email digest (daily/weekly)
-- [ ] Webhook triggers for external tools
 
-### 4.5 Time & Billing
+### Time & Billing
 - [ ] Time entry summary dashboard
 - [ ] Billable vs non-billable breakdown
-- [ ] Approval workflow for time entries
-- [ ] Export to ConnectWise invoicing
+- [ ] Approval workflow
 
-### 4.6 Multi-Tenant / Client Portal
+### Multi-Tenant / Client Portal
 - [ ] Tenant management admin UI
 - [ ] Per-tenant branding (logo, colors)
-- [ ] Client login — limited view (their own tickets, status)
-- [ ] Client approval workflow for completed work
+- [ ] Client login — limited view (their own tickets)
+- [ ] Client approval workflow
 
-### 4.7 Mobile App (PWA)
+### Mobile App (PWA)
 - [ ] Progressive Web App configuration
 - [ ] Offline mode: view cached tickets
 - [ ] Push notifications on mobile
@@ -295,7 +316,7 @@ Ideas captured for future consideration — not yet assigned to a phase.
 - Natural language ticket creation (voice → ticket)
 - Automated ticket dispatch by technician skill/availability
 - Client satisfaction surveys linked to ticket resolution
-- IT documentation module (Confluence-style, replacing some Passportal use cases)
+- IT documentation module (Confluence-style)
 - Integration with IT Glue for documentation
 - Slack/Teams notifications for ticket updates
 - Two-way SMS with clients via Twilio
@@ -307,11 +328,14 @@ Ideas captured for future consideration — not yet assigned to a phase.
 
 | Version | Date | Description |
 |---------|------|-------------|
-| v0.1.0 | TBD | Phase 1 complete — core ticketing |
-| v0.2.0 | TBD | Phase 2 complete — scheduling |
-| v0.3.0 | TBD | Phase 3 complete — company hub |
-| v1.0.0 | TBD | Phase 4 complete — production release |
+| v0.1.0 | 2026-03-26 | Phase 0 complete — project scaffolded, CW API connected |
+| v0.1.1 | 2026-03-27 | Ticket list, detail, BFF routes, admin panel |
+| v0.1.2 | 2026-03-28 | Department routing, projects board, schedule, observability |
+| v0.1.3 | 2026-03-28 | Schedule calendar, cron sync, UI contrast fixes, live CW data |
+| v0.2.0 | 2026-03-29 | Phase 3 UI polish complete (15 tasks), collapsible sidebar, light mode, skeletons |
+| v0.3.0 | TBD | Credential Vault + Azure AD + Graph/Webex integration |
+| v1.0.0 | TBD | Full production release |
 
 ---
 
-*Last updated: 2026-03-26*
+*Last updated: 2026-03-29*

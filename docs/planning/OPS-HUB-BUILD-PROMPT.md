@@ -1,3 +1,4 @@
+<!-- STATUS: Audited 2026-03-29. Fleet map implemented (FleetMap.tsx). Analytics dashboard stub exists (AnalyticsDashboard.tsx). Tech sidebar partially built (TechSidebar.tsx). Schedule holds partially built (ScheduleHoldList.tsx). Steps 1-4 partial, steps 5-10 not started. -->
 # OPS HUB — Master Build Prompt for RX Skin Integration
 
 > **Paste this entire prompt into a new Claude session to build the Ops Hub feature into the existing RX Skin Next.js project.**

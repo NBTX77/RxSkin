@@ -1,3 +1,4 @@
+<!-- STATUS: Audited 2026-03-29. Features 5 (Rich Cards) largely done via TicketCard.tsx. Feature 6 (Search) partially done via GlobalSearch.tsx. Features 1,2,3,4,7 not started. Timer widget is high priority — appears in IT, SI, and Licorice specs. -->
 # RX Skin — Licorice-Inspired Feature Plan
 
 **Date:** March 26, 2026
