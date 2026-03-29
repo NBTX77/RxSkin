@@ -1,6 +1,7 @@
 'use client'
 
 import type { Project } from '@/types'
+import { FolderKanban } from 'lucide-react'
 import { ProjectCard } from './ProjectCard'
 import { getProjectStageStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
 
@@ -89,8 +90,9 @@ export function ProjectKanban({
             {/* Cards container */}
             <div className="flex flex-col gap-2">
               {columnProjects.length === 0 ? (
-                <div className="flex items-center justify-center py-8 text-xs text-gray-600">
-                  No projects
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <FolderKanban className="text-gray-600 mb-1.5" size={24} />
+                  <p className="text-xs text-gray-600">No projects</p>
                 </div>
               ) : (
                 columnProjects.map((project) => (

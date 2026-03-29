@@ -6,11 +6,12 @@ import { queryKeys } from '@/lib/query-keys'
 import type { Ticket, TicketFilters } from '@/types'
 import { useState, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { AlertCircle, RefreshCw, Search, LayoutGrid, List } from 'lucide-react'
+import { AlertCircle, RefreshCw, Search, LayoutGrid, List, Ticket as TicketIcon } from 'lucide-react'
 import { TicketCard } from './TicketCard'
 import Link from 'next/link'
 import { getPriorityBadgeStyle, getStatusBadgeStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
 import { TicketCardSkeleton } from '@/components/ui/TicketCardSkeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 async function fetchTickets(filters: TicketFilters): Promise<Ticket[]> {
   const params = new URLSearchParams()
@@ -141,7 +142,9 @@ export function TicketListClient() {
             <TicketCard key={ticket.id} ticket={ticket} />
           ))}
           {tickets?.length === 0 && (
-            <div className="col-span-full text-center text-gray-500 py-12">No tickets found</div>
+            <div className="col-span-full">
+              <EmptyState icon={TicketIcon} title="No tickets found" description="Try adjusting your filters." />
+            </div>
           )}
         </div>
       ) : (
@@ -168,8 +171,8 @@ function VirtualizedTicketTable({ tickets }: { tickets: Ticket[] }) {
 
   if (tickets.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 py-12 text-center text-gray-500">
-        No tickets found
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800">
+        <EmptyState icon={TicketIcon} title="No tickets found" description="Try adjusting your filters." />
       </div>
     )
   }

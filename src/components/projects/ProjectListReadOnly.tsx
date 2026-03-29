@@ -1,9 +1,10 @@
 'use client'
 
 import type { Project } from '@/types'
-import { Building2, User, Clock } from 'lucide-react'
+import { Building2, User, Clock, FolderKanban } from 'lucide-react'
 import { BudgetGauge } from './BudgetGauge'
 import { getProjectStageStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface ProjectListReadOnlyProps {
   projects: Project[]
@@ -17,9 +18,7 @@ export function ProjectListReadOnly({
   return (
     <div className="space-y-2">
       {projects.length === 0 ? (
-        <div className="flex items-center justify-center py-16 text-sm text-gray-500">
-          No projects found
-        </div>
+        <EmptyState icon={FolderKanban} title="No projects found" description="Try adjusting your filters." />
       ) : (
         projects.map((project) => (
           <button
