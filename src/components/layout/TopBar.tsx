@@ -71,7 +71,7 @@ export function TopBar() {
           <span className="text-gray-900 dark:text-gray-300 font-medium">{breadcrumb.section}</span>
           {breadcrumb.detail && (
             <>
-              <span className="text-gray-600 dark:text-gray-400 dark:text-gray-600">/</span>
+              <span className="text-gray-400">/</span>
               <span className="text-gray-500">{breadcrumb.detail}</span>
             </>
           )}
@@ -84,7 +84,7 @@ export function TopBar() {
           onClick={() => {
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }))
           }}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-800 transition-colors"
+          className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           aria-label="Search"
         >
           <Search size={18} />

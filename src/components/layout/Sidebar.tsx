@@ -10,7 +10,6 @@ import {
   Calendar,
   Building2,
   Settings,
-  Search,
   Radar,
   ChevronDown,
   Map,
@@ -128,12 +127,12 @@ export function Sidebar() {
   const [expandedSection, setExpandedSection] = useState<string | null>(pathname.startsWith('/ops') ? 'Ops' : null)
   const [isHovered, setIsHovered] = useState(false)
   const [deptPopoverOpen, setDeptPopoverOpen] = useState(false)
-  const logoRef = useRef<HTMLButtonElement>(null)
+  const deptRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!deptPopoverOpen) return
     const handler = (e: MouseEvent) => {
-      if (logoRef.current && !logoRef.current.contains(e.target as Node)) {
+      if (deptRef.current && !deptRef.current.contains(e.target as Node)) {
         setDeptPopoverOpen(false)
       }
     }
@@ -169,40 +168,42 @@ export function Sidebar() {
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Logo + Department Badge */}
-      <div className="relative flex flex-col px-2 py-3 border-b border-gray-200 dark:border-gray-800">
-        <div className={`flex items-center gap-3 ${isHovered ? 'px-3' : 'justify-center'}`}>
-          {canSwitch ? (
-            <button
-              ref={logoRef}
-              onClick={() => setDeptPopoverOpen(!deptPopoverOpen)}
-              className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-white/20 transition-shadow`}
-              aria-label="Switch department"
-            >
-              <span className="text-gray-900 dark:text-white font-bold text-sm">RX</span>
-            </button>
-          ) : (
-            <div className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center flex-shrink-0`}>
-              <span className="text-gray-900 dark:text-white font-bold text-sm">RX</span>
-            </div>
-          )}
+      <div ref={deptRef} className="relative flex flex-col px-2 py-3 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center h-8">
+          <div className="w-8 flex items-center justify-center flex-shrink-0">
+            {canSwitch ? (
+              <button
+                onClick={() => setDeptPopoverOpen(!deptPopoverOpen)}
+                className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-white/20 transition-shadow`}
+                aria-label="Switch department"
+              >
+                <span className="text-white font-bold text-sm">RX</span>
+              </button>
+            ) : (
+              <div className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center`}>
+                <span className="text-white font-bold text-sm">RX</span>
+              </div>
+            )}
+          </div>
           {isHovered && (
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 ml-3">
               <p className="text-gray-900 dark:text-white font-semibold text-sm truncate">RX Skin</p>
               <p className="text-gray-500 text-xs truncate">ConnectWise Portal</p>
             </div>
           )}
         </div>
         {isHovered && (
-          <div className="pl-3 mt-2">
+          <div className="ml-8 pl-3 mt-2">
             <p className={`text-xs font-medium px-2 py-1 rounded w-fit text-${config.color}-300 bg-${config.color}-900/40 truncate`}>
-              {config.name} Department
+              {config.name}
             </p>
           </div>
         )}
 
         {/* Department popover */}
         {canSwitch && deptPopoverOpen && (
-          <div className="absolute top-14 left-2 z-50 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5">
+          <div className="absolute top-14 left-2 z-50 w-52 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5">
+            <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Switch Department</p>
             {allDepartments.map(dept => (
               <button
                 key={dept.code}
@@ -214,30 +215,13 @@ export function Sidebar() {
                 }`}
               >
                 <div className={`w-2 h-2 rounded-full ${getColorBg(dept.color)}`} />
-                {dept.name}
+                <span className="font-medium">{dept.code}</span>
+                <span className="text-gray-400 dark:text-gray-500 text-xs truncate">{dept.label}</span>
               </button>
             ))}
           </div>
         )}
       </div>
-
-      {/* Search shortcut — hidden when collapsed */}
-      {isHovered && (
-        <div className="px-3 pt-3 pb-2">
-          <button
-            onClick={() => {
-              document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }))
-            }}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 text-gray-500 text-sm hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
-          >
-            <Search size={14} />
-            <span className="flex-1 text-left">Search...</span>
-            <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-600">
-              Ctrl K
-            </kbd>
-          </button>
-        </div>
-      )}
 
       {/* Nav */}
       <nav className="flex-1 px-1.5 py-2 space-y-1 overflow-y-auto">
@@ -248,17 +232,17 @@ export function Sidebar() {
               key={href}
               href={href}
               title={!isHovered ? label : undefined}
-              className={`flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
-                isHovered ? 'px-3 py-2.5' : 'justify-center py-2.5'
-              } ${
+              className={`flex items-center rounded-lg text-sm font-medium transition-colors py-2.5 ${
                 active
                   ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
-              <Icon size={18} className="flex-shrink-0" />
+              <div className="w-8 flex items-center justify-center flex-shrink-0">
+                <Icon size={18} />
+              </div>
               {isHovered && (
-                <span className="flex-1 text-left truncate">
+                <span className="flex-1 text-left truncate ml-1">
                   {label}
                   {badge && <span className="text-xs text-gray-500 ml-1">{badge}</span>}
                 </span>
@@ -280,19 +264,19 @@ export function Sidebar() {
                 aria-expanded={isExpanded}
                 aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${sectionName}`}
                 title={!isHovered ? sectionName : undefined}
-                className={`flex items-center gap-3 w-full rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none ${
-                  isHovered ? 'px-3 py-2.5' : 'justify-center py-2.5'
-                } ${
+                className={`flex items-center w-full rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none py-2.5 ${
                   isSectionActive
                     ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
-                <SectionIcon size={18} className="flex-shrink-0" />
+                <div className="w-8 flex items-center justify-center flex-shrink-0">
+                  <SectionIcon size={18} />
+                </div>
                 {isHovered && (
                   <>
-                    <span className="flex-1 text-left">{sectionName}</span>
-                    <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
+                    <span className="flex-1 text-left ml-1">{sectionName}</span>
+                    <ChevronDown size={14} className={`mr-2 transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
                   </>
                 )}
               </button>
