@@ -9,8 +9,8 @@ const SITE_PATH = '/sites/MissionControl';
 let cachedSiteId: string | null = null;
 let cachedDriveId: string | null = null;
 
-async function graphFetch(path: string, options?: RequestInit): Promise<Record<string, unknown>> {
-  const token = await getGraphToken();
+export async function graphFetch(path: string, options?: RequestInit & { token?: string }): Promise<Record<string, unknown>> {
+  const token = options?.token ?? await getGraphToken();
   const url = `${GRAPH_BASE}${path}`;
   const start = Date.now();
 
