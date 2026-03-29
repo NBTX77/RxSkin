@@ -1,12 +1,23 @@
-// GET/PATCH /api/tickets/[id] — Get or update a single ticket
+// ============================================================
+// GET /api/tickets/[id]   — Ticket detail
+// PATCH /api/tickets/[id] — Update ticket
+// ============================================================
 
 import { auth } from '@/lib/auth/config'
-import { apiErrors, handleApiError } from '@/lib/api/errors'
-import { getCWCredentials } from '@/lib/cw/credentials'
+import { getTenantCredentials } from '@/lib/auth/credentials'
 import { getTicket, updateTicket } from '@/lib/cw/client'
+import { cachedFetch, invalidateCacheKey, invalidateCache } from '@/lib/cache/bff-cache'
+import { apiErrors, handleApiError } from '@/lib/api/errors'
 import { getMockTicketById } from '@/lib/mock-data'
+import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
+
+const TICKET_DETAIL_TTL_MS = 30 * 1000 // 30 seconds
+
+function isCWConfigured(): boolean {
+  return !!(process.env.CW_BASE_URL && process.env.CW_PUBLIC_KEY && process.env.CW_PRIVATE_KEY)
+}
 
 export async function GET(
   request: Request,
@@ -19,21 +30,38 @@ export async function GET(
     const ticketId = parseInt(params.id, 10)
     if (isNaN(ticketId)) return apiErrors.badRequest('Invalid ticket ID')
 
-    const creds = getCWCredentials()
-    if (creds) {
-      const ticket = await getTicket(creds, ticketId)
-      return Response.json(ticket)
-    } else {
+    // Mock data fallback
+    if (!isCWConfigured()) {
       const ticket = getMockTicketById(ticketId)
-      if (!ticket) {
-        return Response.json({ error: 'Ticket not found' }, { status: 404 })
-      }
+      if (!ticket) return apiErrors.badRequest('Ticket not found')
       return Response.json(ticket)
     }
+
+    const { tenantId } = session.user
+    const cacheKey = `${tenantId}:tickets:detail:${ticketId}`
+
+    const ticket = await cachedFetch(
+      cacheKey,
+      async () => {
+        const creds = await getTenantCredentials(tenantId)
+        return getTicket(creds, ticketId)
+      },
+      TICKET_DETAIL_TTL_MS
+    )
+
+    return Response.json(ticket)
   } catch (error) {
     return handleApiError(error)
   }
 }
+
+const patchSchema = z.array(
+  z.object({
+    op: z.enum(['replace', 'add', 'remove']),
+    path: z.string().startsWith('/'),
+    value: z.unknown().optional().transform(v => v ?? null),
+  })
+)
 
 export async function PATCH(
   request: Request,
@@ -42,30 +70,26 @@ export async function PATCH(
   try {
     const session = await auth()
     if (!session?.user) return apiErrors.unauthorized()
+    if (session.user.role === 'VIEWER') return apiErrors.forbidden()
 
+    const { tenantId } = session.user
     const ticketId = parseInt(params.id, 10)
     if (isNaN(ticketId)) return apiErrors.badRequest('Invalid ticket ID')
 
-    const creds = getCWCredentials()
-    if (!creds) return apiErrors.internal('ConnectWise credentials not configured')
-
     const body = await request.json()
-    // Accept either a JSON Patch array or a convenience object
-    let patches: Array<{ op: string; path: string; value: unknown }>
-
-    if (Array.isArray(body)) {
-      patches = body
-    } else {
-      // Convert { status: 'Resolved', type: {...} } → JSON Patch ops
-      patches = Object.entries(body).map(([key, value]) => ({
-        op: 'replace',
-        path: key,
-        value,
-      }))
+    const parsed = patchSchema.safeParse(body)
+    if (!parsed.success) {
+      return apiErrors.badRequest('Body must be a JSON Patch array')
     }
 
-    const ticket = await updateTicket(creds, ticketId, patches)
-    return Response.json(ticket)
+    const creds = await getTenantCredentials(tenantId)
+    const updated = await updateTicket(creds, ticketId, parsed.data)
+
+    // Bust caches
+    invalidateCacheKey(`${tenantId}:tickets:detail:${ticketId}`)
+    invalidateCache(`${tenantId}:tickets:list:`)
+
+    return Response.json(updated)
   } catch (error) {
     return handleApiError(error)
   }

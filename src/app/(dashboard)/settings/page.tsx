@@ -1,255 +1,306 @@
 'use client'
 
 import { useState } from 'react'
-import { useSession, signOut } from 'next-auth/react'
+import type { LucideIcon } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import {
+  User,
+  Palette,
+  Link2,
+  Bell,
+  Sun,
+  Moon,
+  Monitor,
+  Check,
+  ExternalLink,
+  Mail,
+  Calendar,
+  MessageSquare,
+  Phone,
+} from 'lucide-react'
 import { useTheme } from '@/components/theme/ThemeProvider'
-import { User, Palette, Link2, Bell, Moon, Sun, LogOut, Monitor, Smartphone, ExternalLink } from 'lucide-react'
+import { useDepartment } from '@/components/department/DepartmentProvider'
 
-const TABS = [
+type SettingsTab = 'profile' | 'appearance' | 'connections' | 'notifications'
+
+const tabs: { id: SettingsTab; label: string; icon: LucideIcon }[] = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'appearance', label: 'Appearance', icon: Palette },
   { id: 'connections', label: 'Connections', icon: Link2 },
   { id: 'notifications', label: 'Notifications', icon: Bell },
-] as const
-
-type TabId = typeof TABS[number]['id']
+]
 
 export default function SettingsPage() {
-  const { data: session } = useSession()
-  const { theme, setTheme } = useTheme()
-  const [activeTab, setActiveTab] = useState<TabId>('profile')
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
-  const [desktopPush, setDesktopPush] = useState(false)
-  const [soundAlerts, setSoundAlerts] = useState(true)
-  const [emailDigest, setEmailDigest] = useState('daily')
-  const [compactMode, setCompactMode] = useState(false)
-
-  const Toggle = ({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean) => void }) => (
-    <button
-      onClick={() => onChange(!enabled)}
-      className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors ${enabled ? 'bg-blue-600' : 'bg-gray-700'}`}
-    >
-      <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${enabled ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
-    </button>
-  )
+  const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">Settings</h1>
+    <div className="max-w-3xl space-y-6">
+      <h1 className="text-2xl font-semibold text-white">Settings</h1>
 
       {/* Tab bar */}
       <div className="flex gap-1 border-b border-gray-800 overflow-x-auto">
-        {TABS.map((tab) => {
-          const Icon = tab.icon
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab.id
-                  ? 'border-blue-500 text-blue-400'
-                  : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'
-              }`}
-            >
-              <Icon size={16} />
-              {tab.label}
-            </button>
-          )
-        })}
+        {tabs.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === id
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-700'
+            }`}
+          >
+            <Icon size={16} />
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Tab content */}
-      <div className="max-w-2xl">
-        {activeTab === 'profile' && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-800 border border-gray-700">
-              <div className="h-16 w-16 rounded-full bg-blue-600 flex items-center justify-center text-xl font-bold text-white">
-                {session?.user?.name?.split(' ').map(n => n[0]).join('') || 'TB'}
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-white">{session?.user?.name || 'Not set'}</p>
-                <p className="text-sm text-gray-400">{session?.user?.email}</p>
-                <p className="text-xs text-gray-500 mt-1">IT Department</p>
-              </div>
-            </div>
+      {activeTab === 'profile' && <ProfileTab />}
+      {activeTab === 'appearance' && <AppearanceTab />}
+      {activeTab === 'connections' && <ConnectionsTab />}
+      {activeTab === 'notifications' && <NotificationsTab />}
+    </div>
+  )
+}
 
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-                <label className="block text-sm font-medium text-gray-400 mb-1">Email Address</label>
-                <p className="text-white">{session?.user?.email}</p>
-              </div>
-              <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-                <label className="block text-sm font-medium text-gray-400 mb-1">Role</label>
-                <p className="text-white">Administrator</p>
-              </div>
-              <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-                <label className="block text-sm font-medium text-gray-400 mb-1">Department</label>
-                <p className="text-white">IT</p>
-              </div>
-              <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-                <label className="block text-sm font-medium text-gray-400 mb-1">ConnectWise Status</label>
-                <p className="text-green-400 font-medium">Connected</p>
-              </div>
-            </div>
+// ── Profile Tab ───────────────────────────────────────────────
 
-            <div className="pt-4 border-t border-gray-800 space-y-3">
-              <div className="text-sm text-gray-500">Session: <span className="text-green-400 font-medium">Active</span></div>
+function ProfileTab() {
+  const { data: session } = useSession()
+  const { config, department } = useDepartment()
+  const user = session?.user
+
+  return (
+    <div className="space-y-6">
+      {/* Avatar + Name */}
+      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center">
+            <span className="text-white text-xl font-semibold">
+              {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U'}
+            </span>
+          </div>
+          <div>
+            <p className="text-lg font-medium text-white">{user?.name}</p>
+            <p className="text-sm text-gray-500">{user?.email}</p>
+          </div>
+        </div>
+
+        <div className="space-y-3 text-sm">
+          <InfoRow label="Role" value={user?.role || '—'} />
+          <InfoRow label="Department" value={`${config.name} (${department})`} />
+          <InfoRow label="Tenant ID" value={user?.tenantId || '—'} mono />
+          {user?.cwMemberId && <InfoRow label="CW Member ID" value={user.cwMemberId} mono />}
+        </div>
+      </div>
+
+      {/* ConnectWise Connection */}
+      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <h2 className="text-sm font-semibold text-gray-300 mb-4">ConnectWise Connection</h2>
+        <div className="space-y-3 text-sm">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500">Status</span>
+            <span className="flex items-center gap-1.5 text-green-400 text-xs">
+              <span className="w-2 h-2 rounded-full bg-green-500" />
+              Connected
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Appearance Tab ────────────────────────────────────────────
+
+function AppearanceTab() {
+  const { theme, toggleTheme } = useTheme()
+
+  const themes = [
+    { id: 'dark', label: 'Dark', icon: Moon, description: 'Dark background, easy on the eyes' },
+    { id: 'light', label: 'Light', icon: Sun, description: 'Light background for bright environments' },
+  ] as const
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <h2 className="text-sm font-semibold text-gray-300 mb-4">Theme</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {themes.map(({ id, label, icon: Icon, description }) => {
+            const active = theme === id
+            return (
               <button
-                onClick={() => signOut({ callbackUrl: '/login' })}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-900/20 border border-red-800/50 text-red-400 hover:bg-red-900/30 transition-colors text-sm"
+                key={id}
+                onClick={() => { if (theme !== id) toggleTheme() }}
+                className={`flex items-start gap-3 p-4 rounded-lg border transition-colors text-left ${
+                  active
+                    ? 'border-blue-500/50 bg-blue-600/10'
+                    : 'border-gray-700 bg-gray-800/50 hover:border-gray-600'
+                }`}
               >
-                <LogOut size={16} />
-                Sign Out
+                <Icon size={20} className={active ? 'text-blue-400' : 'text-gray-500'} />
+                <div className="flex-1">
+                  <p className={`text-sm font-medium ${active ? 'text-blue-400' : 'text-gray-300'}`}>{label}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+                </div>
+                {active && <Check size={16} className="text-blue-400 mt-0.5" />}
               </button>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'appearance' && (
-          <div className="space-y-6">
-            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-              <h3 className="text-sm font-medium text-white mb-3">Theme</h3>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setTheme('light')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
-                    theme === 'light'
-                      ? 'bg-blue-600/20 border-blue-500 text-blue-400'
-                      : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-600'
-                  }`}
-                >
-                  <Sun size={16} />
-                  Light
-                </button>
-                <button
-                  onClick={() => setTheme('dark')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
-                    theme === 'dark'
-                      ? 'bg-blue-600/20 border-blue-500 text-blue-400'
-                      : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-600'
-                  }`}
-                >
-                  <Moon size={16} />
-                  Dark
-                </button>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-white">Compact Mode</h3>
-                <p className="text-xs text-gray-500 mt-1">Reduce spacing and use smaller text throughout the UI</p>
-              </div>
-              <Toggle enabled={compactMode} onChange={setCompactMode} />
-            </div>
-
-            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-              <h3 className="text-sm font-medium text-white mb-3">Default Ticket View</h3>
-              <select className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="table">Table View</option>
-                <option value="cards">Card View</option>
-                <option value="kanban">Kanban View</option>
-              </select>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'connections' && (
-          <div className="space-y-4">
-            <p className="text-sm text-gray-400">Connect your accounts to enable integrations across RX Skin.</p>
-
-            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-blue-600/20 flex items-center justify-center">
-                  <Monitor size={20} className="text-blue-400" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-white">Microsoft 365</p>
-                  <p className="text-xs text-gray-500">Email, calendar, presence, Teams chat</p>
-                </div>
-              </div>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">
-                <ExternalLink size={14} />
-                Connect
-              </button>
-            </div>
-
-            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-green-600/20 flex items-center justify-center">
-                  <Smartphone size={20} className="text-green-400" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-white">Webex</p>
-                  <p className="text-xs text-gray-500">Calling, messaging, queue stats</p>
-                </div>
-              </div>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">
-                <ExternalLink size={14} />
-                Connect
-              </button>
-            </div>
-
-            <p className="text-xs text-gray-600 mt-2">OAuth2 connections are per-user. Your tokens are stored encrypted and auto-refreshed.</p>
-          </div>
-        )}
-
-        {activeTab === 'notifications' && (
-          <div className="space-y-4">
-            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-              <h3 className="text-sm font-medium text-white mb-3">Email Notifications</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">New ticket assignments</span>
-                  <Toggle enabled={notificationsEnabled} onChange={setNotificationsEnabled} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">Ticket status updates</span>
-                  <Toggle enabled={notificationsEnabled} onChange={setNotificationsEnabled} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">Schedule reminders</span>
-                  <Toggle enabled={notificationsEnabled} onChange={setNotificationsEnabled} />
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700">
-              <h3 className="text-sm font-medium text-white mb-3">Email Digest</h3>
-              <select
-                value={emailDigest}
-                onChange={(e) => setEmailDigest(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="off">Off</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-              </select>
-            </div>
-
-            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-white">Desktop Push Notifications</h3>
-                <p className="text-xs text-gray-500 mt-1">Get browser notifications for urgent tickets</p>
-              </div>
-              <Toggle enabled={desktopPush} onChange={setDesktopPush} />
-            </div>
-
-            <div className="p-4 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-white">Sound Alerts</h3>
-                <p className="text-xs text-gray-500 mt-1">Play a sound for new notifications</p>
-              </div>
-              <Toggle enabled={soundAlerts} onChange={setSoundAlerts} />
-            </div>
-          </div>
-        )}
+            )
+          })}
+        </div>
       </div>
 
-      {/* Footer */}
-      <div className="text-xs text-gray-600 max-w-2xl">
-        RX Skin v0.1.0 — ConnectWise Modern Portal
+      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <h2 className="text-sm font-semibold text-gray-300 mb-4">Display</h2>
+        <div className="space-y-4">
+          <ToggleRow label="Compact mode" description="Reduce spacing in tables and lists" defaultValue={false} />
+          <ToggleRow label="Show ticket IDs" description="Display CW ticket numbers in lists" defaultValue={true} />
+        </div>
       </div>
+    </div>
+  )
+}
+
+// ── Connections Tab ───────────────────────────────────────────
+
+interface ConnectionConfig {
+  id: string
+  label: string
+  description: string
+  icon: LucideIcon
+  connected: boolean
+  features: string[]
+}
+
+function ConnectionsTab() {
+  // In production, these would come from the UserOAuthToken table
+  const connections: ConnectionConfig[] = [
+    {
+      id: 'microsoft',
+      label: 'Microsoft 365',
+      description: 'Outlook mail, calendar, Teams presence',
+      icon: Mail,
+      connected: false,
+      features: ['Inbox preview', 'Calendar sync', 'Teams presence', 'Send email'],
+    },
+    {
+      id: 'webex',
+      label: 'Webex',
+      description: 'Messaging, calling, presence',
+      icon: Phone,
+      connected: false,
+      features: ['Messages', 'Call history', 'Click-to-call', 'Presence'],
+    },
+  ]
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-gray-500">
+        Connect your accounts to enable integrations in your dashboard.
+        These connections are personal — only your data is accessed.
+      </p>
+
+      {connections.map(conn => (
+        <div key={conn.id} className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                conn.connected ? 'bg-green-600/20' : 'bg-gray-800'
+              }`}>
+                <conn.icon size={20} className={conn.connected ? 'text-green-400' : 'text-gray-500'} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">{conn.label}</p>
+                <p className="text-xs text-gray-500">{conn.description}</p>
+              </div>
+            </div>
+
+            {conn.connected ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-green-400 flex items-center gap-1">
+                  <Check size={12} /> Connected
+                </span>
+                <button className="text-xs text-gray-500 hover:text-red-400 transition-colors px-2 py-1 rounded">
+                  Disconnect
+                </button>
+              </div>
+            ) : (
+              <button className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors">
+                Connect
+                <ExternalLink size={12} />
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {conn.features.map(feat => (
+              <span key={feat} className="text-[10px] px-2 py-1 rounded-full bg-gray-800 text-gray-500 border border-gray-700/50">
+                {feat}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Notifications Tab ─────────────────────────────────────────
+
+function NotificationsTab() {
+  return (
+    <div className="space-y-6">
+      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <h2 className="text-sm font-semibold text-gray-300 mb-4">Email Notifications</h2>
+        <div className="space-y-4">
+          <ToggleRow label="Ticket assigned to me" description="When a new ticket is assigned to you" defaultValue={true} />
+          <ToggleRow label="Ticket status changes" description="When tickets you're watching change status" defaultValue={true} />
+          <ToggleRow label="Schedule changes" description="When your schedule entries are modified" defaultValue={false} />
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <h2 className="text-sm font-semibold text-gray-300 mb-4">In-App Notifications</h2>
+        <div className="space-y-4">
+          <ToggleRow label="Desktop notifications" description="Browser push notifications for alerts" defaultValue={false} />
+          <ToggleRow label="Sound alerts" description="Play a sound for new notifications" defaultValue={false} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Shared Components ─────────────────────────────────────────
+
+function InfoRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="flex justify-between items-center">
+      <span className="text-gray-500">{label}</span>
+      <span className={`text-gray-200 ${mono ? 'font-mono text-xs' : ''}`}>{value}</span>
+    </div>
+  )
+}
+
+function ToggleRow({ label, description, defaultValue }: { label: string; description: string; defaultValue: boolean }) {
+  const [enabled, setEnabled] = useState(defaultValue)
+
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div>
+        <p className="text-sm text-gray-300">{label}</p>
+        <p className="text-xs text-gray-600">{description}</p>
+      </div>
+      <button
+        onClick={() => setEnabled(!enabled)}
+        className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${
+          enabled ? 'bg-blue-600' : 'bg-gray-700'
+        }`}
+      >
+        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+          enabled ? 'left-5' : 'left-0.5'
+        }`} />
+      </button>
     </div>
   )
 }

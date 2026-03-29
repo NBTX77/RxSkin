@@ -1,15 +1,48 @@
-node_modules/
-.next/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files — NEVER commit
 .env
 .env.local
-.env.production.local
-.env.development.local
-*.log
-npm-debug.log*
-.DS_Store
-Thumbs.db
+.env*.local
+.env.development
+.env.production
+
+# Playwright
+playwright-report/
+test-results/
+
+# Prisma local db
+prisma/*.db
+prisma/*.db-journal
+
+# vercel
 .vercel
-out/
-build/
-coverage/
-push.bat
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

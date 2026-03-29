@@ -138,6 +138,7 @@ export function ComputerPicker({ companyName, isOpen, onClose, onSelect }: Compu
     </>
   )
 }
+
 function ComputerRow({
   computer,
   onSelect,

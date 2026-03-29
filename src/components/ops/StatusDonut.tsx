@@ -7,53 +7,59 @@ interface StatusDonutProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  'New': '#3b82f6',
-  'In Progress': '#22c55e',
-  'Waiting Customer': '#eab308',
-  'Waiting Vendor': '#f97316',
-  'Schedule Hold': '#eab308',
-  'Scheduled': '#a855f7',
-  'Completed': '#6b7280',
-  'Closed': '#9ca3af',
+  'New': '#58a6ff',
+  'In Progress': '#3fb950',
+  'Waiting Customer': '#d29922',
+  'Waiting Vendor': '#f0883e',
+  'Schedule Hold': '#d29922',
+  'Scheduled': '#bc8cff',
+  'Completed': '#8b949e',
+  'Closed': '#484f58',
 }
 
 function getColor(status: string): string {
-  return STATUS_COLORS[status.trim()] ?? '#9ca3af'
+  return STATUS_COLORS[status] ?? '#8b949e'
 }
 
 export function StatusDonut({ data }: StatusDonutProps) {
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-56 text-gray-500 text-sm">
+      <div className="flex items-center justify-center h-64 text-gray-500 text-sm">
         No data available
       </div>
     )
   }
 
   return (
-    <div>
-      <div style={{ width: '100%', height: 220 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={55}
-              outerRadius={85}
-              dataKey="count"
-              nameKey="status"
-              paddingAngle={2}
-              stroke="none"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={getColor(entry.status)} />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value, name) => [`${value} tickets`, String(name)]} />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
+    <div className="h-64">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={90}
+            dataKey="count"
+            nameKey="status"
+            paddingAngle={2}
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={getColor(entry.status)} />
+            ))}
+          </Pie>
+          <Tooltip
+            contentStyle={{
+              backgroundColor: '#161b22',
+              border: '1px solid #30363d',
+              borderRadius: '8px',
+              color: '#e6edf3',
+              fontSize: '13px',
+            }}
+            formatter={(value, name) => [`${value} tickets`, String(name)]}
+          />
+        </PieChart>
+      </ResponsiveContainer>
       <div className="flex flex-wrap gap-3 justify-center mt-2">
         {data.map((entry) => (
           <div key={entry.status} className="flex items-center gap-1.5 text-xs text-gray-400">
@@ -61,7 +67,7 @@ export function StatusDonut({ data }: StatusDonutProps) {
               className="w-2.5 h-2.5 rounded-full"
               style={{ backgroundColor: getColor(entry.status) }}
             />
-            {entry.status.trim()} ({entry.count})
+            {entry.status} ({entry.count})
           </div>
         ))}
       </div>

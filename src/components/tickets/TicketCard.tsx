@@ -1,72 +1,136 @@
 'use client'
 
+import type { Ticket } from '@/types'
+import { Clock, User, Building2, MessageSquare } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 
-interface Ticket {
-  id: number
-  summary: string
-  priority: number
-  status: { name: string }
-  dateEntered: string
-  company: { name: string }
-  owner?: { name: string }
-  board?: { name: string }
+const PRIORITY_COLORS: Record<string, string> = {
+  Critical: 'border-l-red-500',
+  High: 'border-l-orange-500',
+  Medium: 'border-l-blue-500',
+  Low: 'border-l-gray-500',
 }
 
-const priorityColors: Record<number, { bg: string; text: string; border: string }> = {
-  1: { bg: 'bg-red-500/5', text: 'text-red-400', border: 'border-red-500/20' },
-  2: { bg: 'bg-orange-500/5', text: 'text-orange-400', border: 'border-orange-500/20' },
-  3: { bg: 'bg-yellow-500/5', text: 'text-yellow-400', border: 'border-yellow-500/20' },
-  4: { bg: 'bg-green-500/5', text: 'text-green-400', border: 'border-green-500/20' },
+const PRIORITY_DOT: Record<string, string> = {
+  Critical: 'bg-red-500',
+  High: 'bg-orange-500',
+  Medium: 'bg-blue-500',
+  Low: 'bg-gray-500',
 }
 
-const priorityLabels: Record<number, string> = {
-  1: 'Critical',
-  2: 'High',
-  3: 'Medium',
-  4: 'Low',
+const STATUS_STYLES: Record<string, string> = {
+  'New': 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+  'In Progress': 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+  'Waiting on Client': 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+  'Scheduled': 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
+  'Resolved': 'text-green-400 bg-green-500/10 border-green-500/20',
+  'Closed': 'text-gray-500 bg-gray-500/10 border-gray-500/20',
 }
 
-export function TicketCard({ ticket }: { ticket: Ticket }) {
-  const priority = priorityColors[ticket.priority] || priorityColors[4]
-  const priorityLabel = priorityLabels[ticket.priority] || 'Low'
+function timeAgo(dateStr: string): string {
+  try {
+    return formatDistanceToNow(new Date(dateStr), { addSuffix: true })
+  } catch {
+    return ''
+  }
+}
 
-  const dateEntered = new Date(ticket.dateEntered)
-  const formattedDate = dateEntered.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+interface TicketCardProps {
+  ticket: Ticket
+  compact?: boolean
+}
+
+export function TicketCard({ ticket, compact = false }: TicketCardProps) {
+  const borderColor = PRIORITY_COLORS[ticket.priority] ?? 'border-l-gray-600'
+  const statusStyle = STATUS_STYLES[ticket.status] ?? 'text-gray-400 bg-gray-500/10 border-gray-500/20'
+  const dotColor = PRIORITY_DOT[ticket.priority] ?? 'bg-gray-500'
+
+  if (compact) {
+    return (
+      <Link
+        href={`/tickets/${ticket.id}`}
+        className={`block rounded-lg border-l-[3px] ${borderColor} bg-gray-900 border border-gray-800 hover:border-gray-700 hover:bg-gray-800/50 transition-all p-3 cursor-pointer`}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm text-gray-100 font-medium truncate flex-1">{ticket.summary}</p>
+          <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
+        </div>
+        <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
+          <span>{ticket.company}</span>
+          <span className="text-gray-700">|</span>
+          <span>{timeAgo(ticket.updatedAt)}</span>
+        </div>
+      </Link>
+    )
+  }
 
   return (
     <Link
       href={`/tickets/${ticket.id}`}
-      className="block p-4 rounded-lg bg-gray-800/50 border border-gray-700/50 hover:bg-gray-800 hover:border-gray-700 transition-all group"
+      className={`block rounded-xl border-l-[3px] ${borderColor} bg-gray-900 border border-gray-800 hover:border-gray-700 hover:bg-gray-800/30 transition-all p-4 cursor-pointer group`}
     >
-      <div className="flex items-start justify-between gap-3 mb-2">
+      {/* Header: ID + Priority */}
+      <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-medium text-white group-hover:text-blue-400 transition-colors truncate">
-            #{ticket.id} – {ticket.summary}
-          </h3>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-mono text-gray-500">#{ticket.id}</span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border ${statusStyle}`}>
+              {ticket.status}
+            </span>
+          </div>
+          <p className="text-[15px] text-gray-100 font-medium leading-snug line-clamp-2 group-hover:text-white transition-colors">
+            {ticket.summary}
+          </p>
         </div>
-        <div className={`px-2 py-1 rounded text-xs font-medium ${priority.bg} ${priority.text} ${priority.border} border whitespace-nowrap`}>
-          {priorityLabel}
-        </div>
+        <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${dotColor}`} title={ticket.priority} />
       </div>
 
-      <div className="flex items-center justify-between text-xs text-gray-400">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="truncate">{ticket.company.name}</span>
-          {ticket.owner && (
-            <>
-              <span>•</span>
-              <span className="truncate">{ticket.owner.name}</span>
-            </>
-          )}
-        </div>
-        <span className="whitespace-nowrap ml-2">{formattedDate}</span>
+      {/* Metadata row */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-gray-500">
+        <span className="flex items-center gap-1">
+          <Building2 size={12} className="text-gray-600" />
+          {ticket.company}
+        </span>
+        {ticket.contact && (
+          <span className="flex items-center gap-1">
+            <MessageSquare size={12} className="text-gray-600" />
+            {ticket.contact}
+          </span>
+        )}
+        {ticket.assignedTo && (
+          <span className="flex items-center gap-1">
+            <User size={12} className="text-gray-600" />
+            {ticket.assignedTo}
+          </span>
+        )}
+        <span className="flex items-center gap-1">
+          <Clock size={12} className="text-gray-600" />
+          {timeAgo(ticket.updatedAt)}
+        </span>
       </div>
+
+      {/* SLA / Hours bar */}
+      {ticket.budgetHours && ticket.budgetHours > 0 && (
+        <div className="mt-3">
+          <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
+            <span>{ticket.actualHours ?? 0}h / {ticket.budgetHours}h</span>
+            <span>{Math.round(((ticket.actualHours ?? 0) / ticket.budgetHours) * 100)}%</span>
+          </div>
+          <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${
+                (ticket.actualHours ?? 0) / ticket.budgetHours > 0.9
+                  ? 'bg-red-500'
+                  : (ticket.actualHours ?? 0) / ticket.budgetHours > 0.7
+                    ? 'bg-yellow-500'
+                    : 'bg-blue-500'
+              }`}
+              style={{ width: `${Math.min(((ticket.actualHours ?? 0) / ticket.budgetHours) * 100, 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
     </Link>
   )
 }

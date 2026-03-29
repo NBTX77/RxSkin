@@ -64,9 +64,9 @@ export function logApiCall(
         userId: context.userId,
       },
     })
-    .catch((err: unknown) => {
+    .catch((err) => {
       // Log to console but never throw — observability must not break the app
-      console.error('[api-logger] Failed to log API call:', err instanceof Error ? err.message : err)
+      console.error('[api-logger] Failed to log API call:', err?.message)
     })
 }
 

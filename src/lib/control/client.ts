@@ -4,6 +4,8 @@
 // ============================================================
 
 import type { ScreenConnectSession } from '@/types'
+import { logApiCall } from '@/lib/instrumentation/api-logger'
+import { getDefaultTenantId } from '@/lib/instrumentation/tenant-context'
 
 export interface ControlCredentials {
   baseUrl: string
@@ -65,37 +67,63 @@ export async function getAccessSessions(
   searchFilter = '',
   limit = 1000
 ): Promise<ScreenConnectSession[]> {
-  const url = `${creds.baseUrl}/Services/PageService.ashx/GetHostSessionInfo`
+  const endpoint = '/Services/PageService.ashx/GetHostSessionInfo'
+  const url = `${creds.baseUrl}${endpoint}`
+  const start = performance.now()
 
   // Body: [sessionType, [groupNames], searchFilter, null, limit]
   // sessionType: 0=Support, 1=Meeting, 2=Access
   const body = JSON.stringify([2, ['All Machines'], searchFilter, null, limit])
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': buildAuthHeader(creds),
-      'Content-Type': 'application/json',
-    },
-    body,
-  })
+  let statusCode: number | undefined
+  let errorCode: string | undefined
+  let errorMessage: string | undefined
 
-  if (!response.ok) {
-    const detail = await response.text()
-    throw new ControlApiError(response.status, detail)
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': buildAuthHeader(creds),
+        'Content-Type': 'application/json',
+      },
+      body,
+    })
+
+    statusCode = response.status
+
+    if (!response.ok) {
+      const detail = await response.text()
+      throw new ControlApiError(response.status, detail)
+    }
+
+    const data = await response.json()
+    const sessions = data?.Sessions ?? data?.sessions ?? data ?? []
+
+    if (!Array.isArray(sessions)) {
+      return []
+    }
+
+    return sessions.map(normalizeSession)
+  } catch (err) {
+    if (err instanceof ControlApiError) {
+      errorCode = 'API_ERROR'
+      errorMessage = err.detail?.slice(0, 500)
+    } else if (err instanceof Error) {
+      errorCode = 'NETWORK_ERROR'
+      errorMessage = err.message
+    }
+    throw err
+  } finally {
+    const elapsed = Math.round(performance.now() - start)
+    getDefaultTenantId()
+      .then((tenantId) => {
+        logApiCall(
+          { tenantId, platform: 'control', endpoint, method: 'POST' },
+          { statusCode, responseTimeMs: elapsed, errorCode, errorMessage }
+        )
+      })
+      .catch(() => {})
   }
-
-  const data = await response.json()
-
-  // Response shape: { Sessions: [...], ...metadata }
-  // Each session has: SessionID, Name, Host, GuestOperatingSystemName, etc.
-  const sessions = data?.Sessions ?? data?.sessions ?? data ?? []
-
-  if (!Array.isArray(sessions)) {
-    return []
-  }
-
-  return sessions.map(normalizeSession)
 }
 
 /**
@@ -106,27 +134,56 @@ export async function getSessionDetails(
   group: string,
   sessionId: string
 ): Promise<ScreenConnectSession | null> {
-  const url = `${creds.baseUrl}/Services/PageService.ashx/GetSessionDetails`
+  const endpoint = '/Services/PageService.ashx/GetSessionDetails'
+  const url = `${creds.baseUrl}${endpoint}`
+  const start = performance.now()
   const body = JSON.stringify([group, sessionId])
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': buildAuthHeader(creds),
-      'Content-Type': 'application/json',
-    },
-    body,
-  })
+  let statusCode: number | undefined
+  let errorCode: string | undefined
+  let errorMessage: string | undefined
 
-  if (!response.ok) {
-    if (response.status === 404) return null
-    const detail = await response.text()
-    throw new ControlApiError(response.status, detail)
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': buildAuthHeader(creds),
+        'Content-Type': 'application/json',
+      },
+      body,
+    })
+
+    statusCode = response.status
+
+    if (!response.ok) {
+      if (response.status === 404) return null
+      const detail = await response.text()
+      throw new ControlApiError(response.status, detail)
+    }
+
+    const data = await response.json()
+    if (!data) return null
+    return normalizeSession(data)
+  } catch (err) {
+    if (err instanceof ControlApiError) {
+      errorCode = 'API_ERROR'
+      errorMessage = err.detail?.slice(0, 500)
+    } else if (err instanceof Error) {
+      errorCode = 'NETWORK_ERROR'
+      errorMessage = err.message
+    }
+    throw err
+  } finally {
+    const elapsed = Math.round(performance.now() - start)
+    getDefaultTenantId()
+      .then((tenantId) => {
+        logApiCall(
+          { tenantId, platform: 'control', endpoint, method: 'POST' },
+          { statusCode, responseTimeMs: elapsed, errorCode, errorMessage }
+        )
+      })
+      .catch(() => {})
   }
-
-  const data = await response.json()
-  if (!data) return null
-  return normalizeSession(data)
 }
 
 /**

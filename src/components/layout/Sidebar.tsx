@@ -36,6 +36,7 @@ interface NavItem {
   icon: LucideIcon
   badge?: string
 }
+
 type DepartmentNavConfig = {
   [key in DepartmentCode]?: {
     dashboardLabel: string
@@ -65,7 +66,8 @@ const departmentNav: DepartmentNavConfig = {
       Ops: {
         icon: Radar,
         items: [
-          { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },          { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
+          { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
+          { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
           { href: '/ops/holds', label: 'Schedule Holds', icon: Clock },
         ],
       },
@@ -94,7 +96,8 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/opportunities', label: 'Opportunities', icon: TrendingUp },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
-  },  GA: {
+  },
+  GA: {
     dashboardLabel: 'My Day',
     dashboardIcon: Sun,
     items: [
@@ -126,6 +129,7 @@ export function Sidebar() {
   const { department, config, canSwitch, switchDepartment, allDepartments } = useDepartment()
   const [expandedSection, setExpandedSection] = useState<string | null>(pathname.startsWith('/ops') ? 'Ops' : null)
   const [deptSwitcherOpen, setDeptSwitcherOpen] = useState(false)
+
   const deptConfig = departmentNav[department]
   const navItems = deptConfig?.items || []
   const expandableSections = deptConfig?.expandableSections || {}
@@ -157,7 +161,8 @@ export function Sidebar() {
             <p className="text-white font-semibold text-sm">RX Skin</p>
             <p className="text-gray-500 text-xs">ConnectWise Portal</p>
           </div>
-        </div>        <div className="pl-0.5">
+        </div>
+        <div className="pl-0.5">
           <p className={`text-xs font-medium px-2 py-1 rounded w-fit text-${config.color}-300 bg-${config.color}-900/40`}>
             {config.name} Department
           </p>
@@ -202,6 +207,7 @@ export function Sidebar() {
             </Link>
           )
         })}
+
         {/* Expandable sections (e.g., Ops for IT) */}
         {Object.entries(expandableSections).map(([sectionName, section]) => {
           const isExpanded = expandedSection === sectionName
@@ -248,9 +254,10 @@ export function Sidebar() {
           )
         })}
       </nav>
+
       {/* Department Switcher (if user can switch) */}
       {canSwitch && (
-        <div className="px-3 py-3 border-t border-gray-700">
+        <div className="px-3 py-3 border-t border-gray-800">
           <button
             onClick={() => setDeptSwitcherOpen(!deptSwitcherOpen)}
             className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
@@ -285,7 +292,7 @@ export function Sidebar() {
       )}
 
       {/* Bottom: minimal branding */}
-      <div className="px-3 py-3 border-t border-gray-700">
+      <div className={`px-3 py-3 ${canSwitch ? 'border-t' : 'border-t'} border-gray-800`}>
         <p className="text-[10px] text-gray-600 text-center tracking-wider uppercase">RX Skin v0.1</p>
       </div>
     </aside>

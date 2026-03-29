@@ -1,26 +1,13 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { MapContainer, TileLayer, Polyline, useMap } from 'react-leaflet'
-import L from 'leaflet'
+import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import type { Map as LeafletMap } from 'leaflet'
-import type { FleetTech, VehicleTrailData } from '@/types/ops'
+import type { FleetTech } from '@/types/ops'
 import { MapMarker } from './MapMarker'
-
-// Leaflet CSS must be imported for tiles to render correctly
-import 'leaflet/dist/leaflet.css'
-
-// Fix default marker icon paths (Webpack breaks them)
-delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-})
 
 interface FleetMapProps {
   techs: FleetTech[]
-  trails?: VehicleTrailData[]
   onSelectTech: (tech: FleetTech) => void
 }
 
@@ -44,51 +31,7 @@ function FitBounds({ techs }: { techs: FleetTech[] }) {
   return null
 }
 
-/**
- * Color for a trail polyline — matches the tech's marker color via vehicleId.
- */
-function getTrailColor(vehicleId: string, techs: FleetTech[]): string {
-  const tech = techs.find((t) => t.vehicleId === vehicleId)
-  if (!tech) return '#58a6ff'
-  if (tech.hosColor === 'red') return '#f85149'
-  if (tech.hosColor === 'yellow') return '#d29922'
-  if (tech.currentTicket?.priority === 'Critical') return '#f85149'
-  if (tech.dispatch.some((d) => d.status === 'In Progress')) return '#58a6ff'
-  return '#3fb950'
-}
-
-/**
- * Renders a single vehicle's GPS breadcrumb trail as a polyline.
- */
-function VehicleTrail({
-  trail,
-  color,
-}: {
-  trail: VehicleTrailData
-  color: string
-}) {
-  if (trail.points.length < 2) return null
-
-  const positions = trail.points.map(
-    (p) => [p.lat, p.lng] as [number, number]
-  )
-
-  return (
-    <Polyline
-      positions={positions}
-      pathOptions={{
-        color,
-        weight: 3,
-        opacity: 0.7,
-        dashArray: '6 4',
-        lineCap: 'round',
-        lineJoin: 'round',
-      }}
-    />
-  )
-}
-
-export function FleetMap({ techs, trails, onSelectTech }: FleetMapProps) {
+export function FleetMap({ techs, onSelectTech }: FleetMapProps) {
   const mapRef = useRef<LeafletMap | null>(null)
 
   // Default center: Austin, TX
@@ -101,24 +44,13 @@ export function FleetMap({ techs, trails, onSelectTech }: FleetMapProps) {
       className="h-full w-full rounded-xl"
       ref={mapRef}
       zoomControl={true}
-      style={{ minHeight: '400px', height: '100%', width: '100%' }}
+      style={{ minHeight: '400px' }}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       />
       <FitBounds techs={techs} />
-
-      {/* Trail polylines — render behind markers */}
-      {trails?.map((trail) => (
-        <VehicleTrail
-          key={`trail-${trail.vehicleId}`}
-          trail={trail}
-          color={getTrailColor(trail.vehicleId, techs)}
-        />
-      ))}
-
-      {/* Vehicle markers */}
       {techs
         .filter((t) => t.lat !== 0 && t.lng !== 0)
         .map((tech) => (

@@ -1,30 +1,49 @@
-// TanStack Query key factories
-// All cache keys namespaced by tenantId to support multi-tenant isolation
+// ============================================================
+// TanStack Query Key Factory — RX Skin
+// All query keys MUST include tenantId to prevent cross-tenant cache leaks.
+// ============================================================
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Filters = Record<string, any> | undefined
+import type { TicketFilters, ScheduleFilters, ProjectFilters } from '@/types'
 
 export const queryKeys = {
   tickets: {
-    all: (tenantId: string) => [tenantId, 'tickets'] as const,
-    list: (tenantId: string, filters?: Filters) =>
-      [tenantId, 'tickets', 'list', filters] as const,
+    all: (tenantId: string) =>
+      ['tickets', tenantId] as const,
+    list: (tenantId: string, filters: TicketFilters) =>
+      ['tickets', tenantId, 'list', filters] as const,
     detail: (tenantId: string, id: number) =>
-      [tenantId, 'tickets', 'detail', id] as const,
+      ['tickets', tenantId, 'detail', id] as const,
+    notes: (tenantId: string, id: number) =>
+      ['tickets', tenantId, 'notes', id] as const,
   },
+
   schedule: {
-    all: (tenantId: string) => [tenantId, 'schedule'] as const,
-    entries: (tenantId: string, filters?: Filters) =>
-      [tenantId, 'schedule', 'entries', filters] as const,
+    all: (tenantId: string) =>
+      ['schedule', tenantId] as const,
+    entries: (tenantId: string, filters: ScheduleFilters) =>
+      ['schedule', tenantId, 'entries', filters] as const,
   },
+
   companies: {
-    all: (tenantId: string) => [tenantId, 'companies'] as const,
-    list: (tenantId: string) => [tenantId, 'companies', 'list'] as const,
+    all: (tenantId: string) =>
+      ['companies', tenantId] as const,
+    list: (tenantId: string, search?: string) =>
+      ['companies', tenantId, 'list', search] as const,
     detail: (tenantId: string, id: number) =>
-      [tenantId, 'companies', 'detail', id] as const,
+      ['companies', tenantId, 'detail', id] as const,
   },
+
+  projects: {
+    all: (tenantId: string) =>
+      ['projects', tenantId] as const,
+    list: (tenantId: string, filters: ProjectFilters) =>
+      ['projects', tenantId, 'list', filters] as const,
+    detail: (tenantId: string, id: number) =>
+      ['projects', tenantId, 'detail', id] as const,
+  },
+
   members: {
-    all: (tenantId: string) => [tenantId, 'members'] as const,
-    list: (tenantId: string) => [tenantId, 'members', 'list'] as const,
+    all: (tenantId: string) =>
+      ['members', tenantId] as const,
   },
 } as const

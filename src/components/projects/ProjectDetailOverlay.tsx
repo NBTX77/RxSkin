@@ -113,6 +113,7 @@ export function ProjectDetailOverlay({ projectId, onClose }: ProjectDetailOverla
                   )}
                 </div>
               </div>
+
               {/* Budget Section */}
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-gray-200">Budget & Hours</h3>

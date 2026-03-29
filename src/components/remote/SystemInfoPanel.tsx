@@ -139,6 +139,7 @@ export function SystemInfoPanel({ computer, isOpen, onClose }: SystemInfoPanelPr
     </>
   )
 }
+
 function MetricCard({
   label,
   value,

@@ -9,36 +9,42 @@ interface PriorityDonutProps {
 export function PriorityDonut({ data }: PriorityDonutProps) {
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-56 text-gray-500 text-sm">
+      <div className="flex items-center justify-center h-64 text-gray-500 text-sm">
         No data available
       </div>
     )
   }
 
   return (
-    <div>
-      <div style={{ width: '100%', height: 220 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={55}
-              outerRadius={85}
-              dataKey="count"
-              nameKey="priority"
-              paddingAngle={2}
-              stroke="none"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value, name) => [`${value} tickets`, String(name)]} />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
+    <div className="h-64">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={90}
+            dataKey="count"
+            nameKey="priority"
+            paddingAngle={2}
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip
+            contentStyle={{
+              backgroundColor: '#161b22',
+              border: '1px solid #30363d',
+              borderRadius: '8px',
+              color: '#e6edf3',
+              fontSize: '13px',
+            }}
+            formatter={(value, name) => [`${value} tickets`, String(name)]}
+          />
+        </PieChart>
+      </ResponsiveContainer>
       <div className="flex flex-wrap gap-3 justify-center mt-2">
         {data.map((entry) => (
           <div key={entry.priority} className="flex items-center gap-1.5 text-xs text-gray-400">

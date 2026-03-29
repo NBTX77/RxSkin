@@ -1,150 +1,151 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import { X, Loader2 } from 'lucide-react'
+import type { Ticket } from '@/types'
+import { X, CheckCircle2, Clock, Send } from 'lucide-react'
 
 interface QuickClosePanelProps {
-  ticketId: number
+  ticket: Ticket
+  isOpen: boolean
   onClose: () => void
-  onSuccess: () => void
+  onConfirm: (data: { note: string; hours: number; notifyClient: boolean }) => void
 }
 
-const resolutions = [
-  { id: 1, name: 'Resolved' },
-  { id: 2, name: 'Deferred' },
-  { id: 3, name: 'Duplicate' },
-  { id: 4, name: 'No Further Action' },
-]
+export function QuickClosePanel({ ticket, isOpen, onClose, onConfirm }: QuickClosePanelProps) {
+  const [note, setNote] = useState('')
+  const [hours, setHours] = useState(ticket.actualHours ?? 0.5)
+  const [notifyClient, setNotifyClient] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
-async function closeTicket(
-  ticketId: number,
-  data: {
-    resolutionId: number
-    summary?: string
-    internalNotes?: string
-    timeSpent?: number
+  if (!isOpen) return null
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSubmitting(true)
+    await onConfirm({ note, hours, notifyClient })
+    setSubmitting(false)
   }
-) {
-  const response = await fetch(`/api/tickets/${ticketId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify([
-      { op: 'replace', path: '/status', value: 'closed' },
-      { op: 'replace', path: '/resolutionId', value: data.resolutionId },
-      ...(data.summary ? [{ op: 'replace', path: '/resolution', value: data.summary }] : []),
-      ...(data.internalNotes ? [{ op: 'add', path: '/internalNotes', value: data.internalNotes }] : []),
-    ]),
-  })
-
-  if (!response.ok) throw new Error('Failed to close ticket')
-  return response.json()
-}
-
-export function QuickClosePanel({ ticketId, onClose, onSuccess }: QuickClosePanelProps) {
-  const [selectedResolution, setSelectedResolution] = useState(resolutions[0].id)
-  const [summary, setSummary] = useState('')
-  const [notes, setNotes] = useState('')
-
-  const mutation = useMutation({
-    mutationFn: () =>
-      closeTicket(ticketId, {
-        resolutionId: selectedResolution,
-        summary: summary || undefined,
-        internalNotes: notes || undefined,
-      }),
-    onSuccess,
-  })
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 border border-gray-800 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Panel */}
+      <div className="fixed inset-y-0 right-0 w-full max-w-md z-50 bg-gray-900 border-l border-gray-800 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-800 sticky top-0 bg-gray-900">
-          <h2 className="text-lg font-semibold text-white">Close Ticket</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-400 transition-colors p-1"
-          >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={18} className="text-green-400" />
+            <h2 className="text-base font-semibold text-white">Close Ticket</h2>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
             <X size={18} />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-4 space-y-4">
-          {/* Resolution selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Resolution
-            </label>
-            <div className="space-y-2">
-              {resolutions.map(res => (
-                <label
-                  key={res.id}
-                  className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 cursor-pointer transition-colors"
-                >
-                  <input
-                    type="radio"
-                    name="resolution"
-                    value={res.id}
-                    checked={selectedResolution === res.id}
-                    onChange={e => setSelectedResolution(Number(e.target.value))}
-                    className="w-4 h-4 rounded-full"
-                  />
-                  <span className="text-sm text-gray-300">{res.name}</span>
-                </label>
-              ))}
+        {/* Ticket summary */}
+        <div className="px-5 py-3 bg-gray-800/50 border-b border-gray-800">
+          <p className="text-xs text-gray-500 font-mono">#{ticket.id}</p>
+          <p className="text-sm text-gray-200 font-medium mt-0.5">{ticket.summary}</p>
+          <p className="text-xs text-gray-500 mt-1">{ticket.company}</p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+            {/* Resolution note */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                Resolution Note <span className="text-red-400">*</span>
+              </label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="What was done to resolve this ticket..."
+                rows={4}
+                required
+                className="w-full px-3 py-2.5 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
             </div>
-          </div>
 
-          {/* Resolution summary */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Resolution Summary (optional)
+            {/* Time entry */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                <span className="flex items-center gap-1.5">
+                  <Clock size={14} />
+                  Time Spent (hours)
+                </span>
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  value={hours}
+                  onChange={(e) => setHours(parseFloat(e.target.value) || 0)}
+                  className="w-24 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="flex gap-1">
+                  {[0.25, 0.5, 1, 2].map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => setHours(h)}
+                      className={`px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
+                        hours === h
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300'
+                      }`}
+                    >
+                      {h}h
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Notify client */}
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notifyClient}
+                onChange={(e) => setNotifyClient(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+              />
+              <div>
+                <span className="text-sm text-gray-300">Notify client</span>
+                <p className="text-xs text-gray-500">Send resolution email to {ticket.contact ?? 'contact'}</p>
+              </div>
             </label>
-            <textarea
-              value={summary}
-              onChange={e => setSummary(e.target.value)}
-              placeholder="Brief summary of resolution..."
-              className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={2}
-            />
           </div>
 
-          {/* Internal notes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Internal Notes (optional)
-            </label>
-            <textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Internal notes for the team..."
-              className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={3}
-            />
+          {/* Footer actions */}
+          <div className="px-5 py-4 border-t border-gray-800 bg-gray-900/80 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-400 bg-gray-800 hover:bg-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!note.trim() || submitting}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-500 disabled:bg-green-800 disabled:cursor-not-allowed transition-colors"
+            >
+              <Send size={14} />
+              {submitting ? 'Closing...' : 'Close Ticket'}
+            </button>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="flex items-center gap-3 p-4 border-t border-gray-800 sticky bottom-0 bg-gray-900">
-          <button
-            onClick={onClose}
-            disabled={mutation.isPending}
-            className="flex-1 px-4 py-2 rounded bg-gray-800 text-gray-300 text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => mutation.mutate()}
-            disabled={mutation.isPending}
-            className="flex-1 px-4 py-2 rounded bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:bg-gray-700 disabled:text-gray-600 transition-colors flex items-center justify-center gap-2"
-          >
-            {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
-            Close Ticket
-          </button>
-        </div>
+          <div className="px-5 pb-3 text-center">
+            <p className="text-[11px] text-gray-600">
+              Ctrl+Enter to confirm
+            </p>
+          </div>
+        </form>
       </div>
-    </div>
+    </>
   )
 }

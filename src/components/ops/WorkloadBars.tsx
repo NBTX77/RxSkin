@@ -6,7 +6,7 @@ interface WorkloadBarsProps {
   data: Array<{ name: string; count: number }>
 }
 
-const BAR_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#a855f7', '#eab308', '#ef4444', '#6b7280', '#3b82f6']
+const BAR_COLORS = ['#58a6ff', '#3fb950', '#f0883e', '#bc8cff', '#d29922', '#f85149', '#8b949e', '#58a6ff']
 
 export function WorkloadBars({ data }: WorkloadBarsProps) {
   if (!data.length) {
@@ -18,24 +18,28 @@ export function WorkloadBars({ data }: WorkloadBarsProps) {
   }
 
   return (
-    <div style={{ width: '100%', height: 288 }}>
+    <div className="h-72">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
-          <XAxis
-            type="number"
-            tick={{ fill: '#9ca3af', fontSize: 12 }}
-            axisLine={{ stroke: '#374151' }}
-            tickLine={{ stroke: '#374151' }}
-          />
+          <XAxis type="number" tick={{ fill: '#8b949e', fontSize: 12 }} axisLine={{ stroke: '#30363d' }} />
           <YAxis
             type="category"
             dataKey="name"
-            tick={{ fill: '#d1d5db', fontSize: 12 }}
+            tick={{ fill: '#e6edf3', fontSize: 12 }}
             width={120}
             axisLine={false}
             tickLine={false}
           />
-          <Tooltip formatter={(value) => [`${value} tickets`, 'Assigned']} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: '#161b22',
+              border: '1px solid #30363d',
+              borderRadius: '8px',
+              color: '#e6edf3',
+              fontSize: '13px',
+            }}
+            formatter={(value) => [`${value} tickets`, 'Assigned']}
+          />
           <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20}>
             {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />

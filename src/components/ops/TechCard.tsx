@@ -33,6 +33,7 @@ function PriorityPill({ priority }: { priority: string }) {
     </span>
   )
 }
+
 export function TechCard({ tech, onClick, isSelected }: TechCardProps) {
   const avatarColor = tech.hosColor === 'red'
     ? 'bg-red-500/20 border-red-500/40'

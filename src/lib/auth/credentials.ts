@@ -1,5 +1,15 @@
+// ============================================================
+// Tenant Credential Manager — RX Skin
+// Fetches and decrypts CW API credentials for a given tenant.
+// NEVER call from client components.
+// ============================================================
+
 import type { CWCredentials } from '@/lib/cw/client'
 
+/**
+ * Simple AES-256-GCM encrypt/decrypt using Node crypto.
+ * In production, consider a proper secrets manager (Vault, AWS KMS).
+ */
 function getEncryptionKey(): Buffer {
   const key = process.env.ENCRYPTION_KEY
   if (!key || key.length < 32) {
@@ -9,6 +19,7 @@ function getEncryptionKey(): Buffer {
 }
 
 export function encryptCredential(plaintext: string): string {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const crypto = require('crypto')
   const iv = crypto.randomBytes(12)
   const key = getEncryptionKey()
@@ -19,6 +30,7 @@ export function encryptCredential(plaintext: string): string {
 }
 
 export function decryptCredential(ciphertext: string): string {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const crypto = require('crypto')
   const data = Buffer.from(ciphertext, 'base64')
   const iv = data.slice(0, 12)
@@ -30,8 +42,23 @@ export function decryptCredential(ciphertext: string): string {
   return decipher.update(encrypted) + decipher.final('utf8')
 }
 
+/**
+ * Get decrypted CW credentials for a tenant.
+ * TODO: Replace stub with real Prisma DB lookup.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function getTenantCredentials(tenantId: string): Promise<CWCredentials> {
-  // Dev fallback to env vars — replace with DB lookup for multi-tenant
+  // DEV STUB — replace with DB lookup:
+  // const tenant = await db.tenant.findUniqueOrThrow({ where: { id: tenantId } })
+  // return {
+  //   baseUrl: tenant.cwBaseUrl,
+  //   companyId: tenant.cwCompanyId,
+  //   clientId: tenant.cwClientId,
+  //   publicKey: decryptCredential(tenant.cwPublicKey),
+  //   privateKey: decryptCredential(tenant.cwPrivateKey),
+  // }
+
+  // Dev fallback to env vars for Phase 0 testing
   return {
     baseUrl: process.env.CW_BASE_URL ?? '',
     companyId: process.env.CW_COMPANY_ID ?? '',

@@ -36,12 +36,6 @@ function nestedNum(obj: unknown, key: string): number | undefined {
 // ── Ticket ────────────────────────────────────────────────────
 
 export function normalizeTicket(raw: Record<string, unknown>): Ticket {
-  // CW API stores lastUpdated and dateEntered inside the _info object,
-  // not as top-level fields. Fall back to top-level for safety.
-  const info = (raw._info && typeof raw._info === 'object')
-    ? raw._info as Record<string, unknown>
-    : {} as Record<string, unknown>
-
   return {
     id: num(raw.id) ?? 0,
     summary: str(raw.summary),
@@ -59,16 +53,24 @@ export function normalizeTicket(raw: Record<string, unknown>): Ticket {
     assignedToId: nested(raw.owner, 'identifier') || undefined,
     budgetHours: num(raw.budgetHours),
     actualHours: num(raw.actualHours),
-    createdAt: str(raw.dateEntered) || str(info.dateEntered),
-    updatedAt: str(raw.lastUpdated) || str(info.lastUpdated),
+    createdAt: str(raw.dateEntered),
+    updatedAt: str(raw.lastUpdated),
     closedAt: str(raw.closedDate) || undefined,
-    resources: Array.isArray(raw.resources)
-      ? raw.resources.map((r: Record<string, unknown>) => ({
-          memberId: nestedNum(r.member, 'id') ?? 0,
-          memberName: nested(r.member, 'name'),
-          primaryFlag: Boolean(r.primaryFlag),
+    // CW returns resources as a comma-separated string of member identifiers
+    // (e.g. "DScrip" or "DScrip, CLittle"), not an array of objects
+    resources: typeof raw.resources === 'string' && raw.resources
+      ? raw.resources.split(',').map((identifier: string, i: number) => ({
+          memberId: 0,  // identifier only — no ID available from this field
+          memberName: identifier.trim(),
+          primaryFlag: i === 0,
         }))
-      : [],
+      : Array.isArray(raw.resources)
+        ? raw.resources.map((r: Record<string, unknown>) => ({
+            memberId: nestedNum(r.member, 'id') ?? 0,
+            memberName: nested(r.member, 'name'),
+            primaryFlag: Boolean(r.primaryFlag),
+          }))
+        : [],
   }
 }
 

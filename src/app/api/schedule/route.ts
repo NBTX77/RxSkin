@@ -1,9 +1,10 @@
-// GET /api/schedule — List schedule entries
+// GET /api/schedule  — List schedule entries
+// POST /api/schedule — Create a new schedule entry
 
 import { auth } from '@/lib/auth/config'
 import { getTenantCredentials } from '@/lib/auth/credentials'
-import { getScheduleEntries } from '@/lib/cw/client'
-import { cachedFetch } from '@/lib/cache/bff-cache'
+import { getScheduleEntries, createScheduleEntry } from '@/lib/cw/client'
+import { cachedFetch, invalidateCache } from '@/lib/cache/bff-cache'
 import { deduplicatedFetch } from '@/lib/cache/dedup'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 import { getMockScheduleEntries } from '@/lib/mock-data'
@@ -25,6 +26,18 @@ function getDateRange(dateStr: string, view: string): { start: string; end: stri
 
   if (view === 'day') {
     return { start: dateStr, end: dateStr }
+  }
+
+  if (view === 'twoWeek') {
+    const dayOfWeek = d.getDay()
+    const monday = new Date(d)
+    monday.setDate(d.getDate() - ((dayOfWeek + 6) % 7))
+    const endDate = new Date(monday)
+    endDate.setDate(monday.getDate() + 13) // 2 weeks = 14 days
+    return {
+      start: monday.toISOString().split('T')[0],
+      end: endDate.toISOString().split('T')[0],
+    }
   }
 
   if (view === 'month') {
@@ -89,6 +102,43 @@ export async function GET(request: Request) {
     )
 
     return Response.json(entries)
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
+
+/**
+ * POST — Create a new schedule entry in ConnectWise.
+ */
+export async function POST(request: Request) {
+  try {
+    const session = await auth()
+    if (!session?.user) return apiErrors.unauthorized()
+
+    const body = await request.json()
+
+    if (!body.ticketId || !body.memberId || !body.start || !body.end) {
+      return Response.json(
+        { error: 'ticketId, memberId, start, and end are required' },
+        { status: 400 }
+      )
+    }
+
+    const { tenantId } = session.user
+    const creds = await getTenantCredentials(tenantId)
+
+    const newEntry = await createScheduleEntry(creds, {
+      objectId: body.ticketId,
+      member: { id: body.memberId },
+      dateStart: body.start,
+      dateEnd: body.end,
+      type: { identifier: 'S' }, // Service
+    })
+
+    // Invalidate schedule cache so the list refetches
+    invalidateCache(`${tenantId}:schedule`)
+
+    return Response.json(newEntry, { status: 201 })
   } catch (error) {
     return handleApiError(error)
   }

@@ -27,7 +27,7 @@ export async function getDefaultTenantId(): Promise<string> {
       cachedTenantId = tenant.id
       return tenant.id
     }
-  } catch (err: unknown) {
+  } catch (err) {
     console.error('[tenant-context] Failed to resolve tenant:', err)
   }
 

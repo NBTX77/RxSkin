@@ -9,6 +9,8 @@ import type {
   SamsaraDriver,
   SamsaraHosClock,
 } from '@/types/ops'
+import { logApiCall } from '@/lib/instrumentation/api-logger'
+import { getDefaultTenantId } from '@/lib/instrumentation/tenant-context'
 
 export interface SamsaraCredentials {
   apiToken: string
@@ -25,7 +27,7 @@ class SamsaraApiError extends Error {
 }
 
 /**
- * Core fetch wrapper for Samsara API with Bearer auth.
+ * Core fetch wrapper for Samsara API with Bearer auth and instrumentation.
  */
 async function samsaraFetch<T>(
   creds: SamsaraCredentials,
@@ -33,28 +35,58 @@ async function samsaraFetch<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${creds.baseUrl}${path}`
+  const method = (options.method ?? 'GET').toUpperCase()
+  const start = performance.now()
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${creds.apiToken}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      ...options.headers,
-    },
-  })
+  let statusCode: number | undefined
+  let errorCode: string | undefined
+  let errorMessage: string | undefined
 
-  if (!response.ok) {
-    const body = await response.text()
-    throw new SamsaraApiError(response.status, body)
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${creds.apiToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...options.headers,
+      },
+    })
+
+    statusCode = response.status
+
+    if (!response.ok) {
+      const body = await response.text()
+      throw new SamsaraApiError(response.status, body)
+    }
+
+    if (response.status === 204) {
+      return null as T
+    }
+
+    return response.json() as Promise<T>
+  } catch (err) {
+    if (err instanceof SamsaraApiError) {
+      errorCode = 'API_ERROR'
+      errorMessage = err.message
+    } else if (err instanceof Error) {
+      errorCode = 'NETWORK_ERROR'
+      errorMessage = err.message
+    }
+    throw err
+  } finally {
+    const elapsed = Math.round(performance.now() - start)
+    getDefaultTenantId()
+      .then((tenantId) => {
+        logApiCall(
+          { tenantId, platform: 'samsara', endpoint: path, method },
+          { statusCode, responseTimeMs: elapsed, errorCode, errorMessage }
+        )
+      })
+      .catch(() => {})
   }
-
-  if (response.status === 204) {
-    return null as T
-  }
-
-  return response.json() as Promise<T>
 }
+
 // ── Vehicle Endpoints ────────────────────────────
 
 interface SamsaraVehicleListResponse {
@@ -115,6 +147,7 @@ export async function getVehicleLocations(
     time: v.location.time,
   }))
 }
+
 // ── Driver Endpoints ─────────────────────────────
 
 interface SamsaraDriverListResponse {
@@ -188,68 +221,4 @@ export function getSamsaraCredentials(): SamsaraCredentials {
 
 export function isSamsaraConfigured(): boolean {
   return !!process.env.SAMSARA_API_TOKEN
-}
-
-// ── Vehicle GPS History (Trail) ─────────────────
-
-export interface GpsPoint {
-  latitude: number
-  longitude: number
-  speedMph: number
-  headingDegrees: number
-  time: string
-}
-
-export interface VehicleTrail {
-  vehicleId: string
-  vehicleName: string
-  points: GpsPoint[]
-}
-
-interface SamsaraStatsHistoryResponse {
-  data: Array<{
-    id: string
-    name: string
-    gps: Array<{
-      time: string
-      latitude: number
-      longitude: number
-      headingDegrees: number
-      speedMilesPerHour: number
-    }>
-  }>
-}
-
-/**
- * Fetch GPS breadcrumb history for all vehicles over a time window.
- * Uses `/fleet/vehicles/stats/history?types=gps`.
- * Returns ~5-second resolution when vehicles are moving.
- */
-export async function getVehicleLocationHistory(
-  creds: SamsaraCredentials,
-  startTime: string,
-  endTime: string
-): Promise<VehicleTrail[]> {
-  const params = new URLSearchParams({
-    types: 'gps',
-    startTime,
-    endTime,
-  })
-
-  const res = await samsaraFetch<SamsaraStatsHistoryResponse>(
-    creds,
-    `/fleet/vehicles/stats/history?${params.toString()}`
-  )
-
-  return res.data.map((v) => ({
-    vehicleId: v.id,
-    vehicleName: v.name,
-    points: (v.gps ?? []).map((p) => ({
-      latitude: p.latitude,
-      longitude: p.longitude,
-      speedMph: p.speedMilesPerHour,
-      headingDegrees: p.headingDegrees,
-      time: p.time,
-    })),
-  }))
 }

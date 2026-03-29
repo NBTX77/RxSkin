@@ -2,8 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Sun, Moon, Ticket, Calendar, Building2, Search, Radar } from 'lucide-react'
-import { useTheme } from '@/components/theme/ThemeProvider'
+import { Sun, Ticket, Calendar, Building2, Search, Radar } from 'lucide-react'
 
 const navItems = [
   { href: '/dashboard', label: 'My Day', icon: Sun },
@@ -15,7 +14,6 @@ const navItems = [
 
 export function MobileNav() {
   const pathname = usePathname()
-  const { theme, toggleTheme } = useTheme()
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-800">
@@ -46,13 +44,7 @@ export function MobileNav() {
           <Search size={20} />
           <span className="text-xs font-medium">Search</span>
         </button>
-        <button
-          onClick={toggleTheme}
-          className="flex flex-col items-center gap-1 px-3 py-1 rounded-lg text-gray-500 hover:text-gray-300 transition-colors"
-        >
-          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          <span className="text-xs font-medium">{theme === 'dark' ? 'Light' : 'Dark'}</span>
-        </button>
+        {/* Theme toggle moved to Settings > Appearance */}
       </div>
     </nav>
   )

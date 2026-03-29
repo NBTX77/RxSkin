@@ -1,191 +1,230 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Command, X } from 'lucide-react'
+import { Search, Ticket, Building2, User } from 'lucide-react'
+import type { Ticket as TicketType, Member } from '@/types'
 
-interface SearchResult {
-  id: number
-  type: 'ticket' | 'company' | 'contact'
-  title: string
-  subtitle?: string
-}
-
-async function searchGlobal(query: string): Promise<SearchResult[]> {
-  if (!query.trim()) return []
-
-  const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
-  if (!response.ok) return []
-
-  const data = await response.json()
-  return data.results || []
+interface SearchResults {
+  tickets: TicketType[]
+  companies: Array<{ id: number; name: string }>
+  members: Member[]
 }
 
 export function GlobalSearch() {
-  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
+  const [results, setResults] = useState<SearchResults>({ tickets: [], companies: [], members: [] })
+  const [loading, setLoading] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
-  const [isSearching, setIsSearching] = useState(false)
+  const router = useRouter()
 
-  // Open on Cmd+K or Ctrl+K
+  // Ctrl+K / Cmd+K to open
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
         setOpen(prev => !prev)
       }
+      if (e.key === 'Escape') setOpen(false)
     }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Close on Escape
+  // Debounced search
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setOpen(false)
-      }
+    if (!query.trim()) {
+      setResults({ tickets: [], companies: [], members: [] })
+      return
     }
 
-    if (open) {
-      window.addEventListener('keydown', handleKeyDown)
-      return () => window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [open])
-
-  // Search on query change
-  useEffect(() => {
     const timer = setTimeout(async () => {
-      if (query.trim()) {
-        setIsSearching(true)
-        const res = await searchGlobal(query)
-        setResults(res)
-        setSelectedIndex(0)
-        setIsSearching(false)
-      } else {
-        setResults([])
-      }
-    }, 300)
+      setLoading(true)
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
+        if (res.ok) {
+          setResults(await res.json())
+        }
+      } catch { /* ignore */ }
+      setLoading(false)
+    }, 200)
 
     return () => clearTimeout(timer)
   }, [query])
 
-  // Navigation
-  const handleSelect = (result: SearchResult) => {
-    if (result.type === 'ticket') {
-      router.push(`/tickets/${result.id}`)
-    } else if (result.type === 'company') {
-      router.push(`/companies/${result.id}`)
+  // Reset on close
+  useEffect(() => {
+    if (!open) {
+      setQuery('')
+      setResults({ tickets: [], companies: [], members: [] })
+      setSelectedIndex(0)
     }
-    setOpen(false)
-    setQuery('')
-  }
+  }, [open])
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setSelectedIndex(prev => (prev + 1) % (results.length || 1))
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setSelectedIndex(prev => (prev - 1 + results.length) % (results.length || 1))
-    } else if (e.key === 'Enter' && results[selectedIndex]) {
-      e.preventDefault()
-      handleSelect(results[selectedIndex])
+  const allItems = useMemo(() => [
+    ...results.tickets.map(t => ({ type: 'ticket' as const, id: t.id, label: t.summary, sub: `#${t.id} · ${t.company}`, href: `/tickets/${t.id}` })),
+    ...results.companies.map(c => ({ type: 'company' as const, id: c.id, label: c.name, sub: 'Company', href: `/companies` })),
+    ...results.members.map(m => ({ type: 'member' as const, id: m.id, label: m.name, sub: m.title ?? 'Technician', href: `/settings` })),
+  ], [results])
+
+  const handleSelect = useCallback((href: string) => {
+    setOpen(false)
+    router.push(href)
+  }, [router])
+
+  // Keyboard nav
+  useEffect(() => {
+    if (!open) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setSelectedIndex(prev => Math.min(prev + 1, allItems.length - 1))
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setSelectedIndex(prev => Math.max(prev - 1, 0))
+      } else if (e.key === 'Enter' && allItems[selectedIndex]) {
+        e.preventDefault()
+        handleSelect(allItems[selectedIndex].href)
+      }
     }
-  }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [open, allItems, selectedIndex, handleSelect])
 
   if (!open) return null
 
+  const icons = {
+    ticket: <Ticket size={14} className="text-blue-400" />,
+    company: <Building2 size={14} className="text-green-400" />,
+    member: <User size={14} className="text-purple-400" />,
+  }
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-12 z-50 p-4">
-      <div className="w-full max-w-lg bg-gray-900 border border-gray-800 rounded-lg shadow-lg overflow-hidden">
-        {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800">
-          <Search size={18} className="text-gray-500 flex-shrink-0" />
-          <input
-            type="text"
-            placeholder="Search tickets, companies..."
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            autoFocus
-            className="flex-1 bg-transparent text-white placeholder-gray-600 text-sm focus:outline-none"
-          />
-          <button
-            onClick={() => {
-              setOpen(false)
-              setQuery('')
-            }}
-            className="text-gray-500 hover:text-gray-400 transition-colors"
-          >
-            <X size={18} />
-          </button>
-        </div>
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm" onClick={() => setOpen(false)} />
 
-        {/* Results */}
-        <div className="max-h-96 overflow-y-auto">
-          {isSearching ? (
-            <div className="px-4 py-8 text-center text-gray-500 text-sm">
-              Searching...
-            </div>
-          ) : results.length > 0 ? (
-            <div className="divide-y divide-gray-800">
-              {results.map((result, index) => (
-                <button
-                  key={`${result.type}-${result.id}`}
-                  onClick={() => handleSelect(result)}
-                  className={`w-full px-4 py-3 text-left transition-colors ${
-                    index === selectedIndex
-                      ? 'bg-blue-600/15 border-l-2 border-blue-500'
-                      : 'hover:bg-gray-800'
-                  }`}
-                >
-                  <p className="text-sm font-medium text-white">{result.title}</p>
-                  {result.subtitle && (
-                    <p className="text-xs text-gray-500 mt-1">{result.subtitle}</p>
-                  )}
-                </button>
-              ))}
-            </div>
-          ) : query.trim() ? (
-            <div className="px-4 py-8 text-center text-gray-500 text-sm">
-              No results found
-            </div>
-          ) : (
-            <div className="px-4 py-8 text-center text-gray-600 text-sm">
-              <p>Start typing to search...</p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer hint */}
-        <div className="flex items-center justify-between px-4 py-2 border-t border-gray-800 bg-gray-900/50 text-xs text-gray-500">
-          <div className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700">
-              <Command size={12} />
+      {/* Dialog */}
+      <div className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[101]">
+        <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+          {/* Search input */}
+          <div className="flex items-center px-4 gap-3 border-b border-gray-800">
+            <Search size={18} className="text-gray-500 flex-shrink-0" />
+            <input
+              autoFocus
+              type="text"
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0) }}
+              placeholder="Search tickets, companies, techs..."
+              className="flex-1 py-3.5 bg-transparent text-white placeholder-gray-500 text-sm focus:outline-none"
+            />
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-800 text-gray-500 border border-gray-700">
+              ESC
             </kbd>
-            <span>K</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700">↑</kbd>
-              <kbd className="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700">↓</kbd>
-              <span>Navigate</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700">⏎</kbd>
-              <span>Select</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700">Esc</kbd>
-              <span>Close</span>
-            </div>
+
+          {/* Results */}
+          <div className="max-h-80 overflow-y-auto">
+            {loading && (
+              <div className="px-4 py-8 text-center text-gray-500 text-sm">Searching...</div>
+            )}
+
+            {!loading && query && allItems.length === 0 && (
+              <div className="px-4 py-8 text-center text-gray-500 text-sm">
+                No results for &ldquo;{query}&rdquo;
+              </div>
+            )}
+
+            {!loading && allItems.length > 0 && (
+              <div className="py-2">
+                {/* Group headers */}
+                {results.tickets.length > 0 && (
+                  <div className="px-4 pt-2 pb-1">
+                    <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Tickets</p>
+                  </div>
+                )}
+                {results.tickets.map((t, i) => {
+                  const idx = i
+                  return (
+                    <button
+                      key={`t-${t.id}`}
+                      onClick={() => handleSelect(`/tickets/${t.id}`)}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                        selectedIndex === idx ? 'bg-blue-600/20 text-white' : 'text-gray-300 hover:bg-gray-800'
+                      }`}
+                    >
+                      {icons.ticket}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm truncate">{t.summary}</p>
+                        <p className="text-xs text-gray-500">#{t.id} · {t.company}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+
+                {results.companies.length > 0 && (
+                  <div className="px-4 pt-3 pb-1">
+                    <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Companies</p>
+                  </div>
+                )}
+                {results.companies.map((c, i) => {
+                  const idx = results.tickets.length + i
+                  return (
+                    <button
+                      key={`c-${c.id}`}
+                      onClick={() => handleSelect('/companies')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                        selectedIndex === idx ? 'bg-blue-600/20 text-white' : 'text-gray-300 hover:bg-gray-800'
+                      }`}
+                    >
+                      {icons.company}
+                      <span className="text-sm">{c.name}</span>
+                    </button>
+                  )
+                })}
+
+                {results.members.length > 0 && (
+                  <div className="px-4 pt-3 pb-1">
+                    <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Technicians</p>
+                  </div>
+                )}
+                {results.members.map((m, i) => {
+                  const idx = results.tickets.length + results.companies.length + i
+                  return (
+                    <button
+                      key={`m-${m.id}`}
+                      onClick={() => handleSelect('/settings')}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                        selectedIndex === idx ? 'bg-blue-600/20 text-white' : 'text-gray-300 hover:bg-gray-800'
+                      }`}
+                    >
+                      {icons.member}
+                      <div>
+                        <p className="text-sm">{m.name}</p>
+                        <p className="text-xs text-gray-500">{m.title}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {!loading && !query && (
+              <div className="px-4 py-6 text-center text-gray-600 text-sm">
+                <p>Type to search across tickets, companies, and techs</p>
+                <p className="text-xs mt-2 text-gray-700">Try a ticket number, company name, or keyword</p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-800 text-[11px] text-gray-600">
+            <span>Navigate with arrow keys</span>
+            <span>Enter to select</span>
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

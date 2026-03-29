@@ -1,112 +1,119 @@
-import { NextRequest } from 'next/server'
+// ============================================================
+// GET /api/tickets  — List tickets
+// POST /api/tickets — Create ticket
+// ============================================================
+
 import { auth } from '@/lib/auth/config'
+import { getTenantCredentials } from '@/lib/auth/credentials'
+import { getTickets, createTicket } from '@/lib/cw/client'
+import { cachedFetch, invalidateCache } from '@/lib/cache/bff-cache'
+import { deduplicatedFetch } from '@/lib/cache/dedup'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
-import { getCWCredentials } from '@/lib/cw/credentials'
-import { getTickets } from '@/lib/cw/client'
 import { getMockTickets } from '@/lib/mock-data'
-import type { Ticket } from '@/types'
+import { z } from 'zod'
+import type { TicketFilters } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(req: NextRequest) {
+const TICKET_LIST_TTL_MS = 60 * 1000 // 60 seconds
+
+function isCWConfigured(): boolean {
+  return !!(process.env.CW_BASE_URL && process.env.CW_PUBLIC_KEY && process.env.CW_PRIVATE_KEY)
+}
+
+export async function GET(request: Request) {
   try {
     const session = await auth()
     if (!session?.user) return apiErrors.unauthorized()
 
-    const { searchParams } = new URL(req.url)
-    const page = parseInt(searchParams.get('page') || '1', 10)
-    const pageSize = parseInt(searchParams.get('pageSize') || '50', 10)
-    const status = searchParams.get('status')
-    const priority = searchParams.get('priority')
-    const search = searchParams.get('search')
-    const board = searchParams.get('board')
-    const company = searchParams.get('company')
-    const assignedTo = searchParams.get('assignedTo')
-
-    let tickets: Ticket[]
-
-    const creds = getCWCredentials()
-    if (creds) {
-      // Live ConnectWise data
-      tickets = await getTickets(creds, {
-        search: search?.trim() || undefined,
-        page,
-        pageSize,
-      })
-
-      // Client-side filters (CW conditions syntax differs per field)
-      if (status && status.toLowerCase() !== 'all') {
-        tickets = tickets.filter(t => t.status.toLowerCase().includes(status.toLowerCase()))
-      }
-      if (priority && priority.toLowerCase() !== 'all') {
-        tickets = tickets.filter(t => t.priority.toLowerCase() === priority.toLowerCase())
-      }
-      if (board && board !== 'all') {
-        tickets = tickets.filter(t => t.board === board)
-      }
-      if (company && company !== 'all') {
-        tickets = tickets.filter(t => t.company === company)
-      }
-      if (assignedTo && assignedTo !== 'all') {
-        tickets = tickets.filter(t => t.assignedTo === assignedTo)
-      }
-
-      return Response.json({
-        data: tickets,
-        pagination: { page, pageSize, total: tickets.length, totalPages: 1 },
-        source: 'connectwise',
-      })
-    } else {
-      // Mock data fallback
-      tickets = getMockTickets()
-
-      if (status && status.toLowerCase() !== 'all') {
-        tickets = tickets.filter(t => t.status.toLowerCase() === status.toLowerCase())
-      }
-      if (priority && priority.toLowerCase() !== 'all') {
-        tickets = tickets.filter(t => t.priority.toLowerCase() === priority.toLowerCase())
-      }
-      if (board && board !== 'all') {
-        tickets = tickets.filter(t => t.board === board)
-      }
-      if (company && company !== 'all') {
-        tickets = tickets.filter(t => t.company === company)
-      }
-      if (assignedTo && assignedTo !== 'all') {
-        tickets = tickets.filter(t => t.assignedTo === assignedTo)
-      }
-      if (search && search.trim()) {
-        const q = search.toLowerCase()
+    // If CW credentials not configured, return mock data for testing
+    if (!isCWConfigured()) {
+      let tickets = getMockTickets()
+      const { searchParams } = new URL(request.url)
+      const searchTerm = searchParams.get('search')?.toLowerCase()
+      if (searchTerm) {
         tickets = tickets.filter(t =>
-          t.summary.toLowerCase().includes(q) ||
-          t.company?.toLowerCase().includes(q) ||
-          String(t.id).includes(q)
+          t.summary.toLowerCase().includes(searchTerm) ||
+          t.company.toLowerCase().includes(searchTerm) ||
+          String(t.id).includes(searchTerm)
         )
       }
-
-      const total = tickets.length
-      const start = (page - 1) * pageSize
-      const paged = tickets.slice(start, start + pageSize)
-
-      return Response.json({
-        data: paged,
-        pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
-        source: 'mock',
-      })
+      return Response.json(tickets)
     }
+
+    const { tenantId } = session.user
+    const { searchParams } = new URL(request.url)
+
+    const filters: TicketFilters = {
+      status: searchParams.getAll('status'),
+      boardId: searchParams.get('boardId') ? Number(searchParams.get('boardId')) : undefined,
+      companyId: searchParams.get('companyId') ? Number(searchParams.get('companyId')) : undefined,
+      assignedTo: searchParams.get('assignedTo') ?? undefined,
+      search: searchParams.get('search') ?? undefined,
+      page: searchParams.get('page') ? Number(searchParams.get('page')) : 1,
+      pageSize: searchParams.get('pageSize') ? Number(searchParams.get('pageSize')) : 50,
+    }
+
+    const cacheKey = `${tenantId}:tickets:list:${JSON.stringify(filters)}`
+
+    const tickets = await deduplicatedFetch(cacheKey, () =>
+      cachedFetch(
+        cacheKey,
+        async () => {
+          const creds = await getTenantCredentials(tenantId)
+          return getTickets(creds, filters)
+        },
+        TICKET_LIST_TTL_MS
+      )
+    )
+
+    return Response.json(tickets)
   } catch (error) {
     return handleApiError(error)
   }
 }
 
-export async function POST(req: NextRequest) {
+const createTicketSchema = z.object({
+  summary: z.string().min(1).max(200),
+  boardId: z.number(),
+  companyId: z.number(),
+  contactId: z.number().optional(),
+  statusId: z.number().optional(),
+  priorityId: z.number().optional(),
+  assignedToId: z.string().optional(),
+  description: z.string().optional(),
+})
+
+export async function POST(request: Request) {
   try {
     const session = await auth()
     if (!session?.user) return apiErrors.unauthorized()
+    if (session.user.role === 'VIEWER') return apiErrors.forbidden()
 
-    const body = await req.json()
-    // Phase 1: return the submitted data with a mock ID
-    return Response.json({ id: Date.now(), ...body }, { status: 201 })
+    const { tenantId } = session.user
+    const body = await request.json()
+
+    const parsed = createTicketSchema.safeParse(body)
+    if (!parsed.success) {
+      return apiErrors.badRequest(parsed.error.issues.map(i => i.message).join(', '))
+    }
+
+    const creds = await getTenantCredentials(tenantId)
+    const ticket = await createTicket(creds, {
+      summary: parsed.data.summary,
+      board: { id: parsed.data.boardId },
+      company: { id: parsed.data.companyId },
+      contact: parsed.data.contactId ? { id: parsed.data.contactId } : undefined,
+      status: parsed.data.statusId ? { id: parsed.data.statusId } : undefined,
+      priority: parsed.data.priorityId ? { id: parsed.data.priorityId } : undefined,
+      owner: parsed.data.assignedToId ? { identifier: parsed.data.assignedToId } : undefined,
+      initialDescription: parsed.data.description,
+    })
+
+    // Bust list caches so new ticket appears
+    invalidateCache(`${tenantId}:tickets:list:`)
+
+    return Response.json(ticket, { status: 201 })
   } catch (error) {
     return handleApiError(error)
   }

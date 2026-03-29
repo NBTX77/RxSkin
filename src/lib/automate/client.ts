@@ -4,6 +4,8 @@
 // ============================================================
 
 import type { AutomateComputer, AutomateScript, ScriptRunResult } from '@/types'
+import { logApiCall } from '@/lib/instrumentation/api-logger'
+import { getDefaultTenantId } from '@/lib/instrumentation/tenant-context'
 
 export interface AutomateCredentials {
   baseUrl: string
@@ -78,7 +80,7 @@ async function getToken(creds: AutomateCredentials): Promise<string> {
 }
 
 /**
- * Core fetch wrapper for Automate API.
+ * Core fetch wrapper for Automate API with instrumentation.
  */
 async function automateFetch<T>(
   creds: AutomateCredentials,
@@ -87,23 +89,52 @@ async function automateFetch<T>(
 ): Promise<T> {
   const token = await getToken(creds)
   const url = `${creds.baseUrl}/cwa/api/v1${path}`
+  const method = (options.method ?? 'GET').toUpperCase()
+  const start = performance.now()
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
+  let statusCode: number | undefined
+  let errorCode: string | undefined
+  let errorMessage: string | undefined
 
-  if (!response.ok) {
-    const body = await response.text()
-    throw new AutomateApiError(response.status, body)
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    })
+
+    statusCode = response.status
+
+    if (!response.ok) {
+      const body = await response.text()
+      throw new AutomateApiError(response.status, body)
+    }
+
+    if (response.status === 204) return null as T
+    return response.json() as Promise<T>
+  } catch (err) {
+    if (err instanceof AutomateApiError) {
+      errorCode = 'API_ERROR'
+      errorMessage = err.detail?.slice(0, 500)
+    } else if (err instanceof Error) {
+      errorCode = 'NETWORK_ERROR'
+      errorMessage = err.message
+    }
+    throw err
+  } finally {
+    const elapsed = Math.round(performance.now() - start)
+    getDefaultTenantId()
+      .then((tenantId) => {
+        logApiCall(
+          { tenantId, platform: 'automate', endpoint: path, method },
+          { statusCode, responseTimeMs: elapsed, errorCode, errorMessage }
+        )
+      })
+      .catch(() => {})
   }
-
-  if (response.status === 204) return null as T
-  return response.json() as Promise<T>
 }
 
 // ── Computers ──────────────────────────────────────────────

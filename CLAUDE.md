@@ -15,7 +15,7 @@
 | **Primary Developer** | Travis Brown + AI (Claude / Cowork) |
 | **Dev Environment** | Claude Cowork (Linux VM, Node.js available) |
 | **Target Hosting** | Vercel — https://rxtech.app (production) |
-| **Current Phase** | Phase 1A Complete — Department Routing + Projects Board |
+| **Current Phase** | Phase 1A Complete — Department Routing + Projects Board + Schedule + Ops Hub |
 | **Git Repository** | https://github.com/NBTX77/RxSkin |
 | **Notion Hub** | https://www.notion.so/32ffac121d4981c6bda6d0163795af05 |
 | **Asana Project** | TBD (to be created) |
@@ -241,7 +241,8 @@ rx-skin/
 │       ├── automate/             # CW Automate (RMM) — computers, scripts
 │       ├── control/              # ScreenConnect — session GUID + launch URL
 │       ├── fleet/                # Samsara fleet data
-│       ├── samsara/              # Samsara drivers, vehicles, HOS│       ├── analytics/            # Behavior analytics data
+│       ├── samsara/              # Samsara drivers, vehicles, HOS
+│       ├── analytics/            # Behavior analytics data
 │       ├── members/              # CW member lookup
 │       └── search/               # Global search
 ├── components/                   # Shared UI components
@@ -258,11 +259,13 @@ rx-skin/
 │   ├── automate/                 # CW Automate API client
 │   ├── control/                  # ScreenConnect API client
 │   ├── samsara/                  # Samsara fleet API client
-│   ├── cache/                    # BFF cache + deduplication
+│   ├── cache/                    # BFF cache + deduplication + write-through
 │   ├── auth/                     # Auth config + credential helpers
 │   ├── api/                      # Error handlers
 │   ├── fleet/                    # Fleet data merge utilities
-│   └── db/                       # Prisma client
+│   ├── db/                       # Prisma client singleton
+│   ├── instrumentation/          # API call logger + tenant context
+│   └── analytics/                # Frontend event tracker + <Tracked> HOC
 ├── prisma/                       # Database schema + migrations
 ├── hooks/                        # Custom React hooks
 ├── types/                        # TypeScript types (dept codes, projects, tickets, etc.)
@@ -270,7 +273,8 @@ rx-skin/
 │   ├── ARCHITECTURE.md           # System architecture
 │   ├── AUTH_ARCHITECTURE.md      # Two-tier auth design
 │   ├── INTEGRATIONS.md           # Integration specs (CW, Graph, Webex, etc.)
-│   ├── API_STRATEGY.md           # API design patterns│   ├── ROADMAP.md                # Feature roadmap
+│   ├── API_STRATEGY.md           # API design patterns
+│   ├── ROADMAP.md                # Feature roadmap
 │   ├── CONTRIBUTING.md           # Contribution guidelines
 │   ├── DIAGRAMS.md               # Architecture diagrams
 │   ├── mockups/                  # ★ Department dashboard mockups (5 JSX files)
@@ -283,6 +287,7 @@ rx-skin/
 **Workspace Root (`CW- Rx Skin/`)**
 ```
 ├── CLAUDE.md                     # THIS FILE — master project doc
+├── ToDo.md                       # ★ Shared task list (Claude Code + Cowork) — 22 action items from deep review
 ├── INSTRUCTIONS.md               # AI session instructions
 ├── rx-skin/                      # Main Next.js application (above)
 ├── rx-ops-hub/                   # Separate ops hub project
@@ -334,6 +339,7 @@ DATABASE_URL=
 # Auth
 NEXTAUTH_SECRET=
 NEXTAUTH_URL=
+
 # Microsoft Graph + Azure AD (multi-tenant app)
 AZURE_AD_CLIENT_ID=
 AZURE_AD_CLIENT_SECRET=
@@ -362,7 +368,8 @@ CREDENTIAL_ENCRYPTION_KEY=             # 256-bit key for AES-256-GCM
 3. **BFF layer is sacred** — CW API calls are always server-side only
 4. **Tenant ID must be in every query** — never skip tenant scoping
 5. **TypeScript strict mode** — no `any` types without explicit justification
-6. **Mobile-first** — every component must work on 375px width7. **Performance budget:** First contentful paint < 1.5s; API calls < 300ms cached
+6. **Mobile-first** — every component must work on 375px width
+7. **Performance budget:** First contentful paint < 1.5s; API calls < 300ms cached
 8. **Test before marking complete** — unit tests for utils, integration tests for API routes
 9. **Document architectural decisions** in `docs/ARCHITECTURE.md` as you make them
 10. **Check Asana** for open tasks before starting new work
@@ -378,7 +385,7 @@ CREDENTIAL_ENCRYPTION_KEY=             # 256-bit key for AES-256-GCM
 | **ConnectWise Manage** | RX Technology production instance |
 | **GitHub** | https://github.com/NBTX77/RxSkin |
 | **Vercel** | https://rxtech.app (production) |
-| **Supabase / DB** | TBD (Supabase MCP connected, DB not yet created) |
+| **Supabase / DB** | rxtech-app (rymoaztiblxwltwydtll), us-west-2, 15 tables |
 
 ---
 
@@ -424,7 +431,8 @@ Interactive React mockups in `rx-skin/docs/mockups/`: `mockup-IT-Dashboard.jsx`,
 - [x] Dashboard, tickets, schedule, companies, settings page shells
 - [x] Full ticket list UI (search, desktop table, mobile cards)
 - [x] BFF API routes wired to ConnectWise
-- [x] Production build clean (`next build` passes, TypeScript clean)- [x] Vercel MCP connected
+- [x] Production build clean (`next build` passes, TypeScript clean)
+- [x] Vercel MCP connected
 - [x] Supabase MCP connected
 - [x] Git installed on Windows dev machine
 - [x] Code pushed to GitHub (NBTX77/RxSkin)
@@ -450,23 +458,97 @@ Interactive React mockups in `rx-skin/docs/mockups/`: `mockup-IT-Dashboard.jsx`,
 - [x] Admin Tenant Settings — company info, CW board mappings, cache TTLs, rate limits
 - [x] Admin AI & Bots — AI provider config, 4 bots (RX Assistant, Admin Advisor, Ticket Triage, Insights Engine), chatbot placement
 - [x] Admin Analytics — click tracking, heatmaps, dead zones, AI improvement suggestions with approve/reject workflow
-- [x] Admin Audit Log — API calls, credential access, logins, admin actions with filters- [x] CW API credentials configured in Vercel — CW_BASE_URL, CW_CLIENT_ID, CW_PUBLIC_KEY, CW_PRIVATE_KEY, CW_COMPANY_ID (all environments)
+- [x] Admin Audit Log — API calls, credential access, logins, admin actions with filters
+- [x] CW API credentials configured in Vercel — CW_BASE_URL, CW_CLIENT_ID, CW_PUBLIC_KEY, CW_PRIVATE_KEY, CW_COMPANY_ID (all environments)
 - [x] Auth env vars configured in Vercel — NEXTAUTH_SECRET, AUTH_TRUST_HOST, ADMIN_EMAIL, ADMIN_PASSWORD
 - [x] Samsara env vars configured in Vercel — SAMSARA_API_TOKEN, SAMSARA_BASE_URL
 - [x] Vercel build passing — `force-dynamic` fix applied to all 18 API routes + dashboard layout (commits c16ab15, ccf0033)
 - [x] Notion project hub updated — status, roadmap, accounts registry all current
-- [ ] Supabase database created + Prisma migrations run
-- [x] ConnectWise API connection tested with live data — validated CW v2025.1 cloud (NA region), 46 active members, 667 projects, live tickets flowing
+- [x] Supabase database created + Prisma migrations run — rxtech-app project (rymoaztiblxwltwydtll), 8 tables + _prisma_migrations, RX Technology tenant + admin user seeded
+- [x] DATABASE_URL configured in Vercel (all environments) — pooler connection via aws-0-us-west-2.pooler.supabase.com:6543
+- [x] Prisma migration file saved to codebase — `prisma/migrations/20260328000000_init/migration.sql`
+- [x] ConnectWise API connection tested with live data — 172 tickets, 53 projects, 740 companies, 100+ members verified
+- [x] BFF normalizer fixes — ticket `resources` field (CW returns string, not array), project `department` mapping (CW full names → RX dept codes via `cwDeptToRxDept`)
+- [x] Asana project tasks updated — 10 tasks marked complete (Phase 0 + Phase 1A + 1B tickets)
 - [x] Department routing — DepartmentProvider, dept-aware sidebar with per-dept nav, department switcher
 - [x] Projects Board — API routes (`/api/projects`, `/api/projects/[id]`), kanban, financial table, portfolio, read-only list, detail overlay
 - [x] Department-aware Projects page — renders kanban (IT/SI), financial table (GA), portfolio heatmap (LT), read-only list (AM)
-- [ ] Schedule / calendar view (FullCalendar + drag-drop)
+- [x] Observability DB tables — api_call_logs, analytics_events, ui_components, project_cache, company_cache, cache_sync_state (6 new tables, 15 total)
+- [x] Prisma client singleton — `src/lib/db/prisma.ts` (shared across hot reloads)
+- [x] API call instrumentation — all 4 API clients (CW, Samsara, Automate, Control) log every outbound call with timing, status, errors
+- [x] Write-through cache — projects + companies persist to DB, survive Vercel cold starts, 3-tier read path (memory → DB → API)
+- [x] Frontend analytics tracker — batched event queue with sendBeacon, page view/click/feature/error/performance tracking
+- [x] `<Tracked>` HOC — wraps components for automatic render performance + error tracking, feeds UI component registry
+- [x] `usePageView` hook — drop-in page view tracking for any route
+- [x] Analytics event endpoint — `POST /api/analytics/event` (bulk insert + UI registry updates)
+- [x] Cron sync endpoint — `GET /api/cron/sync` (Vercel cron every 5 min, warms project/company/ticket cache)
+- [x] Tenant context resolver — `getDefaultTenantId()` for Phase 1 single-tenant instrumentation
+- [x] Middleware Workflow Engine — deep research complete, architecture designed, feature proposal delivered (2026-03-28)
+- [ ] **Middleware Workflow Engine Phase 1 (MVP)** — React Flow canvas in `/admin/workflows`, workflow CRUD API routes, BullMQ execution engine, manual triggers, DAG validation, execution history view
+- [ ] **Middleware Workflow Engine Phase 2 (AI)** — Claude API for NLP workflow creation, 5–10 MSP templates (alert-to-ticket, security incident, client onboarding), AI error diagnosis, deploy approval gate
+- [ ] **Middleware Workflow Engine Phase 3 (Advanced)** — Scheduled + webhook triggers, parallel execution, data transform nodes, pattern mining from audit logs, workflow map view (`/admin/workflows/map`)
+- [ ] **Middleware Workflow Engine Phase 4 (Scale)** — Temporal.io migration (if needed), anomaly detection, execution heatmaps, multi-tenant workflow sharing
+- [x] Schedule / calendar view — FullCalendar with Day/Week/2-Week/Month/List views, drag-drop rescheduling, event resize, dark theme, mobile-responsive
+- [x] Schedule CRUD API — GET (list with date range + 2-week view), POST (create entry), PATCH `/schedule/[id]` (reschedule), DELETE `/schedule/[id]`
+- [x] ScheduleEventDetail overlay — floating card with time, tech, company, linked ticket, delete action
+- [x] `useScheduleEntries` + `useRescheduleEntry` + `useCreateScheduleEntry` + `useDeleteScheduleEntry` hooks
+- [x] CRON_SECRET configured in Vercel (all environments)
+- [x] Deep codebase review complete — 42 components, 22 API routes, 19 lib modules, 14 Prisma models audited (2026-03-28)
+- [x] ToDo.md created — 22 action items (2 critical, 4 high, 10 medium, 5 low) across 5 sprints
+- [x] Git repo cleaned — 34 garbage temp objects removed via `git gc`, fsmonitor + untrackedcache enabled, credential helper set to manager
+- [x] Asana updated — FullCalendar + drag-drop tasks marked complete, 7 new tasks created from ToDo.md (critical/high security items)
+- [x] Notion project hub updated — v0.1.3 version entry, schedule/observability/DB/review status rows added, Phase 2 calendar marked done
+- [x] UI contrast + responsive fixes deployed — gray-700/50 borders, kanban column widths, TopBar bg-gray-900/95, fleet map min-height
+- [x] Live CW data wired — ticket notes, time entries, global search (replaced mock data)
+- [x] Instrumentation modules pushed to GitHub — api-logger.ts, tenant-context.ts, prisma.ts
+- [x] Prisma schema committed to repo — `prisma/schema.prisma` (14 models, 384 lines)
+- [x] Build script updated — `prisma generate && next build` (fixes Vercel @prisma/client init)
+- [x] Vercel deployment GREEN — commit 690392e, all UI + data + instrumentation changes live at rxtech.app
 - [ ] Credential Vault — migrate env var creds to encrypted DB (`TenantCredential` table)
 - [ ] Azure AD multi-tenant app registration + NextAuth provider
 - [ ] Microsoft Graph BFF routes (mail, calendar, presence, Teams)
 - [ ] Webex BFF routes (messaging, call history, click-to-call, queue stats)
 - [ ] User OAuth2 connection flow (Settings → Connect M365 / Connect Webex)
 - [ ] CW Home SSO configured with Azure AD as external IdP
+
+## Middleware Workflow Engine (Decided 2026-03-28)
+
+Major upcoming feature: a visual middleware workflow system in the Admin Console for configuring cross-system integration pipelines, automation rules, and event-driven triggers across all 10+ connected platforms.
+
+### Architecture Decisions
+- **Visual Editor:** React Flow (xyflow) — node-based canvas, MIT licensed, aligns with Next.js + Tailwind + shadcn/ui
+- **Execution Engine:** BullMQ on Redis (Phase 1); Temporal.io considered for Phase 3+
+- **AI Integration:** Claude API for natural language workflow creation, error diagnosis, pattern mining from audit logs
+- **Database:** 4 new Prisma models — `Workflow`, `WorkflowExecution`, `WorkflowStepLog`, `WorkflowTemplate`
+- **Node Types:** Trigger (green), Action (blue), Condition (orange), Transform (purple), Error Handler (red)
+
+### Admin Routes
+| Route | Purpose |
+|-------|---------|
+| `/admin/workflows` | Workflow list with status badges, success rate, last run |
+| `/admin/workflows/[id]/edit` | React Flow visual editor canvas |
+| `/admin/workflows/new?mode=ai` | Natural language → AI generates workflow → review → deploy |
+| `/admin/workflows/templates` | Pre-built MSP templates (alert-to-ticket, security incident, etc.) |
+| `/admin/workflows/[id]/runs` | Execution history with step-by-step trace |
+| `/admin/workflows/map` | Read-only bird's-eye view of all active integration connections |
+
+### BFF API Routes
+`/api/workflows` (CRUD), `/api/workflows/:id/validate`, `/api/workflows/:id/test`, `/api/workflows/:id/run`, `/api/workflows/:id/runs`, `/api/workflows/ai/generate`, `/api/workflows/templates`
+
+### Priority MSP Templates
+- **P0:** Alert-to-Ticket (Automate/Auvik → CW Manage), Security Incident Response (SentinelOne → Automate → CW → Webex)
+- **P1:** Client Onboarding Cascade, Ticket Enrichment (auto-fetch computers + remote sessions), Backup Failure Runbook
+- **P2:** Contract Renewal Notification (ScalePad → CW → Graph)
+
+### Security
+- Credentials never exposed to frontend — workflow definitions reference credential IDs; BFF resolves via `getTenantCredentials()`
+- Tenant-scoped with PostgreSQL RLS
+- RBAC: ADMIN creates/edits, TECHNICIAN views/triggers
+- Approval gate in Phase 2 before workflow activation
+
+Full research document: `RX-Skin-Middleware-Workflow-Research.docx` in workspace root.
+
+---
 
 ## Known Dev Environment Issues
 
@@ -475,8 +557,4 @@ Interactive React mockups in `rx-skin/docs/mockups/`: `mockup-IT-Dashboard.jsx`,
 - `AUTH_TRUST_HOST=1` required in `.env.local` for NextAuth v5 localhost
 - Stale duplicate config files (`.mjs` and `.ts` variants) have been deleted
 - `middleware.ts` exists for route protection — may conflict with Node v24 edge runtime (monitor)
-- **All API routes and dashboard layout require `export const dynamic = 'force-dynamic'`** — without this, `next build` fails with DYNAMIC_SERVER_USAGE errors because `auth()` calls `headers()` which prevents static generation. Applied to all 18 API routes + `src/app/(dashboard)/layout.tsx`.
-
----
-
-*Last updated: 2026-03-28 (Phase 1A complete + CW API live validated + Vercel env vars configured + build fix deployed + Notion synced) — Travis Brown / Claude*
+- **All API routes and dashboard layout require `export const dynamic = 'force-dynamic'`** — without this, `next build` fail

@@ -1,3 +1,5 @@
+// GET /api/members — List technicians (members) from ConnectWise
+
 import { auth } from '@/lib/auth/config'
 import { getTenantCredentials } from '@/lib/auth/credentials'
 import { getMembers } from '@/lib/cw/client'
@@ -6,7 +8,7 @@ import { apiErrors, handleApiError } from '@/lib/api/errors'
 
 export const dynamic = 'force-dynamic'
 
-const MEMBERS_TTL_MS = 10 * 60 * 1000
+const MEMBERS_TTL_MS = 10 * 60 * 1000 // 10 minutes — very stable data
 
 export async function GET() {
   try {

@@ -1,0 +1,143 @@
+/* ============================================================
+   FullCalendar Dark Theme Overrides — RX Skin
+   Applied to the .rx-calendar wrapper class.
+   ============================================================ */
+
+.rx-calendar {
+  --fc-border-color: #374151;
+  --fc-button-bg-color: #1f2937;
+  --fc-button-border-color: #374151;
+  --fc-button-text-color: #9ca3af;
+  --fc-button-hover-bg-color: #374151;
+  --fc-button-hover-border-color: #4b5563;
+  --fc-button-active-bg-color: #2563eb;
+  --fc-button-active-border-color: #2563eb;
+  --fc-event-bg-color: #3b82f6;
+  --fc-event-border-color: #3b82f6;
+  --fc-event-text-color: #ffffff;
+  --fc-today-bg-color: rgba(59, 130, 246, 0.08);
+  --fc-now-indicator-color: #ef4444;
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: #111827;
+  --fc-neutral-text-color: #9ca3af;
+  --fc-list-event-hover-bg-color: #1f2937;
+}
+
+/* Header and cell text */
+.rx-calendar .fc-col-header-cell-cushion,
+.rx-calendar .fc-daygrid-day-number,
+.rx-calendar .fc-timegrid-slot-label-cushion,
+.rx-calendar .fc-list-day-text,
+.rx-calendar .fc-list-day-side-text {
+  color: #d1d5db;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.rx-calendar .fc-col-header-cell {
+  background: #111827;
+  border-color: #374151;
+}
+
+/* Time grid slots */
+.rx-calendar .fc-timegrid-slot {
+  height: 2.5rem;
+  border-color: #1f2937;
+}
+
+.rx-calendar .fc-timegrid-slot-minor {
+  border-color: #111827;
+}
+
+/* Day cells */
+.rx-calendar .fc-daygrid-day {
+  background: transparent;
+}
+
+.rx-calendar .fc-day-today {
+  background: rgba(59, 130, 246, 0.06) !important;
+}
+
+/* Events */
+.rx-calendar .fc-event {
+  border-radius: 0.375rem;
+  border-width: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.rx-calendar .fc-event:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+.rx-calendar .fc-event-dragging {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  opacity: 0.85;
+}
+
+/* Now indicator */
+.rx-calendar .fc-timegrid-now-indicator-line {
+  border-color: #ef4444;
+  border-width: 2px;
+}
+
+.rx-calendar .fc-timegrid-now-indicator-arrow {
+  border-color: #ef4444;
+}
+
+/* List view */
+.rx-calendar .fc-list {
+  border-color: #374151;
+}
+
+.rx-calendar .fc-list-day-cushion {
+  background: #111827;
+}
+
+.rx-calendar .fc-list-event td {
+  border-color: #1f2937;
+}
+
+.rx-calendar .fc-list-event-title a {
+  color: #e5e7eb;
+}
+
+/* Scrollbar styling */
+.rx-calendar .fc-scroller {
+  scrollbar-width: thin;
+  scrollbar-color: #374151 transparent;
+}
+
+.rx-calendar .fc-scroller::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rx-calendar .fc-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rx-calendar .fc-scroller::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 3px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .rx-calendar .fc-col-header-cell-cushion {
+    font-size: 0.65rem;
+  }
+
+  .rx-calendar .fc-timegrid-slot-label-cushion {
+    font-size: 0.6rem;
+  }
+
+  .rx-calendar .fc-event {
+    font-size: 0.65rem;
+  }
+
+  .rx-calendar .fc-timegrid-slot {
+    height: 2rem;
+  }
+}
