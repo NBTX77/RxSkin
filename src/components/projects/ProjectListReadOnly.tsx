@@ -3,25 +3,11 @@
 import type { Project } from '@/types'
 import { Building2, User, Clock } from 'lucide-react'
 import { BudgetGauge } from './BudgetGauge'
+import { getProjectStageStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
 
 interface ProjectListReadOnlyProps {
   projects: Project[]
   onProjectClick: (id: number) => void
-}
-
-const STATUS_DOT: Record<string, string> = {
-  New: 'bg-blue-400',
-  'Incomplete Handoff': 'bg-orange-400',
-  'Assigned to PM': 'bg-yellow-400',
-  'In Progress': 'bg-cyan-400',
-  Completed: 'bg-green-400',
-}
-
-function getStatusDot(status: string): string {
-  for (const [key, color] of Object.entries(STATUS_DOT)) {
-    if (status.toLowerCase().includes(key.toLowerCase())) return color
-  }
-  return 'bg-gray-400'
 }
 
 export function ProjectListReadOnly({
@@ -59,14 +45,9 @@ export function ProjectListReadOnly({
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <span
-                  className={`w-2 h-2 rounded-full ${getStatusDot(
-                    project.status
-                  )}`}
-                />
-                <span className="text-xs text-gray-400">{project.status}</span>
-              </div>
+              <span className={`${BADGE_BASE_CLASSES} ${getProjectStageStyle(project.status)} flex-shrink-0`}>
+                {project.status}
+              </span>
             </div>
 
             <div className="flex items-center gap-4 mt-3">

@@ -2,6 +2,7 @@
 
 import type { Project } from '@/types'
 import { ProjectCard } from './ProjectCard'
+import { getProjectStageStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
 
 interface ProjectKanbanProps {
   projects: Project[]
@@ -58,13 +59,6 @@ const COLUMN_ACCENT: Record<string, string> = {
   green: 'border-t-2 border-t-green-500',
 }
 
-const COLUMN_HEADER_COLOR: Record<string, string> = {
-  blue: 'text-blue-400',
-  orange: 'text-orange-400',
-  yellow: 'text-yellow-400',
-  cyan: 'text-cyan-400',
-  green: 'text-green-400',
-}
 
 export function ProjectKanban({
   projects,
@@ -84,9 +78,9 @@ export function ProjectKanban({
           >
             {/* Column header */}
             <div className="flex items-center justify-between mb-3">
-              <h3 className={`text-sm font-semibold ${COLUMN_HEADER_COLOR[column.color]}`}>
+              <span className={`${BADGE_BASE_CLASSES} ${getProjectStageStyle(column.name)}`}>
                 {column.name}
-              </h3>
+              </span>
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-800/80 text-xs font-medium text-gray-200">
                 {columnProjects.length}
               </span>
