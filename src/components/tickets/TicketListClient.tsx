@@ -9,22 +9,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { AlertCircle, RefreshCw, Search, LayoutGrid, List } from 'lucide-react'
 import { TicketCard } from './TicketCard'
 import Link from 'next/link'
-
-const PRIORITY_COLORS: Record<string, string> = {
-  Critical: 'bg-red-500',
-  High: 'bg-orange-500',
-  Medium: 'bg-yellow-500',
-  Low: 'bg-blue-500',
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  'New': 'text-blue-400 bg-blue-950 border-blue-800',
-  'In Progress': 'text-yellow-400 bg-yellow-950 border-yellow-800',
-  'Waiting on Client': 'text-purple-400 bg-purple-950 border-purple-800',
-  'Scheduled': 'text-cyan-400 bg-cyan-950 border-cyan-800',
-  'Resolved': 'text-green-400 bg-green-950 border-green-800',
-  'Closed': 'text-gray-400 bg-gray-800 border-gray-700',
-}
+import { getPriorityBadgeStyle, getStatusBadgeStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
 
 async function fetchTickets(filters: TicketFilters): Promise<Ticket[]> {
   const params = new URLSearchParams()
@@ -198,7 +183,7 @@ function VirtualizedTicketTable({ tickets }: { tickets: Ticket[] }) {
           <div className="w-40 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium hidden lg:block">Company</div>
           <div className="w-36 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium">Status</div>
           <div className="w-32 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium hidden xl:block">Assigned</div>
-          <div className="w-8 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium">P</div>
+          <div className="w-24 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium">Priority</div>
         </div>
       </div>
 
@@ -217,8 +202,8 @@ function VirtualizedTicketTable({ tickets }: { tickets: Ticket[] }) {
         >
           {virtualizer.getVirtualItems().map((virtualRow) => {
             const ticket = tickets[virtualRow.index]
-            const priorityColor = PRIORITY_COLORS[ticket.priority] ?? 'bg-gray-500'
-            const statusColor = STATUS_COLORS[ticket.status] ?? 'text-gray-400 bg-gray-800 border-gray-700'
+            const priorityStyle = getPriorityBadgeStyle(ticket.priority)
+            const statusStyle = getStatusBadgeStyle(ticket.status)
             return (
               <div
                 key={ticket.id}
@@ -240,13 +225,15 @@ function VirtualizedTicketTable({ tickets }: { tickets: Ticket[] }) {
                 </div>
                 <div className="w-40 px-4 text-gray-600 dark:text-gray-400 truncate hidden lg:block">{ticket.company}</div>
                 <div className="w-36 px-4">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border ${statusColor}`}>
+                  <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} ${statusStyle}`}>
                     {ticket.status}
                   </span>
                 </div>
                 <div className="w-32 px-4 text-gray-600 dark:text-gray-400 text-sm truncate hidden xl:block">{ticket.assignedTo ?? '—'}</div>
-                <div className="w-8 px-4">
-                  <span className={`inline-block w-2.5 h-2.5 rounded-full ${priorityColor}`} role="img" aria-label={`Priority: ${ticket.priority}`} />
+                <div className="w-24 px-4">
+                  <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} ${priorityStyle}`}>
+                    {ticket.priority ?? 'None'}
+                  </span>
                 </div>
               </div>
             )

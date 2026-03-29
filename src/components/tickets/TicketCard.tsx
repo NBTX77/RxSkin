@@ -5,29 +5,7 @@ import type { Ticket } from '@/types'
 import { Clock, User, Building2, MessageSquare } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
-
-const PRIORITY_COLORS: Record<string, string> = {
-  Critical: 'border-l-red-500',
-  High: 'border-l-orange-500',
-  Medium: 'border-l-blue-500',
-  Low: 'border-l-gray-500',
-}
-
-const PRIORITY_DOT: Record<string, string> = {
-  Critical: 'bg-red-500',
-  High: 'bg-orange-500',
-  Medium: 'bg-blue-500',
-  Low: 'bg-gray-500',
-}
-
-const STATUS_STYLES: Record<string, string> = {
-  'New': 'text-blue-400 bg-blue-500/10 border-blue-500/20',
-  'In Progress': 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
-  'Waiting on Client': 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-  'Scheduled': 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
-  'Resolved': 'text-green-400 bg-green-500/10 border-green-500/20',
-  'Closed': 'text-gray-500 bg-gray-500/10 border-gray-500/20',
-}
+import { PRIORITY_BORDER_COLORS, PRIORITY_DOT_COLORS, getStatusBadgeStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
 
 function timeAgo(dateStr: string): string {
   try {
@@ -43,9 +21,9 @@ interface TicketCardProps {
 }
 
 export const TicketCard = memo(function TicketCard({ ticket, compact = false }: TicketCardProps) {
-  const borderColor = PRIORITY_COLORS[ticket.priority] ?? 'border-l-gray-600'
-  const statusStyle = STATUS_STYLES[ticket.status] ?? 'text-gray-400 bg-gray-500/10 border-gray-500/20'
-  const dotColor = PRIORITY_DOT[ticket.priority] ?? 'bg-gray-500'
+  const borderColor = PRIORITY_BORDER_COLORS[ticket.priority] ?? 'border-l-gray-600'
+  const statusStyle = getStatusBadgeStyle(ticket.status)
+  const dotColor = PRIORITY_DOT_COLORS[ticket.priority] ?? 'bg-gray-500'
 
   if (compact) {
     return (
@@ -76,7 +54,7 @@ export const TicketCard = memo(function TicketCard({ ticket, compact = false }: 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-mono text-gray-500">#{ticket.id}</span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border ${statusStyle}`}>
+            <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} ${statusStyle}`}>
               {ticket.status}
             </span>
           </div>
