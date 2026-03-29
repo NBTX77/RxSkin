@@ -159,7 +159,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
 
   if (ticketLoading || !ticket) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="h-8 w-48 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
         <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
         <div className="h-64 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
@@ -172,7 +172,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
   const totalTime = timeEntries.reduce((sum, e) => sum + e.hoursWorked, 0)
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Back + Quick Actions Bar */}
       <div className="flex items-center justify-between gap-3">
         <button
@@ -215,9 +215,9 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
       </div>
 
       {/* Main content: Split layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Left: Activity Feed (2/3 width) */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-3">
           {/* Ticket header */}
           <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
             <div className="flex items-start gap-3">
@@ -378,7 +378,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
         </div>
 
         {/* Right: Metadata sidebar (1/3 width) */}
-        <div className="lg:sticky lg:top-20 lg:self-start space-y-4">
+        <div className="lg:sticky lg:top-20 lg:self-start space-y-3">
           {/* Key info */}
           <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-4">
             <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Details</h3>
