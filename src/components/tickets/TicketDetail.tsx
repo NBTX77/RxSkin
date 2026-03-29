@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import type { Ticket, TicketNote, TimeEntry } from '@/types'
 import { QuickClosePanel } from './QuickClosePanel'
 import { TicketActions } from '@/components/remote/TicketActions'
+import { useTimeTracker } from '@/contexts/TimeTrackerContext'
 import {
   ArrowLeft, Clock, Building2, User, MessageSquare, Send,
   CheckCircle2, Calendar, AlertCircle, Timer, Tag, ArrowUpCircle,
@@ -43,6 +44,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
   const [showTimeForm, setShowTimeForm] = useState(false)
   const [timeHours, setTimeHours] = useState(0.5)
   const [timeNotes, setTimeNotes] = useState('')
+  const { startTimer, activeTicketId: timerTicketId, isRunning: timerRunning } = useTimeTracker()
 
   const { data: ticket, isLoading: ticketLoading } = useQuery<Ticket>({
     queryKey: ['ticket', ticketId],
@@ -100,9 +102,17 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
         </button>
 
         <div className="flex items-center gap-2">
-          <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-700 hover:text-gray-900 dark:text-white transition-colors flex items-center gap-1.5">
+          <button
+            onClick={() => ticket && startTimer(ticket.id, ticket.summary)}
+            disabled={timerRunning && timerTicketId === ticket?.id}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+              timerRunning && timerTicketId === ticket?.id
+                ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20 cursor-default'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
             <Timer size={13} />
-            Start Timer
+            {timerRunning && timerTicketId === ticket?.id ? 'Timer Running' : timerRunning ? 'Switch Timer' : 'Start Timer'}
           </button>
           <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-700 hover:text-gray-900 dark:text-white transition-colors flex items-center gap-1.5">
             <Calendar size={13} />
@@ -436,44 +446,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
         ticket={ticket}
         isOpen={showClosePanel}
         onClose={() => setShowClosePanel(false)}
-        onConfirm={async (data) => {
-          // 1. Set ticket status to Closed via JSON Patch
-          await fetch(`/api/tickets/${ticketId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify([
-              { op: 'replace', path: '/status', value: { name: 'Closed' } },
-            ]),
-          })
-
-          // 2. Add resolution note
-          if (data.note.trim()) {
-            await fetch(`/api/tickets/${ticketId}/notes`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                text: data.note,
-                isInternal: !data.notifyClient,
-              }),
-            })
-          }
-
-          // 3. Log time entry if hours > 0
-          if (data.hours > 0) {
-            await fetch(`/api/tickets/${ticketId}/time-entries`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                actualHours: data.hours,
-                notes: data.note,
-              }),
-            })
-          }
-
-          // 4. Invalidate all ticket queries
-          queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
-          queryClient.invalidateQueries({ queryKey: ['ticket-notes', ticketId] })
-          queryClient.invalidateQueries({ queryKey: ['ticket-time', ticketId] })
+        onSuccess={() => {
           setShowClosePanel(false)
         }}
       />
