@@ -100,6 +100,7 @@ export function mergeFleetData(input: MergeInput): MergeOutput {
 
   // Build lookup maps
   const locationByVehicleId = new Map(locations.map((l) => [l.id, l]))
+  const locationByName = new Map(locations.map((l) => [l.name.toLowerCase(), l]))
   const hosByDriverId = new Map(hosClocks.map((h) => [h.driverId, h]))
 
   // Build member lookup by name (lowercased) for fuzzy matching
@@ -127,7 +128,12 @@ export function mergeFleetData(input: MergeInput): MergeOutput {
   const techs: FleetTech[] = drivers.map((driver) => {
     const location = driver.vehicleId
       ? locationByVehicleId.get(driver.vehicleId)
-      : undefined
+      : locationByName.get(driver.vehicleName?.toLowerCase() ?? '')
+
+    if (!location) {
+      console.warn(`[Fleet Merge] No location for driver ${driver.name} (vehicleId: ${driver.vehicleId}, vehicleName: ${driver.vehicleName})`)
+    }
+
     const hos = hosByDriverId.get(driver.id)
 
     // Find CW member matching this Samsara driver

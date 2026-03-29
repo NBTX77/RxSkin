@@ -16,7 +16,10 @@ function getBreadcrumb(pathname: string): { section: string; detail?: string } {
   if (pathname === '/schedule') return { section: 'Schedule' }
   if (pathname === '/companies') return { section: 'Companies' }
   if (pathname.startsWith('/companies/')) return { section: 'Companies', detail: pathname.split('/').pop() }
-  if (pathname.startsWith('/ops')) return { section: 'Ops Hub' }
+  if (pathname === '/ops/fleet-map') return { section: 'Fleet Map' }
+  if (pathname === '/ops/analytics') return { section: 'Analytics' }
+  if (pathname === '/ops/holds') return { section: 'Schedule Holds' }
+  if (pathname.startsWith('/ops')) return { section: 'Operations' }
   if (pathname.startsWith('/settings')) return { section: 'Settings' }
   if (pathname.startsWith('/admin')) return { section: 'Admin' }
   return { section: 'Dashboard' }
