@@ -8,6 +8,7 @@ import { ProjectPortfolioView } from './ProjectPortfolioView'
 import { ProjectListReadOnly } from './ProjectListReadOnly'
 import { ProjectDetailOverlay } from './ProjectDetailOverlay'
 import { Search, SlidersHorizontal, FolderKanban, Table2, LayoutGrid } from 'lucide-react'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import type { Project, DepartmentCode } from '@/types'
 
 type ViewMode = 'kanban' | 'table' | 'list' | 'portfolio'
@@ -181,31 +182,39 @@ export function ProjectsClient() {
       {!loading && !error && (
         <>
           {viewMode === 'kanban' && (
-            <ProjectKanban
-              projects={filteredProjects}
-              onProjectClick={setSelectedProjectId}
-            />
+            <ErrorBoundary section="Project Kanban">
+              <ProjectKanban
+                projects={filteredProjects}
+                onProjectClick={setSelectedProjectId}
+              />
+            </ErrorBoundary>
           )}
 
           {viewMode === 'table' && (
-            <ProjectFinancialTable
-              projects={filteredProjects}
-              onProjectClick={setSelectedProjectId}
-            />
+            <ErrorBoundary section="Project Financials">
+              <ProjectFinancialTable
+                projects={filteredProjects}
+                onProjectClick={setSelectedProjectId}
+              />
+            </ErrorBoundary>
           )}
 
           {viewMode === 'list' && (
-            <ProjectListReadOnly
-              projects={filteredProjects}
-              onProjectClick={setSelectedProjectId}
-            />
+            <ErrorBoundary section="Project List">
+              <ProjectListReadOnly
+                projects={filteredProjects}
+                onProjectClick={setSelectedProjectId}
+              />
+            </ErrorBoundary>
           )}
 
           {viewMode === 'portfolio' && (
-            <ProjectPortfolioView
-              projects={filteredProjects}
-              onProjectClick={setSelectedProjectId}
-            />
+            <ErrorBoundary section="Project Portfolio">
+              <ProjectPortfolioView
+                projects={filteredProjects}
+                onProjectClick={setSelectedProjectId}
+              />
+            </ErrorBoundary>
           )}
         </>
       )}

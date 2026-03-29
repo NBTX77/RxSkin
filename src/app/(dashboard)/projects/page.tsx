@@ -1,13 +1,16 @@
 import { Suspense } from 'react'
 import { ProjectsClient } from '@/components/projects/ProjectsClient'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 
 export const metadata = { title: 'Projects — RX Skin' }
 
 export default function ProjectsPage() {
   return (
-    <Suspense fallback={<ProjectsSkeleton />}>
-      <ProjectsClient />
-    </Suspense>
+    <ErrorBoundary section="Projects">
+      <Suspense fallback={<ProjectsSkeleton />}>
+        <ProjectsClient />
+      </Suspense>
+    </ErrorBoundary>
   )
 }
 

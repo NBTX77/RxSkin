@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import '@/components/schedule/calendar-theme.css'
 
 const ScheduleCalendar = dynamic(
@@ -16,5 +17,9 @@ const ScheduleCalendar = dynamic(
 export const metadata = { title: 'Schedule — RX Skin' }
 
 export default function SchedulePage() {
-  return <ScheduleCalendar />
+  return (
+    <ErrorBoundary section="Schedule">
+      <ScheduleCalendar />
+    </ErrorBoundary>
+  )
 }

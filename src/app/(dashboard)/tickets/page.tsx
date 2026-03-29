@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { TicketListClient } from '@/components/tickets/TicketListClient'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 
 export const metadata = { title: 'Tickets — RX Skin' }
 
@@ -13,9 +14,11 @@ export default function TicketsPage() {
         </button>
       </div>
 
-      <Suspense fallback={<TicketListSkeleton />}>
-        <TicketListClient />
-      </Suspense>
+      <ErrorBoundary section="Ticket List">
+        <Suspense fallback={<TicketListSkeleton />}>
+          <TicketListClient />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   )
 }
