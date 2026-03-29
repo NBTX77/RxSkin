@@ -184,11 +184,13 @@ export async function getScalePadClient(
   creds: ScalePadCredentials,
   clientId: string
 ): Promise<CBRClient> {
-  const response = await scalePadFetch<{ data: Record<string, unknown> }>(
+  const response = await scalePadFetch<Record<string, unknown>>(
     `/core/v1/clients/${clientId}`,
     creds
   )
-  return normalizeClient(response.data)
+  // Single-item endpoint returns the object directly (no data wrapper)
+  const raw = (response as { data?: Record<string, unknown> }).data ?? response
+  return normalizeClient(raw)
 }
 
 // ── Hardware Assets ────────────────────────────────────────────
