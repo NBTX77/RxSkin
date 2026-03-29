@@ -13,7 +13,6 @@ import {
   Search,
   Radar,
   ChevronDown,
-  ChevronRight,
   Map,
   BarChart3,
   Clock,
@@ -226,10 +225,10 @@ export function Sidebar() {
               >
                 <SectionIcon size={18} />
                 <span className="flex-1 text-left">{sectionName}</span>
-                {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
               </button>
 
-              {isExpanded && (
+              <div className={`overflow-hidden transition-all duration-200 ease-in-out ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
                 <div className="ml-4 mt-1 space-y-0.5">
                   {section.items.map(({ href, label, icon: Icon }) => {
                     const active = isNavItemActive(href)
@@ -249,7 +248,7 @@ export function Sidebar() {
                     )
                   })}
                 </div>
-              )}
+              </div>
             </div>
           )
         })}
