@@ -19,20 +19,29 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
 
 const loginAttempts = new Map<string, { count: number; firstAttempt: number }>()
 
-// Purge stale entries every 5 minutes
-setInterval(() => {
-  const now = Date.now()
-  loginAttempts.forEach((data, ip) => {
-    if (now - data.firstAttempt > LOGIN_WINDOW_MS) {
-      loginAttempts.delete(ip)
-    }
-  })
-}, 5 * 60 * 1000).unref()
+// Purge stale entries every 5 minutes (Node.js only — not available in Edge Runtime)
+if (typeof setInterval !== 'undefined' && typeof process !== 'undefined' && process.env) {
+  try {
+    const timer = setInterval(() => {
+      const now = Date.now()
+      loginAttempts.forEach((data, ip) => {
+        if (now - data.firstAttempt > LOGIN_WINDOW_MS) {
+          loginAttempts.delete(ip)
+        }
+      })
+    }, 5 * 60 * 1000)
+    if (typeof timer === 'object' && 'unref' in timer) timer.unref()
+  } catch {
+    // Edge runtime — skip periodic purge; stale entries cleaned lazily in checkRateLimit
+  }
+}
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now()
   const entry = loginAttempts.get(ip)
   if (!entry || now - entry.firstAttempt > LOGIN_WINDOW_MS) {
+    // Lazily clean expired entry before creating new one
+    if (entry) loginAttempts.delete(ip)
     loginAttempts.set(ip, { count: 1, firstAttempt: now })
     return true
   }
