@@ -48,7 +48,7 @@ export const ProjectCard = memo(function ProjectCard({ project, onClick }: Proje
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-gray-800/80 border border-gray-700/50 rounded-lg p-3 hover:border-gray-600 hover:bg-gray-800/95 transition-all cursor-pointer group"
+      className="w-full text-left bg-gray-800/80 border border-gray-700/50 rounded-lg p-3 hover:border-gray-600 hover:bg-gray-800/95 hover:shadow-md hover:shadow-cyan-500/10 transition-all duration-150 cursor-pointer group"
     >
       {/* Header: Project name + status badge */}
       <div className="flex items-start justify-between gap-2 mb-2">

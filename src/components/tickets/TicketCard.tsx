@@ -20,16 +20,22 @@ interface TicketCardProps {
   compact?: boolean
 }
 
+const PRIORITY_HOVER_SHADOW: Record<string, string> = {
+  Critical: 'hover:shadow-red-500/10',
+  High: 'hover:shadow-orange-500/10',
+}
+
 export const TicketCard = memo(function TicketCard({ ticket, compact = false }: TicketCardProps) {
   const borderColor = PRIORITY_BORDER_COLORS[ticket.priority] ?? 'border-l-gray-600'
   const statusStyle = getStatusBadgeStyle(ticket.status)
   const dotColor = PRIORITY_DOT_COLORS[ticket.priority] ?? 'bg-gray-500'
+  const hoverShadow = PRIORITY_HOVER_SHADOW[ticket.priority] ?? ''
 
   if (compact) {
     return (
       <Link
         href={`/tickets/${ticket.id}`}
-        className={`block rounded-lg border-l-[3px] ${borderColor} bg-gray-900 border border-gray-800 hover:border-gray-700 hover:bg-gray-800/50 transition-all p-3 cursor-pointer`}
+        className={`block rounded-lg border-l-[3px] ${borderColor} bg-gray-900 border border-gray-800 hover:border-gray-700 hover:bg-gray-800/50 hover:shadow-md hover:shadow-black/20 transition-all duration-150 p-3 cursor-pointer ${hoverShadow}`}
       >
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-gray-100 font-medium truncate flex-1">{ticket.summary}</p>
@@ -47,7 +53,7 @@ export const TicketCard = memo(function TicketCard({ ticket, compact = false }: 
   return (
     <Link
       href={`/tickets/${ticket.id}`}
-      className={`block rounded-xl border-l-[3px] ${borderColor} bg-gray-900 border border-gray-800 hover:border-gray-700 hover:bg-gray-800/30 transition-all p-4 cursor-pointer group`}
+      className={`block rounded-xl border-l-[3px] ${borderColor} bg-gray-900 border border-gray-800 hover:border-gray-700 hover:bg-gray-800/30 hover:shadow-lg hover:shadow-black/30 transition-all duration-150 p-4 cursor-pointer group ${hoverShadow}`}
     >
       {/* Header: ID + Priority */}
       <div className="flex items-start justify-between gap-3">
