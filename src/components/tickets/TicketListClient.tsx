@@ -6,12 +6,27 @@ import { queryKeys } from '@/lib/query-keys'
 import type { Ticket, TicketFilters } from '@/types'
 import { useState, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { AlertCircle, RefreshCw, Search, LayoutGrid, List, Ticket as TicketIcon } from 'lucide-react'
+import { AlertCircle, RefreshCw, Search, LayoutGrid, List, Ticket as TicketIcon, GripVertical } from 'lucide-react'
 import { TicketCard } from './TicketCard'
 import Link from 'next/link'
 import { getPriorityBadgeStyle, getStatusBadgeStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
 import { TicketCardSkeleton } from '@/components/ui/TicketCardSkeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 async function fetchTickets(filters: TicketFilters): Promise<Ticket[]> {
   const params = new URLSearchParams()
@@ -23,11 +38,28 @@ async function fetchTickets(filters: TicketFilters): Promise<Ticket[]> {
   return res.json()
 }
 
+interface ColumnDef {
+  id: string
+  label: string
+  width: string
+  visibility?: string
+}
+
+const DEFAULT_COLUMNS: ColumnDef[] = [
+  { id: 'ticket', label: '#', width: 'w-16' },
+  { id: 'summary', label: 'Summary', width: 'flex-1' },
+  { id: 'company', label: 'Company', width: 'w-40', visibility: 'hidden lg:block' },
+  { id: 'status', label: 'Status', width: 'w-36' },
+  { id: 'assignee', label: 'Assignee', width: 'w-32', visibility: 'hidden xl:block' },
+  { id: 'priority', label: 'Priority', width: 'w-24' },
+]
+
 export function TicketListClient() {
   const { data: session } = useSession()
   const [filters, setFilters] = useState<TicketFilters>({})
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
+  const [columns, setColumns] = useState<ColumnDef[]>(DEFAULT_COLUMNS)
 
   const tenantId = session?.user?.tenantId ?? ''
 
@@ -57,11 +89,11 @@ export function TicketListClient() {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <AlertCircle className="text-red-400 mb-3" size={32} />
-        <p className="text-gray-300 font-medium">Failed to load tickets</p>
+        <p className="text-gray-700 dark:text-gray-300 font-medium">Failed to load tickets</p>
         <p className="text-gray-500 text-sm mt-1">Check your ConnectWise credentials in .env.local</p>
         <button
           onClick={() => refetch()}
-          className="mt-4 flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors"
+          className="mt-4 flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-lg transition-colors"
         >
           <RefreshCw size={14} />
           Retry
@@ -78,9 +110,9 @@ export function TicketListClient() {
 
   return (
     <div className="space-y-4">
-      {/* Search + View Toggle */}
-      <div className="flex items-center gap-2">
-        <form onSubmit={handleSearch} className="flex-1 relative">
+      {/* Unified toolbar: Search + View Toggle + New Ticket */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <form onSubmit={handleSearch} className="flex-1 relative min-w-[180px]">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <label htmlFor="ticket-search" className="sr-only">Search tickets</label>
           <input
@@ -89,33 +121,54 @@ export function TicketListClient() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tickets..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-gray-800/80 border border-gray-700/50 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-sm"
+            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700/50 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-sm"
           />
         </form>
-        <div className="flex items-center bg-gray-800 rounded-lg border border-gray-700/50 p-0.5">
+
+        {/* Status filter — compact select on desktop */}
+        <div className="hidden md:block">
+          <select
+            value={filters.status?.[0] ?? ''}
+            onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value ? [e.target.value] : undefined }))}
+            className="px-3 py-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700/50 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          >
+            <option value="">All ({tickets?.length ?? 0})</option>
+            {Object.entries(statusCounts).map(([status, count]) => (
+              <option key={status} value={status}>{status} ({count})</option>
+            ))}
+          </select>
+        </div>
+
+        {/* View toggle */}
+        <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700/50 p-0.5">
           <button
             onClick={() => setViewMode('cards')}
             aria-label="Card view"
-            className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
           >
             <LayoutGrid size={16} />
           </button>
           <button
             onClick={() => setViewMode('table')}
             aria-label="Table view"
-            className={`p-2 rounded-md transition-colors ${viewMode === 'table' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`p-2 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
           >
             <List size={16} />
           </button>
         </div>
+
+        {/* New Ticket button */}
+        <button className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap">
+          + New Ticket
+        </button>
       </div>
 
-      {/* Status filter pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      {/* Mobile status filter pills */}
+      <div className="flex md:hidden items-center gap-2 overflow-x-auto pb-1">
         <button
           onClick={() => setFilters(prev => ({ ...prev, status: undefined }))}
           className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            !filters.status?.length ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+            !filters.status?.length ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
           }`}
         >
           All ({tickets?.length ?? 0})
@@ -127,7 +180,7 @@ export function TicketListClient() {
             className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               filters.status?.[0] === status
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+                : 'bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
             }`}
           >
             {status} ({count})
@@ -148,19 +201,112 @@ export function TicketListClient() {
           )}
         </div>
       ) : (
-        /* Virtualized table view */
-        <VirtualizedTicketTable tickets={tickets ?? []} />
+        /* Virtualized table view with sortable columns */
+        <VirtualizedTicketTable tickets={tickets ?? []} columns={columns} setColumns={setColumns} />
       )}
     </div>
   )
+}
+
+// ── Sortable Column Header ────────────────────────────────
+
+function SortableColumnHeader({ column }: { column: ColumnDef }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: column.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`px-4 py-3 text-gray-500 dark:text-gray-400 font-medium ${column.width} ${column.visibility ?? ''} ${isDragging ? 'opacity-50' : ''}`}
+    >
+      <div className="flex items-center gap-1 group">
+        <span
+          {...attributes}
+          {...listeners}
+          className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
+        >
+          <GripVertical size={12} className="text-gray-400 dark:text-gray-600 rotate-90" />
+        </span>
+        {column.label}
+      </div>
+    </div>
+  )
+}
+
+// ── Cell Renderer ────────────────────────────────────
+
+function TicketCell({ columnId, ticket }: { columnId: string; ticket: Ticket }) {
+  const priorityStyle = getPriorityBadgeStyle(ticket.priority)
+  const statusStyle = getStatusBadgeStyle(ticket.status)
+
+  switch (columnId) {
+    case 'ticket':
+      return (
+        <Link href={`/tickets/${ticket.id}`} className="text-gray-500 font-mono text-xs hover:text-blue-400">
+          {ticket.id}
+        </Link>
+      )
+    case 'summary':
+      return (
+        <Link href={`/tickets/${ticket.id}`} className="text-gray-900 dark:text-gray-100 font-medium truncate block hover:text-blue-600 dark:hover:text-white">
+          {ticket.summary}
+        </Link>
+      )
+    case 'company':
+      return <span className="text-gray-600 dark:text-gray-400 truncate block">{ticket.company}</span>
+    case 'status':
+      return (
+        <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} ${statusStyle}`}>
+          {ticket.status}
+        </span>
+      )
+    case 'assignee':
+      return <span className="text-gray-600 dark:text-gray-400 text-sm truncate block">{ticket.assignedTo ?? '—'}</span>
+    case 'priority':
+      return (
+        <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} ${priorityStyle}`}>
+          {ticket.priority ?? 'None'}
+        </span>
+      )
+    default:
+      return null
+  }
 }
 
 // ── Virtualized Table ────────────────────────────────────
 
 const ROW_HEIGHT = 48
 
-function VirtualizedTicketTable({ tickets }: { tickets: Ticket[] }) {
+function VirtualizedTicketTable({
+  tickets,
+  columns,
+  setColumns,
+}: {
+  tickets: Ticket[]
+  columns: ColumnDef[]
+  setColumns: React.Dispatch<React.SetStateAction<ColumnDef[]>>
+}) {
   const parentRef = useRef<HTMLDivElement>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  )
+
+  function handleColumnDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (over && active.id !== over.id) {
+      setColumns(prev => {
+        const oldIndex = prev.findIndex(c => c.id === active.id)
+        const newIndex = prev.findIndex(c => c.id === over.id)
+        return arrayMove(prev, oldIndex, newIndex)
+      })
+    }
+  }
 
   const virtualizer = useVirtualizer({
     count: tickets.length,
@@ -179,17 +325,18 @@ function VirtualizedTicketTable({ tickets }: { tickets: Ticket[] }) {
 
   return (
     <div className="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-      {/* Fixed header */}
-      <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="flex text-sm">
-          <div className="w-16 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium">#</div>
-          <div className="flex-1 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium">Summary</div>
-          <div className="w-40 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium hidden lg:block">Company</div>
-          <div className="w-36 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium">Status</div>
-          <div className="w-32 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium hidden xl:block">Assigned</div>
-          <div className="w-24 px-4 py-3 text-gray-500 dark:text-gray-400 font-medium">Priority</div>
-        </div>
-      </div>
+      {/* Sortable header */}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleColumnDragEnd}>
+        <SortableContext items={columns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
+          <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex text-sm">
+              {columns.map(col => (
+                <SortableColumnHeader key={col.id} column={col} />
+              ))}
+            </div>
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {/* Scrollable virtualized body */}
       <div
@@ -206,8 +353,6 @@ function VirtualizedTicketTable({ tickets }: { tickets: Ticket[] }) {
         >
           {virtualizer.getVirtualItems().map((virtualRow) => {
             const ticket = tickets[virtualRow.index]
-            const priorityStyle = getPriorityBadgeStyle(ticket.priority)
-            const statusStyle = getStatusBadgeStyle(ticket.status)
             return (
               <div
                 key={ticket.id}
@@ -217,28 +362,11 @@ function VirtualizedTicketTable({ tickets }: { tickets: Ticket[] }) {
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
-                <div className="w-16 px-4">
-                  <Link href={`/tickets/${ticket.id}`} className="text-gray-500 font-mono text-xs hover:text-blue-400">
-                    {ticket.id}
-                  </Link>
-                </div>
-                <div className="flex-1 px-4 min-w-0">
-                  <Link href={`/tickets/${ticket.id}`} className="text-gray-900 dark:text-gray-100 font-medium truncate block hover:text-blue-600 dark:hover:text-white">
-                    {ticket.summary}
-                  </Link>
-                </div>
-                <div className="w-40 px-4 text-gray-600 dark:text-gray-400 truncate hidden lg:block">{ticket.company}</div>
-                <div className="w-36 px-4">
-                  <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} ${statusStyle}`}>
-                    {ticket.status}
-                  </span>
-                </div>
-                <div className="w-32 px-4 text-gray-600 dark:text-gray-400 text-sm truncate hidden xl:block">{ticket.assignedTo ?? '—'}</div>
-                <div className="w-24 px-4">
-                  <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} ${priorityStyle}`}>
-                    {ticket.priority ?? 'None'}
-                  </span>
-                </div>
+                {columns.map(col => (
+                  <div key={col.id} className={`px-4 ${col.width} ${col.visibility ?? ''} min-w-0`}>
+                    <TicketCell columnId={col.id} ticket={ticket} />
+                  </div>
+                ))}
               </div>
             )
           })}
