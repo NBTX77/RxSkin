@@ -7,8 +7,8 @@
 
 ## Current Status
 
-**Last Completed Phase:** Phase 17 — SmileBack CSAT/NPS Integration
-**Active Priorities:** Phase 18 Meraki, Phase 19 M365, Credential Vault, Azure AD
+**Last Completed Phase:** Phase 18 — Cisco Meraki MSP Dashboard
+**Active Priorities:** Phase 19 Workflow Analytics, Phase 21 Workflow Engine, Credential Vault, Azure AD
 **Overall Progress:** ~55% of full vision
 
 ---
@@ -272,23 +272,23 @@ Architecture fully designed (2026-03-28). Research document: `RX-Skin-Middleware
 - Batch endpoint for ticket list badges (avoids N+1 API calls)
 ---
 
-## Phase 18 — Cisco Meraki MSP Dashboard (Planned — 2026-03-29)
+## Phase 18 — Cisco Meraki MSP Dashboard ✅ Complete (2026-03-29)
 
 **Goal:** Build a full Meraki network monitoring dashboard inside the IT department section. One API key covers all customer organizations. Dashboard surfaces device health, WAN uplinks, wireless stats, alerts, licensing, and firmware status across all managed orgs.
 
 | Task | Description | Status |
 |------|------------|--------|
-| Task 79 | Meraki BFF client + TypeScript types (Bearer auth, 429 retry, Link header pagination) | Pending |
-| Task 80 | Meraki BFF API routes (14 endpoints + dashboard aggregation) | Pending |
-| Task 81 | Meraki React hooks (TanStack Query, 13 hooks) | Pending |
-| Task 82 | Meraki dashboard page + sidebar nav (7 tabs: Overview, Devices, Networks, Alerts, WAN, Wireless, Licensing) | Pending |
-| Task 83 | Meraki device detail overlay (switch ports, appliance uplinks, AP SSIDs) | Pending |
-| Task 84 | Meraki network detail view (clients, wireless stats, device list) | Pending |
-| Task 85 | Meraki org selector + cross-org aggregation | Pending |
-| Task 86 | Meraki webhook receiver (HMAC-SHA256 verification) | Pending |
-| Task 87 | Meraki admin integration card (Credential Vault) | Pending |
-| Task 88 | Meraki cron sync + BFF cache layer | Pending |
-| Task 89 | Deploy + update all documentation | Pending |
+| Task 79 | Meraki BFF client + TypeScript types (Bearer auth, 429 retry, Link header pagination) | ✅ Done |
+| Task 80 | Meraki BFF API routes (14 endpoints + dashboard aggregation) | ✅ Done |
+| Task 81 | Meraki React hooks (TanStack Query, 13 hooks) | ✅ Done |
+| Task 82 | Meraki dashboard page + sidebar nav (7 tabs: Overview, Devices, Networks, Alerts, WAN, Wireless, Licensing) | ✅ Done |
+| Task 83 | Meraki device detail overlay (switch ports, appliance uplinks, AP SSIDs) | ✅ Done |
+| Task 84 | Meraki network detail view (clients, wireless stats, device list) | ✅ Done |
+| Task 85 | Meraki org selector + cross-org aggregation | ✅ Done |
+| Task 86 | Meraki webhook receiver (HMAC-SHA256 verification) | ✅ Done |
+| Task 87 | Meraki admin integration card (Credential Vault) | ✅ Done |
+| Task 88 | Meraki cron sync + BFF cache layer | ✅ Done |
+| Task 89 | Deploy + update all documentation | ✅ Done |
 
 ### Key Design Decisions
 - **Single API key = all orgs** — MSP pattern; one Bearer token covers every customer organization
