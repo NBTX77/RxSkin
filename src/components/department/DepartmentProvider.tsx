@@ -32,7 +32,7 @@ const DepartmentContext = createContext<DepartmentContextValue | null>(null)
 
 export function DepartmentProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
-  const userDept = session?.user?.department || 'IT'
+  const userDept = session?.user?.department || 'LT'
   const userRole = session?.user?.role || 'TECHNICIAN'
 
   const [activeDept, setActiveDept] = useState<DepartmentCode>(userDept)

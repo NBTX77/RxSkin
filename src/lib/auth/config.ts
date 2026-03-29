@@ -128,7 +128,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             tenantId: process.env.TENANT_ID ?? process.env.DEV_TENANT_ID ?? 'rx-technology',
             role: 'ADMIN' as UserRole,
             cwMemberId: process.env.CW_MEMBER_ID ?? process.env.DEV_CW_MEMBER_ID ?? 'TBrown',
-            department: parseDepartmentCode(process.env.DEPARTMENT ?? process.env.DEV_DEPARTMENT, 'SI'),
+            department: parseDepartmentCode(process.env.DEPARTMENT ?? process.env.DEV_DEPARTMENT, 'LT'),
           }
         }
 
@@ -172,7 +172,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.tenantId = String(token.tenantId ?? '')
       session.user.role = parseUserRole(token.role, 'VIEWER')
       session.user.cwMemberId = token.cwMemberId ? String(token.cwMemberId) : undefined
-      session.user.department = parseDepartmentCode(token.department, 'IT')
+      session.user.department = parseDepartmentCode(token.department, 'LT')
       return session
     },
   },
