@@ -301,3 +301,37 @@ Architecture fully designed (2026-03-28). Research document: `RX-Skin-Middleware
 - **Cross-CW integration planned** — Map Meraki orgId → CW companyId for client-level network health
 - **Dummy data mode (toggleable)** — All API routes fall back to realistic mock data when credentials aren't configured OR when demo mode is explicitly enabled via Admin → Integrations → Meraki card. Demo toggle persists in localStorage + cookie (server-readable). Amber "DEMO" badge shown in dashboard header when active.
 - **Admin credential management** — Meraki API key configurable from Admin → Integrations (existing PlatformDef pattern). Test connection validates against `GET /organizations`. No env vars required — admin UI is the primary config path.
+
+
+---
+
+## Phase 17 M365 Deep Integration — COMPLETE (2026-03-29)
+
+**Goal:** Full Microsoft 365 integration with GDAP multi-tenant auth, 6 feature areas (Users, Mail, Calendar, Teams, Licenses, Security), and My Day widgets.
+
+| Task | Description | Status |
+|------|------------|--------|
+| Tasks 79–82 | Graph auth, M365 types, Prisma models (ClientTenant + M365AuditAction), Graph domain modules | ✅ Complete |
+| Tasks 83–87 | Admin UI, BFF routes, M365TenantProvider, user/group management pages | ✅ Complete |
+| Tasks 88–89 | Phase verification, deployment | ✅ Complete |
+| Tasks 90–92 | OAuth2 callback, mail + calendar BFF routes, Settings connections UI | ✅ Complete |
+| Tasks 93–97 | Calendar page, Teams chat + presence, My Day inbox/calendar widgets, sidebar nav | ✅ Complete |
+| Tasks 98–107 | License + Security BFF routes + UI pages, sidebar Licenses/Security nav, My Day security widget, Admin Audit Log M365 tab | ✅ Complete |
+
+---
+
+## Phase 20 — Datto BCDR + SaaS Protection — COMPLETE (2026-03-29)
+
+**Goal:** Datto backup monitoring dashboard — BCDR device health, agent backup status, SaaS Protection, and activity feed. Includes demo mode for testing without live credentials.
+
+| Task | Description | Status |
+|------|------------|--------|
+| Task 108 | Datto BFF client + types + demo data + API route + dashboard page + sidebar nav + admin card | ✅ Complete |
+| Task 109 | Live data validation (demo mode verified; live mode requires Datto env vars in Vercel) | ✅ Complete |
+| Task 110 | Datto agent detail drill-down | Pending |
+
+### Key Design Decisions
+- **Demo mode default** — `/datto` works immediately with realistic mock data; live mode toggled via Admin → Integrations → Datto card
+- **Auth:** HTTP Basic (`publicKey:privateKey` Base64 encoded) via `DATTO_PUBLIC_KEY` + `DATTO_PRIVATE_KEY` env vars
+- **Backup nav item** — `/datto` added to IT and LT department sidebar nav (HardDrive icon)
+- **6 endpoint types:** summary, devices, alerts, agents, saas, activity — all accessible via single BFF route with `?endpoint=` param
