@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import {
@@ -169,15 +169,54 @@ interface ConnectionConfig {
 }
 
 function ConnectionsTab() {
-  // In production, these would come from the UserOAuthToken table
-  const connections: ConnectionConfig[] = [
+  const [msStatus, setMsStatus] = useState<{ connected: boolean; expiresAt?: string } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/m365/connection')
+      .then(r => r.json())
+      .then(data => setMsStatus(data))
+      .catch(() => setMsStatus({ connected: false }))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const handleConnect = async () => {
+    setActionLoading(true)
+    try {
+      const res = await fetch('/api/m365/connection/authorize')
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      }
+    } catch {
+      setActionLoading(false)
+    }
+  }
+
+  const handleDisconnect = async () => {
+    setActionLoading(true)
+    try {
+      await fetch('/api/m365/connection', { method: 'DELETE' })
+      setMsStatus({ connected: false })
+    } catch {
+      // ignore
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const connections: (ConnectionConfig & { onConnect?: () => void; onDisconnect?: () => void; status?: { connected: boolean } | null })[] = [
     {
       id: 'microsoft',
       label: 'Microsoft 365',
       description: 'Outlook mail, calendar, Teams presence',
       icon: Mail,
-      connected: false,
+      connected: msStatus?.connected ?? false,
       features: ['Inbox preview', 'Calendar sync', 'Teams presence', 'Send email'],
+      onConnect: handleConnect,
+      onDisconnect: handleDisconnect,
+      status: msStatus,
     },
     {
       id: 'webex',
@@ -211,18 +250,30 @@ function ConnectionsTab() {
               </div>
             </div>
 
-            {conn.connected ? (
+            {loading ? (
+              <span className="text-xs text-gray-500">Checking...</span>
+            ) : conn.connected ? (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-green-400 flex items-center gap-1">
                   <Check size={12} /> Connected
                 </span>
-                <button className="text-xs text-gray-500 hover:text-red-400 transition-colors px-2 py-1 rounded">
-                  Disconnect
-                </button>
+                {conn.onDisconnect && (
+                  <button
+                    onClick={conn.onDisconnect}
+                    disabled={actionLoading}
+                    className="text-xs text-gray-500 hover:text-red-400 transition-colors px-2 py-1 rounded disabled:opacity-50"
+                  >
+                    Disconnect
+                  </button>
+                )}
               </div>
             ) : (
-              <button className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors">
-                Connect
+              <button
+                onClick={conn.onConnect}
+                disabled={actionLoading || !conn.onConnect}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+              >
+                {actionLoading ? 'Connecting...' : 'Connect'}
                 <ExternalLink size={12} />
               </button>
             )}
