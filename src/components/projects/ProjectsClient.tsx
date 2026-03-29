@@ -8,7 +8,9 @@ import { ProjectPortfolioView } from './ProjectPortfolioView'
 import { ProjectListReadOnly } from './ProjectListReadOnly'
 import { ProjectDetailOverlay } from './ProjectDetailOverlay'
 import { ProjectCard } from './ProjectCard'
-import { Search, SlidersHorizontal, FolderKanban, Table2, LayoutGrid, CheckCircle2 } from 'lucide-react'
+import { Search, SlidersHorizontal, FolderKanban, Table2, LayoutGrid, CheckCircle2, Target, AlertCircle, Clock, DollarSign } from 'lucide-react'
+import { KPICard } from '@/components/ui/KPICard'
+import { KPIStrip } from '@/components/ui/KPIStrip'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import type { Project, DepartmentCode } from '@/types'
 
@@ -117,8 +119,28 @@ export function ProjectsClient() {
       return views
     }, [department])
 
+  // KPI computations from project data
+  const activeProjectCount = activeProjects.length
+  const completedProjectCount = completedProjects.length
+  const overBudgetCount = filteredProjects.filter(
+    (p) => p.budgetHours > 0 && p.actualHours > p.budgetHours
+  ).length
+  const totalBudgetHours = filteredProjects.reduce((sum, p) => sum + p.budgetHours, 0)
+  const totalActualHours = filteredProjects.reduce((sum, p) => sum + p.actualHours, 0)
+
   return (
     <div className="space-y-4 min-w-0">
+      {/* KPI Strip */}
+      {!loading && !error && (
+        <KPIStrip>
+          <KPICard icon={Target} color="bg-blue-500" label="Active Projects" value={activeProjectCount} />
+          <KPICard icon={AlertCircle} color="bg-red-500" label="Over Budget" value={overBudgetCount} />
+          <KPICard icon={CheckCircle2} color="bg-emerald-500" label="Completed" value={completedProjectCount} />
+          <KPICard icon={Clock} color="bg-cyan-500" label="Budget Hours" value={totalBudgetHours.toLocaleString()} />
+          <KPICard icon={DollarSign} color="bg-yellow-500" label="Actual Hours" value={totalActualHours.toLocaleString()} />
+        </KPIStrip>
+      )}
+
       {/* Toolbar: search + filter + completed toggle + view toggles + count */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[180px] max-w-md">

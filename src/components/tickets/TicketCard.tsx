@@ -35,7 +35,7 @@ export const TicketCard = memo(function TicketCard({ ticket, compact = false }: 
     return (
       <Link
         href={`/tickets/${ticket.id}`}
-        className={`block rounded-lg border-l-[3px] ${borderColor} bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-gray-700 hover:bg-gray-100 dark:bg-gray-800/50 hover:shadow-md hover:shadow-black/20 transition-all duration-150 p-3 cursor-pointer ${hoverShadow}`}
+        className={`block rounded-lg border-l-[3px] ${borderColor} bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-md transition-all duration-150 p-3 cursor-pointer ${hoverShadow}`}
       >
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-gray-800 dark:text-gray-100 font-medium truncate flex-1">{ticket.summary}</p>
@@ -43,7 +43,7 @@ export const TicketCard = memo(function TicketCard({ ticket, compact = false }: 
         </div>
         <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
           <span>{ticket.company}</span>
-          <span className="text-gray-700">|</span>
+          <span className="text-gray-400 dark:text-gray-600">|</span>
           <span>{timeAgo(ticket.updatedAt)}</span>
         </div>
       </Link>
@@ -53,7 +53,7 @@ export const TicketCard = memo(function TicketCard({ ticket, compact = false }: 
   return (
     <Link
       href={`/tickets/${ticket.id}`}
-      className={`block rounded-xl border-l-[3px] ${borderColor} bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800/30 hover:shadow-lg hover:shadow-black/30 transition-all duration-150 p-4 cursor-pointer group ${hoverShadow}`}
+      className={`block rounded-lg border-l-[3px] ${borderColor} bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:shadow-lg transition-all duration-150 p-4 cursor-pointer group ${hoverShadow}`}
     >
       {/* Header: ID + Priority */}
       <div className="flex items-start justify-between gap-3">

@@ -6,7 +6,9 @@ import { queryKeys } from '@/lib/query-keys'
 import type { Ticket, TicketFilters } from '@/types'
 import { useState, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { AlertCircle, RefreshCw, Search, LayoutGrid, List, Ticket as TicketIcon, GripVertical } from 'lucide-react'
+import { AlertCircle, RefreshCw, Search, LayoutGrid, List, Ticket as TicketIcon, GripVertical, Clock, CheckCircle2, Zap, Hourglass } from 'lucide-react'
+import { KPICard } from '@/components/ui/KPICard'
+import { KPIStrip } from '@/components/ui/KPIStrip'
 import { TicketCard } from './TicketCard'
 import Link from 'next/link'
 import { getPriorityBadgeStyle, getStatusBadgeStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
@@ -108,8 +110,22 @@ export function TicketListClient() {
     statusCounts[t.status] = (statusCounts[t.status] ?? 0) + 1
   })
 
+  // KPI computations from ticket data
+  const openCount = tickets?.filter(t => !t.closedAt && t.status !== 'Closed').length ?? 0
+  const inProgressCount = statusCounts['In Progress'] ?? 0
+  const waitingCount = statusCounts['Waiting on Client'] ?? statusCounts['Waiting'] ?? 0
+  const closedCount = statusCounts['Closed'] ?? 0
+
   return (
     <div className="space-y-3">
+      {/* KPI Strip */}
+      <KPIStrip>
+        <KPICard icon={Zap} color="bg-blue-500" label="Open" value={openCount} />
+        <KPICard icon={Clock} color="bg-yellow-500" label="In Progress" value={inProgressCount} />
+        <KPICard icon={Hourglass} color="bg-orange-500" label="Waiting on Client" value={waitingCount} />
+        <KPICard icon={CheckCircle2} color="bg-emerald-500" label="Closed" value={closedCount} />
+      </KPIStrip>
+
       {/* Unified toolbar: Search + View Toggle + New Ticket */}
       <div className="flex items-center gap-2 flex-wrap">
         <form onSubmit={handleSearch} className="flex-1 relative min-w-[180px]">
@@ -317,18 +333,18 @@ function VirtualizedTicketTable({
 
   if (tickets.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800">
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700/50">
         <EmptyState icon={TicketIcon} title="No tickets found" description="Try adjusting your filters." />
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700/50 overflow-hidden">
       {/* Sortable header */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleColumnDragEnd}>
         <SortableContext items={columns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
-          <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+          <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/50">
             <div className="flex text-sm">
               {columns.map(col => (
                 <SortableColumnHeader key={col.id} column={col} />

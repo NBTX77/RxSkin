@@ -483,7 +483,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                         max="24"
                         value={timeHours}
                         onChange={(e) => setTimeHours(parseFloat(e.target.value) || 0.25)}
-                        className="w-20 px-2 py-1 rounded bg-white dark:bg-gray-900 border border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        className="w-20 px-2 py-1 rounded bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700/50 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
                       />
                       <span className="text-xs text-gray-500">hours</span>
                     </div>

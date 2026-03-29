@@ -47,7 +47,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   }
 
   return (
-    <div ref={menuRef} role="menu" style={style} className="min-w-[180px] bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl py-1">
+    <div ref={menuRef} role="menu" style={style} className="min-w-[180px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg shadow-xl py-1">
       {items.map((item, i) => (
         <button
           key={i}

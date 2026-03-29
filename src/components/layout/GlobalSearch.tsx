@@ -107,7 +107,7 @@ export function GlobalSearch() {
 
       {/* Dialog */}
       <div role="dialog" aria-modal="true" aria-label="Global search" className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[101]">
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-2xl overflow-hidden">
           {/* Search input */}
           <div className="flex items-center px-4 gap-3 border-b border-gray-200 dark:border-gray-800">
             <Search size={18} className="text-gray-500 flex-shrink-0" />
