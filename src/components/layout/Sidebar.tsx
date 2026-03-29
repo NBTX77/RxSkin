@@ -23,6 +23,7 @@ import {
   Users,
   LayoutGrid,
   ClipboardCheck,
+  Cloud,
 } from 'lucide-react'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 import { ToolsSection } from '@/components/layout/ToolsSection'
@@ -63,6 +64,14 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/fleet', label: 'Fleet Map', icon: Map },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
+    expandableSections: {
+      'Microsoft 365': {
+        icon: Cloud,
+        items: [
+          { href: '/m365/users', label: 'Users & Groups', icon: Users },
+        ],
+      },
+    },
   },
   SI: {
     dashboardLabel: 'My Day',
@@ -77,6 +86,14 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/fleet', label: 'Fleet Map', icon: Map },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
+    expandableSections: {
+      'Microsoft 365': {
+        icon: Cloud,
+        items: [
+          { href: '/m365/users', label: 'Users & Groups', icon: Users },
+        ],
+      },
+    },
   },
   AM: {
     dashboardLabel: 'My Day',
@@ -128,7 +145,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { department, config, canSwitch, switchDepartment, allDepartments } = useDepartment()
-  const [expandedSection, setExpandedSection] = useState<string | null>(pathname.startsWith('/fleet') ? 'Ops' : null)
+  const [expandedSection, setExpandedSection] = useState<string | null>(pathname.startsWith('/m365') ? 'Microsoft 365' : null)
   const [isHovered, setIsHovered] = useState(false)
   const [deptPopoverOpen, setDeptPopoverOpen] = useState(false)
   const deptRef = useRef<HTMLDivElement>(null)
