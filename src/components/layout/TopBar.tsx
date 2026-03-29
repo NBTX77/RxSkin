@@ -19,7 +19,7 @@ export function TopBar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 h-14 bg-gray-950/80 backdrop-blur-md border-b border-gray-800/60 flex items-center justify-between px-4 lg:px-6">
+    <header className="sticky top-0 z-30 h-14 bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 flex items-center justify-between px-4 lg:px-6">
       {/* Left: Logo on mobile, empty on desktop (sidebar has logo) */}
       <div className="flex items-center gap-3 lg:hidden">
         <div className={`w-7 h-7 rounded-lg ${getColorBg(config.color)} flex items-center justify-center`}>
