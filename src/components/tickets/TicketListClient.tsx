@@ -51,9 +51,6 @@ const DEFAULT_COLUMNS: ColumnDef[] = [
   { id: 'ticket', label: '#', width: 'w-16' },
   { id: 'summary', label: 'Summary', width: 'flex-1' },
   { id: 'company', label: 'Company', width: 'w-40', visibility: 'hidden lg:block' },
-  { id: 'status', label: 'Status', width: 'w-36' },
-  { id: 'assignee', label: 'Assignee', width: 'w-32', visibility: 'hidden xl:block' },
-  { id: 'priority', label: 'Priority', width: 'w-24' },
 ]
 
 export function TicketListClient() {
@@ -269,26 +266,27 @@ function TicketCell({ columnId, ticket }: { columnId: string; ticket: Ticket }) 
       )
     case 'summary':
       return (
-        <Link href={`/tickets/${ticket.id}`} className="text-gray-900 dark:text-gray-100 font-medium truncate block hover:text-blue-600 dark:hover:text-white">
-          {ticket.summary}
+        <Link href={`/tickets/${ticket.id}`} className="flex items-center gap-2 min-w-0 group">
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} text-[10px] leading-tight ${priorityStyle}`}>
+              {ticket.priority ?? 'Med'}
+            </span>
+            <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} text-[10px] leading-tight ${statusStyle}`}>
+              {ticket.status}
+            </span>
+          </div>
+          <span className="text-gray-900 dark:text-gray-100 font-medium truncate group-hover:text-blue-600 dark:group-hover:text-white">
+            {ticket.summary}
+          </span>
+          {ticket.assignedTo && (
+            <span className="hidden sm:inline text-gray-400 dark:text-gray-500 text-xs flex-shrink-0 ml-auto">
+              {ticket.assignedTo}
+            </span>
+          )}
         </Link>
       )
     case 'company':
       return <span className="text-gray-600 dark:text-gray-400 truncate block">{ticket.company}</span>
-    case 'status':
-      return (
-        <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} ${statusStyle}`}>
-          {ticket.status}
-        </span>
-      )
-    case 'assignee':
-      return <span className="text-gray-600 dark:text-gray-400 text-sm truncate block">{ticket.assignedTo ?? '—'}</span>
-    case 'priority':
-      return (
-        <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} ${priorityStyle}`}>
-          {ticket.priority ?? 'None'}
-        </span>
-      )
     default:
       return null
   }
