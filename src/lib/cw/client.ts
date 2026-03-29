@@ -179,6 +179,7 @@ export async function getTickets(
   const params = new URLSearchParams()
 
   const conditions: string[] = []
+  if (filters.conditions) conditions.push(filters.conditions)
   if (filters.status?.length) {
     conditions.push(filters.status.map(s => `status/name="${escapeCwFilter(s)}"`).join(' OR '))
   }
@@ -255,6 +256,22 @@ export async function getTimeEntries(
   ticketId: number
 ): Promise<Record<string, unknown>[]> {
   return cwFetch(creds, `/time/entries?conditions=chargeToId=${ticketId} AND chargeToType="ServiceTicket"&orderBy=dateEntered desc&pageSize=50`)
+}
+
+/** List all time entries with optional date range filter (not scoped to a single ticket). */
+export async function getAllTimeEntries(
+  creds: CWCredentials,
+  options: { startDate?: string; endDate?: string; pageSize?: number } = {}
+): Promise<Record<string, unknown>[]> {
+  const params = new URLSearchParams()
+  const conditions: string[] = []
+  if (options.startDate) conditions.push(`dateEntered>=[${options.startDate}]`)
+  if (options.endDate) conditions.push(`dateEntered<=[${options.endDate}]`)
+  if (conditions.length) params.set('conditions', conditions.join(' AND '))
+  params.set('pageSize', String(options.pageSize ?? 500))
+  params.set('fields', 'id,chargeToId,chargeToType,member,actualHours,dateEntered,notes,billableOption,workType')
+  params.set('orderBy', 'dateEntered desc')
+  return cwFetch(creds, `/time/entries?${params}`)
 }
 
 /** Create a time entry for a ticket. */
@@ -381,6 +398,109 @@ export async function updateProject(
     body: JSON.stringify(patches),
   })
   return normalizeProject(raw)
+}
+
+// ── Finance: Invoices ────────────────────────────────────────
+
+/** Raw CW invoice record from /finance/invoices. */
+export interface CWInvoice {
+  id: number
+  invoiceNumber: string
+  type: string
+  status: { id: number; name: string }
+  company: { id: number; name: string; identifier: string }
+  date: string
+  dueDate: string
+  total: number
+  balance: number
+  closedFlag: boolean
+  paidFlag: boolean
+  glPostedFlag: boolean
+  currency: { id: number; symbol: string; name: string }
+}
+
+/** List invoices with optional OData conditions. */
+export async function getInvoices(
+  creds: CWCredentials,
+  conditions?: string
+): Promise<CWInvoice[]> {
+  const params = new URLSearchParams()
+  if (conditions) params.set('conditions', conditions)
+  params.set('pageSize', '200')
+  params.set('orderBy', 'date desc')
+
+  return cwFetch<CWInvoice[]>(creds, `/finance/invoices?${params}`)
+}
+
+// ── Finance: Agreements ──────────────────────────────────────
+
+/** Raw CW agreement record from /finance/agreements. */
+export interface CWAgreement {
+  id: number
+  name: string
+  type: { id: number; name: string }
+  company: { id: number; name: string; identifier: string }
+  contact: { id: number; name: string } | null
+  startDate: string
+  endDate: string
+  cancelledFlag: boolean
+  noEndingDateFlag: boolean
+  billCycleId: number
+  billAmount: number
+  periodType: string
+  agreementStatus: string | null
+  workRole: { id: number; name: string } | null
+  workType: { id: number; name: string } | null
+  billExpenses: string
+  billProducts: string
+  billTime: string
+}
+
+/** List agreements with optional OData conditions. */
+export async function getAgreements(
+  creds: CWCredentials,
+  conditions?: string
+): Promise<CWAgreement[]> {
+  const params = new URLSearchParams()
+  if (conditions) params.set('conditions', conditions)
+  params.set('pageSize', '200')
+  params.set('orderBy', 'name asc')
+
+  return cwFetch<CWAgreement[]>(creds, `/finance/agreements?${params}`)
+}
+
+// ── Procurement: Purchase Orders ─────────────────────────────
+
+/** Raw CW purchase order record from /procurement/purchaseorders. */
+export interface CWPurchaseOrder {
+  id: number
+  _info: { lastUpdated: string } | null
+  status: { id: number; name: string }
+  company: { id: number; name: string; identifier: string }
+  vendorCompany: { id: number; name: string; identifier: string } | null
+  vendorInvoiceNumber: string | null
+  poNumber: string
+  dateClosed: string | null
+  total: number
+  taxTotal: number
+  freightCost: number
+  closedFlag: boolean
+  shippingDate: string | null
+  customerCity: string | null
+  notes: string | null
+}
+
+/** List purchase orders with optional OData conditions. */
+export async function getPurchaseOrders(
+  creds: CWCredentials,
+  conditions?: string
+): Promise<CWPurchaseOrder[]> {
+  const params = new URLSearchParams()
+  if (conditions) params.set('conditions', conditions)
+  params.set('pageSize', '200')
+  params.set('orderBy', 'id desc')
+
+  return cwFetch<CWPurchaseOrder[]>(creds, `/procurement/purchaseorders?${params}`)
 }
 
 // ── Companies ─────────────────────────────────────────────────

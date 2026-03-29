@@ -67,6 +67,8 @@ export interface TicketFilters {
   search?: string
   page?: number
   pageSize?: number
+  /** Raw CW OData conditions to prepend (e.g. 'closedFlag=false') */
+  conditions?: string
 }
 
 // ── Schedule ─────────────────────────────────────────────────

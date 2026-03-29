@@ -4,7 +4,7 @@
 // ExecutiveDashboard — RX Skin
 // Leadership Team (LT) executive dashboard with KPIs,
 // department performance, project health matrix, utilization,
-// and recent highlights. Uses demo/static data.
+// and recent highlights. Wired to live ConnectWise data.
 // ============================================================
 
 import { useState } from 'react'
@@ -20,205 +20,67 @@ import {
 } from 'recharts'
 import {
   TrendingUp,
-  TrendingDown,
   AlertCircle,
   CheckCircle2,
   Clock,
-  Plus,
   DollarSign,
-  Users,
   Zap,
   Target,
   Info,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import {
+  useExecutiveData,
+  type ExecutiveKPI,
+  type DepartmentPerformance,
+  type ProjectHealthEntry,
+  type ExecutiveHighlight,
+} from '@/hooks/useExecutiveData'
 
 // --------------- Types ---------------
 
 type ProjectStatus = 'on-track' | 'watch' | 'over-budget'
-type TrendDirection = 'up' | 'down' | 'neutral'
 
-interface KPI {
-  label: string
-  value: string | number
-  color: string
-  icon: LucideIcon
+// --------------- Icon Maps ---------------
+
+const KPI_ICON_MAP: Record<string, LucideIcon> = {
+  'Open Tickets': Zap,
+  'Active Projects': Target,
+  'Monthly Revenue': DollarSign,
+  'Projects Over Budget': AlertCircle,
+  'SLA Compliance': CheckCircle2,
 }
 
-interface DepartmentCard {
-  id: string
-  name: string
-  color: string
-  accent: string
-  tickets?: number
-  projects?: number
-  members: number
-  trend: TrendDirection
-  trendValue: string
-  opportunities?: number
-  agreements?: number
-  procurementTickets?: number
-  openInvoices?: string
+const KPI_COLOR_MAP: Record<string, string> = {
+  'Open Tickets': 'bg-blue-500',
+  'Active Projects': 'bg-cyan-500',
+  'Monthly Revenue': 'bg-emerald-500',
+  'Projects Over Budget': 'bg-red-500',
+  'SLA Compliance': 'bg-emerald-500',
 }
 
-interface ProjectEntry {
-  id: string
-  name: string
-  status: ProjectStatus
+const DEPT_COLORS: Record<string, { gradient: string; accent: string }> = {
+  IT: { gradient: 'from-blue-600 to-blue-700', accent: 'bg-blue-500' },
+  SI: { gradient: 'from-cyan-600 to-cyan-700', accent: 'bg-cyan-500' },
+  AM: { gradient: 'from-emerald-600 to-emerald-700', accent: 'bg-emerald-500' },
+  GA: { gradient: 'from-orange-600 to-orange-700', accent: 'bg-orange-500' },
 }
 
-interface ProjectMatrix {
-  it: ProjectEntry[]
-  si: ProjectEntry[]
-  ga: ProjectEntry[]
+const HIGHLIGHT_ICONS: Record<string, LucideIcon> = {
+  success: CheckCircle2,
+  alert: AlertCircle,
+  warning: Clock,
+  info: Info,
 }
 
-interface UtilizationEntry {
-  name: string
-  utilization: number
+const HIGHLIGHT_COLORS: Record<string, string> = {
+  success: 'text-emerald-400',
+  alert: 'text-red-400',
+  warning: 'text-yellow-400',
+  info: 'text-blue-400',
 }
-
-interface Highlight {
-  id: number
-  type: string
-  icon: LucideIcon
-  title: string
-  subtitle: string
-  color: string
-}
-
-// --------------- Demo Data ---------------
-
-const kpis: KPI[] = [
-  { label: 'Open Tickets', value: 173, color: 'bg-blue-500', icon: Zap },
-  { label: 'Active Projects', value: 53, color: 'bg-cyan-500', icon: Target },
-  { label: 'Monthly Revenue', value: '$148K', color: 'bg-emerald-500', icon: DollarSign },
-  { label: 'Utilization Rate', value: '76%', color: 'bg-yellow-500', icon: Users },
-  { label: 'Projects Over Budget', value: 4, color: 'bg-red-500', icon: AlertCircle },
-  { label: 'SLA Compliance', value: '94%', color: 'bg-emerald-500', icon: CheckCircle2 },
-]
-
-const departments: DepartmentCard[] = [
-  {
-    id: 'it',
-    name: 'IT Services',
-    color: 'from-blue-600 to-blue-700',
-    accent: 'bg-blue-500',
-    tickets: 141,
-    projects: 16,
-    members: 80,
-    trend: 'up',
-    trendValue: '+12%',
-  },
-  {
-    id: 'si',
-    name: 'Systems Integration',
-    color: 'from-cyan-600 to-cyan-700',
-    accent: 'bg-cyan-500',
-    tickets: 23,
-    projects: 23,
-    members: 38,
-    trend: 'neutral',
-    trendValue: '+2%',
-  },
-  {
-    id: 'am',
-    name: 'Account Management',
-    color: 'from-emerald-600 to-emerald-700',
-    accent: 'bg-emerald-500',
-    opportunities: 4,
-    agreements: 160,
-    members: 17,
-    trend: 'up',
-    trendValue: '+8%',
-  },
-  {
-    id: 'ga',
-    name: 'G&A',
-    color: 'from-orange-600 to-orange-700',
-    accent: 'bg-orange-500',
-    procurementTickets: 5,
-    projects: 14,
-    openInvoices: '$287K',
-    members: 8,
-    trend: 'down',
-    trendValue: '+18% over',
-  },
-]
-
-const projectMatrix: ProjectMatrix = {
-  it: [
-    { id: 'p001', name: 'Cloud Migration', status: 'on-track' },
-    { id: 'p002', name: 'Security Audit', status: 'on-track' },
-    { id: 'p003', name: 'Network Upgrade', status: 'watch' },
-    { id: 'p004', name: 'Backup System', status: 'on-track' },
-    { id: 'p005', name: 'Disaster Recovery', status: 'watch' },
-    { id: 'p006', name: 'Email Migration', status: 'on-track' },
-  ],
-  si: [
-    { id: 'p007', name: 'ERP Implementation', status: 'on-track' },
-    { id: 'p008', name: 'CRM Customization', status: 'on-track' },
-    { id: 'p009', name: 'API Integration', status: 'on-track' },
-    { id: 'p010', name: 'Database Upgrade', status: 'watch' },
-    { id: 'p011', name: 'Mobile App Dev', status: 'over-budget' },
-    { id: 'p012', name: 'Data Migration', status: 'over-budget' },
-  ],
-  ga: [
-    { id: 'p013', name: 'Vendor Mgmt', status: 'over-budget' },
-    { id: 'p014', name: 'Compliance', status: 'over-budget' },
-    { id: 'p015', name: 'Procurement', status: 'watch' },
-  ],
-}
-
-const utilizationData: UtilizationEntry[] = [
-  { name: 'IT', utilization: 76 },
-  { name: 'SI', utilization: 73 },
-  { name: 'AM', utilization: 68 },
-  { name: 'G&A', utilization: 127 },
-]
-
-const highlights: Highlight[] = [
-  {
-    id: 1,
-    type: 'success',
-    icon: CheckCircle2,
-    title: 'Project #788 completed',
-    subtitle: 'City of Helotes infrastructure upgrade',
-    color: 'text-emerald-400',
-  },
-  {
-    id: 2,
-    type: 'alert',
-    icon: AlertCircle,
-    title: 'G&A projects 127% over budget',
-    subtitle: 'Requires immediate review and reallocation',
-    color: 'text-red-400',
-  },
-  {
-    id: 3,
-    type: 'warning',
-    icon: Clock,
-    title: '6 incomplete handoffs pending',
-    subtitle: 'Follow-up required from project managers',
-    color: 'text-yellow-400',
-  },
-  {
-    id: 4,
-    type: 'new',
-    icon: Plus,
-    title: 'New MSP agreement signed',
-    subtitle: 'Hill Electric Services — 36-month contract',
-    color: 'text-blue-400',
-  },
-  {
-    id: 5,
-    type: 'critical',
-    icon: Clock,
-    title: 'SLA breach risk — 3 tickets aging >48h',
-    subtitle: 'Escalate to senior technicians immediately',
-    color: 'text-orange-400',
-  },
-]
 
 // --------------- Helpers ---------------
 
@@ -250,6 +112,15 @@ function getBarFill(utilization: number): string {
   return '#10b981'
 }
 
+function formatTimeAgo(isoDate: string): string {
+  const diff = Date.now() - new Date(isoDate).getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins} min ago`
+  const hours = Math.floor(mins / 60)
+  return `${hours}h ago`
+}
+
 // --------------- Custom Tooltip ---------------
 
 interface TooltipPayloadItem {
@@ -275,21 +146,111 @@ function UtilizationTooltip({ active, payload, label }: CustomTooltipProps) {
   )
 }
 
+// --------------- Loading Skeleton ---------------
+
+function DashboardSkeleton() {
+  return (
+    <div className="flex-1 overflow-auto">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8">
+        {/* KPI strip skeleton */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 animate-pulse"
+            >
+              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg mb-3" />
+              <div className="w-20 h-3 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
+              <div className="w-12 h-7 bg-gray-200 dark:bg-gray-700 rounded" />
+            </div>
+          ))}
+        </div>
+
+        {/* Department cards skeleton */}
+        <div>
+          <div className="w-48 h-6 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 animate-pulse"
+              >
+                <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded mb-3" />
+                <div className="w-24 h-4 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
+                <div className="space-y-2">
+                  <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded" />
+                  <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded" />
+                  <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Two-column skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-6 h-64 animate-pulse" />
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-6 h-64 animate-pulse" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// --------------- Error State ---------------
+
+function DashboardError({ error, onRetry }: { error: Error; onRetry: () => void }) {
+  return (
+    <div className="flex-1 overflow-auto">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-md mx-auto mt-16 text-center">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-950/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            Failed to Load Dashboard
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            {error.message || 'An unexpected error occurred while fetching executive data.'}
+          </p>
+          <button
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Retry
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // --------------- Component ---------------
 
 export function ExecutiveDashboard() {
   const [hoveredProject, setHoveredProject] = useState<string | null>(null)
   const [, setSelectedDept] = useState<string | null>(null)
+
+  const { data, isLoading, isError, error, refetch } = useExecutiveData()
+
+  if (isLoading) return <DashboardSkeleton />
+  if (isError) return <DashboardError error={error as Error} onRetry={() => refetch()} />
+  if (!data) return <DashboardSkeleton />
+
+  const { kpis, departments, projectHealth, utilization, highlights, dataStatus, fetchedAt } = data
+
+  // Map utilization data for the chart
+  const utilizationChartData = utilization.map(u => ({
+    name: u.name,
+    utilization: u.utilization,
+  }))
+
   return (
     <div className="flex-1 overflow-auto">
       <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8">
-        {/* DEMO DATA BANNER */}
-        <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50">
-          <Info className="w-4 h-4 text-blue-500 flex-shrink-0" />
-          <p className="text-sm text-blue-700 dark:text-blue-300">
-            Demo Data — Executive metrics shown are static sample data for layout preview.
-          </p>
-        </div>
+        {/* DATA STATUS BANNER */}
+        <DataStatusBanner dataStatus={dataStatus} fetchedAt={fetchedAt} errors={data.errors} />
 
         {/* HEADER */}
         <div>
@@ -297,33 +258,15 @@ export function ExecutiveDashboard() {
             Executive Dashboard
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Last refreshed: 2 min ago
+            Last refreshed: {formatTimeAgo(fetchedAt)}
           </p>
         </div>
 
         {/* KPI STRIP */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4">
-          {kpis.map((kpi) => {
-            const IconComponent = kpi.icon
-            return (
-              <div
-                key={kpi.label}
-                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className={`${kpi.color} p-2 rounded-lg`}>
-                    <IconComponent className="w-4 h-4 text-white" />
-                  </div>
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
-                  {kpi.label}
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {kpi.value}
-                </p>
-              </div>
-            )
-          })}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
+          {kpis.map((kpi) => (
+            <KPICard key={kpi.label} kpi={kpi} />
+          ))}
         </div>
 
         {/* DEPARTMENT PERFORMANCE CARDS */}
@@ -333,95 +276,16 @@ export function ExecutiveDashboard() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {departments.map((dept) => (
-              <div
+              <DepartmentCard
                 key={dept.id}
-                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer"
-                onClick={() => setSelectedDept(dept.id)}
-              >
-                {/* Color accent bar */}
-                <div className={`h-1 bg-gradient-to-r ${dept.color}`} />
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
-                      {dept.name}
-                    </h3>
-                    {dept.trend === 'up' && (
-                      <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    )}
-                    {dept.trend === 'down' && (
-                      <TrendingDown className="w-4 h-4 text-red-400" />
-                    )}
-                    {dept.trend === 'neutral' && (
-                      <span className="w-4 h-4 text-gray-400 text-sm">&#8594;</span>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 text-xs">
-                    {dept.tickets !== undefined && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Tickets</span>
-                        <span className="text-gray-900 dark:text-white font-medium">
-                          {dept.tickets}
-                        </span>
-                      </div>
-                    )}
-                    {dept.procurementTickets !== undefined && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Procurement</span>
-                        <span className="text-gray-900 dark:text-white font-medium">
-                          {dept.procurementTickets}
-                        </span>
-                      </div>
-                    )}
-                    {dept.opportunities !== undefined && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Opportunities</span>
-                        <span className="text-gray-900 dark:text-white font-medium">
-                          {dept.opportunities}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-gray-500 dark:text-gray-400">
-                        {dept.projects ? 'Projects' : 'Agreements'}
-                      </span>
-                      <span className="text-gray-900 dark:text-white font-medium">
-                        {dept.projects ?? dept.agreements}
-                      </span>
-                    </div>
-                    {dept.openInvoices && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Open Invoices</span>
-                        <span className="text-gray-900 dark:text-white font-medium">
-                          {dept.openInvoices}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-                      <span className="text-gray-500 dark:text-gray-400">Members</span>
-                      <span className="text-gray-900 dark:text-white font-medium">
-                        {dept.members}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-right">
-                    <span
-                      className={`text-xs font-semibold ${
-                        dept.trendValue.includes('over')
-                          ? 'text-red-400'
-                          : 'text-emerald-400'
-                      }`}
-                    >
-                      {dept.trendValue}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                dept={dept}
+                onSelect={() => setSelectedDept(dept.id)}
+              />
             ))}
           </div>
         </div>
 
-        {/* TWO COLUMN LAYOUT — stacks on mobile */}
+        {/* TWO COLUMN LAYOUT -- stacks on mobile */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           {/* LEFT: PROJECT HEALTH MATRIX */}
           <div>
@@ -430,35 +294,43 @@ export function ExecutiveDashboard() {
             </h2>
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 sm:p-6">
               <div className="space-y-6">
-                {/* IT Section */}
-                <ProjectSection
-                  label="IT Services"
-                  count={projectMatrix.it.length}
-                  labelColor="text-blue-500"
-                  projects={projectMatrix.it}
-                  hoveredProject={hoveredProject}
-                  onHover={setHoveredProject}
-                />
+                {projectHealth.it.length > 0 && (
+                  <ProjectSection
+                    label="IT Services"
+                    count={projectHealth.it.length}
+                    labelColor="text-blue-500"
+                    projects={projectHealth.it}
+                    hoveredProject={hoveredProject}
+                    onHover={setHoveredProject}
+                  />
+                )}
+                {projectHealth.si.length > 0 && (
+                  <ProjectSection
+                    label="Systems Integration"
+                    count={projectHealth.si.length}
+                    labelColor="text-cyan-500"
+                    projects={projectHealth.si}
+                    hoveredProject={hoveredProject}
+                    onHover={setHoveredProject}
+                  />
+                )}
+                {projectHealth.ga.length > 0 && (
+                  <ProjectSection
+                    label="G&A"
+                    count={projectHealth.ga.length}
+                    labelColor="text-orange-500"
+                    projects={projectHealth.ga}
+                    hoveredProject={hoveredProject}
+                    onHover={setHoveredProject}
+                  />
+                )}
 
-                {/* SI Section */}
-                <ProjectSection
-                  label="Systems Integration"
-                  count={projectMatrix.si.length}
-                  labelColor="text-cyan-500"
-                  projects={projectMatrix.si}
-                  hoveredProject={hoveredProject}
-                  onHover={setHoveredProject}
-                />
-
-                {/* G&A Section */}
-                <ProjectSection
-                  label="G&A"
-                  count={projectMatrix.ga.length}
-                  labelColor="text-orange-500"
-                  projects={projectMatrix.ga}
-                  hoveredProject={hoveredProject}
-                  onHover={setHoveredProject}
-                />
+                {/* Empty state */}
+                {projectHealth.it.length === 0 && projectHealth.si.length === 0 && projectHealth.ga.length === 0 && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+                    No active projects found.
+                  </p>
+                )}
 
                 {/* Legend */}
                 <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex flex-wrap gap-4 text-xs">
@@ -487,43 +359,49 @@ export function ExecutiveDashboard() {
                 Utilization by Department
               </h2>
               <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 sm:p-6">
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={utilizationData}>
-                    <XAxis
-                      dataKey="name"
-                      stroke="currentColor"
-                      className="text-gray-400"
-                      tick={{ fill: '#9CA3AF' }}
-                      axisLine={{ stroke: '#D1D5DB' }}
-                      tickLine={{ stroke: '#D1D5DB' }}
-                    />
-                    <YAxis
-                      stroke="currentColor"
-                      className="text-gray-400"
-                      tick={{ fill: '#9CA3AF' }}
-                      axisLine={{ stroke: '#D1D5DB' }}
-                      tickLine={{ stroke: '#D1D5DB' }}
-                      domain={[0, 140]}
-                    />
-                    <Tooltip content={<UtilizationTooltip />} cursor={{ fill: 'rgba(107,114,128,0.1)' }} />
-                    <ReferenceLine
-                      y={100}
-                      stroke="#ef4444"
-                      strokeDasharray="6 4"
-                      label={{
-                        value: '100% capacity',
-                        position: 'right',
-                        fill: '#ef4444',
-                        fontSize: 11,
-                      }}
-                    />
-                    <Bar dataKey="utilization" radius={[8, 8, 0, 0]}>
-                      {utilizationData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={getBarFill(entry.utilization)} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                {utilizationChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={utilizationChartData}>
+                      <XAxis
+                        dataKey="name"
+                        stroke="currentColor"
+                        className="text-gray-400"
+                        tick={{ fill: '#9CA3AF' }}
+                        axisLine={{ stroke: '#D1D5DB' }}
+                        tickLine={{ stroke: '#D1D5DB' }}
+                      />
+                      <YAxis
+                        stroke="currentColor"
+                        className="text-gray-400"
+                        tick={{ fill: '#9CA3AF' }}
+                        axisLine={{ stroke: '#D1D5DB' }}
+                        tickLine={{ stroke: '#D1D5DB' }}
+                        domain={[0, 140]}
+                      />
+                      <Tooltip content={<UtilizationTooltip />} cursor={{ fill: 'rgba(107,114,128,0.1)' }} />
+                      <ReferenceLine
+                        y={100}
+                        stroke="#ef4444"
+                        strokeDasharray="6 4"
+                        label={{
+                          value: '100% capacity',
+                          position: 'right',
+                          fill: '#ef4444',
+                          fontSize: 11,
+                        }}
+                      />
+                      <Bar dataKey="utilization" radius={[8, 8, 0, 0]}>
+                        {utilizationChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={getBarFill(entry.utilization)} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+                    No utilization data available.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -533,31 +411,144 @@ export function ExecutiveDashboard() {
                 Recent Highlights
               </h2>
               <div className="space-y-2">
-                {highlights.map((highlight) => {
-                  const IconComponent = highlight.icon
-                  return (
-                    <div
-                      key={highlight.id}
-                      className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors flex gap-4"
-                    >
-                      <IconComponent
-                        className={`${highlight.color} w-5 h-5 mt-0.5 flex-shrink-0`}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                          {highlight.title}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {highlight.subtitle}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })}
+                {highlights.map((highlight) => (
+                  <HighlightCard key={highlight.id} highlight={highlight} />
+                ))}
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// --------------- Sub-components ---------------
+
+function DataStatusBanner({
+  dataStatus,
+  fetchedAt,
+  errors,
+}: {
+  dataStatus: 'live' | 'partial'
+  fetchedAt: string
+  errors: string[]
+}) {
+  if (dataStatus === 'live') {
+    return (
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50">
+        <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+        <p className="text-sm text-emerald-700 dark:text-emerald-300">
+          Live Data — All metrics sourced from ConnectWise in real time.
+        </p>
+        <span className="ml-auto text-xs text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+          {formatTimeAgo(fetchedAt)}
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-start gap-2 px-4 py-2.5 rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800/50">
+      <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-yellow-700 dark:text-yellow-300">
+          Partial Data — Some data sources failed to load.
+        </p>
+        {errors.length > 0 && (
+          <ul className="mt-1 text-xs text-yellow-600 dark:text-yellow-400 list-disc list-inside">
+            {errors.map((err, i) => (
+              <li key={i}>{err}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function KPICard({ kpi }: { kpi: ExecutiveKPI }) {
+  const IconComponent = KPI_ICON_MAP[kpi.label] ?? Info
+  const colorClass = KPI_COLOR_MAP[kpi.label] ?? 'bg-gray-500'
+
+  return (
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+      <div className="flex items-start justify-between mb-3">
+        <div className={`${colorClass} p-2 rounded-lg`}>
+          <IconComponent className="w-4 h-4 text-white" />
+        </div>
+        {kpi.phase2 && (
+          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5">
+            Phase 2
+          </span>
+        )}
+      </div>
+      <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+        {kpi.label}
+      </p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+        {kpi.value}
+      </p>
+    </div>
+  )
+}
+
+function DepartmentCard({
+  dept,
+  onSelect,
+}: {
+  dept: DepartmentPerformance
+  onSelect: () => void
+}) {
+  const colors = DEPT_COLORS[dept.id] ?? { gradient: 'from-gray-600 to-gray-700', accent: 'bg-gray-500' }
+
+  return (
+    <div
+      className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer"
+      onClick={onSelect}
+    >
+      <div className={`h-1 bg-gradient-to-r ${colors.gradient}`} />
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+            {dept.name}
+          </h3>
+          <TrendingUp className="w-4 h-4 text-gray-400" />
+        </div>
+
+        <div className="space-y-2 text-xs">
+          <div className="flex justify-between">
+            <span className="text-gray-500 dark:text-gray-400">Tickets</span>
+            <span className="text-gray-900 dark:text-white font-medium">{dept.tickets}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500 dark:text-gray-400">Projects</span>
+            <span className="text-gray-900 dark:text-white font-medium">{dept.projects}</span>
+          </div>
+          <div className="flex justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+            <span className="text-gray-500 dark:text-gray-400">Members</span>
+            <span className="text-gray-900 dark:text-white font-medium">{dept.members}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function HighlightCard({ highlight }: { highlight: ExecutiveHighlight }) {
+  const IconComponent = HIGHLIGHT_ICONS[highlight.type] ?? Info
+  const colorClass = HIGHLIGHT_COLORS[highlight.type] ?? 'text-gray-400'
+
+  return (
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors flex gap-4">
+      <IconComponent className={`${colorClass} w-5 h-5 mt-0.5 flex-shrink-0`} />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+          {highlight.title}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          {highlight.subtitle}
+        </p>
       </div>
     </div>
   )
@@ -569,7 +560,7 @@ interface ProjectSectionProps {
   label: string
   count: number
   labelColor: string
-  projects: ProjectEntry[]
+  projects: ProjectHealthEntry[]
   hoveredProject: string | null
   onHover: (id: string | null) => void
 }
@@ -588,19 +579,27 @@ function ProjectSection({
         {label} ({count} projects)
       </h3>
       <div className="grid grid-cols-3 gap-2">
-        {projects.map((proj) => (
-          <div
-            key={proj.id}
-            className={`${getStatusColor(proj.status)} rounded p-2 text-xs font-medium text-white text-center cursor-pointer transition-all hover:shadow-lg ${
-              hoveredProject === proj.id ? 'ring-2 ring-white/50 scale-105' : ''
-            }`}
-            title={`${proj.name} - ${getStatusLabel(proj.status)}`}
-            onMouseEnter={() => onHover(proj.id)}
-            onMouseLeave={() => onHover(null)}
-          >
-            {proj.name.split(' ')[0]}
-          </div>
-        ))}
+        {projects.map((proj) => {
+          const projKey = String(proj.id)
+          // Truncate name for the tile: use first word or first 12 chars
+          const shortName = proj.name.length > 12
+            ? proj.name.slice(0, 12).trim()
+            : proj.name.split(' ')[0]
+
+          return (
+            <div
+              key={projKey}
+              className={`${getStatusColor(proj.status)} rounded p-2 text-xs font-medium text-white text-center cursor-pointer transition-all hover:shadow-lg ${
+                hoveredProject === projKey ? 'ring-2 ring-white/50 scale-105' : ''
+              }`}
+              title={`${proj.name} - ${getStatusLabel(proj.status)} (${proj.utilizationPct}% of budget)`}
+              onMouseEnter={() => onHover(projKey)}
+              onMouseLeave={() => onHover(null)}
+            >
+              {shortName}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
