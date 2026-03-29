@@ -120,7 +120,7 @@ function BottomSheet({
 }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { department, config, canSwitch, switchDepartment, allDepartments } = useDepartment()
+  const { department, canSwitch, switchDepartment, allDepartments } = useDepartment()
   const sheetRef = useRef<HTMLDivElement>(null)
 
   // Close on outside tap
