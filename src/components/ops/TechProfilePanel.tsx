@@ -69,7 +69,7 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
                 <X size={18} />
               </button>
@@ -123,7 +123,7 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Active Ticket</h3>
                 {tech.currentTicket ? (
-                  <div className="bg-gray-100 dark:bg-gray-800/50 border border-gray-700/50 rounded-lg p-3">
+                  <div className="bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-gray-500">#{tech.currentTicket.id}</span>
                       <PriorityPill priority={tech.currentTicket.priority} />
@@ -144,7 +144,7 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Schedule Holds ({tech.scheduledHold.length})</h3>
                   <div className="space-y-2">
                     {tech.scheduledHold.map((hold) => (
-                      <div key={hold.id} className="bg-gray-100 dark:bg-gray-800/50 border border-gray-700/50 rounded-lg p-3">
+                      <div key={hold.id} className="bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs text-gray-500">#{hold.id}</span>
                           <PriorityPill priority={hold.priority} />
@@ -175,7 +175,7 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
                       return (
                         <div
                           key={d.id}
-                          className={`bg-gray-100 dark:bg-gray-800/50 border border-gray-700/50 border-l-2 ${typeColors[d.type] ?? 'border-l-gray-400'} rounded-lg p-3`}
+                          className={`bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 border-l-2 ${typeColors[d.type] ?? 'border-l-gray-400'} rounded-lg p-3`}
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-500">

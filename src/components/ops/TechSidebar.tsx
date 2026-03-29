@@ -85,7 +85,7 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebar
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search techs..."
-          className="w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-gray-800/60 border border-gray-700/50 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
+          className="w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/50 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
         />
       </div>
 

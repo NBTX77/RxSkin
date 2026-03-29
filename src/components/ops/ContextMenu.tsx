@@ -47,7 +47,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   }
 
   return (
-    <div ref={menuRef} role="menu" style={style} className="min-w-[180px] bg-white dark:bg-gray-900 border border-gray-700 rounded-lg shadow-xl py-1">
+    <div ref={menuRef} role="menu" style={style} className="min-w-[180px] bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl py-1">
       {items.map((item, i) => (
         <button
           key={i}
@@ -64,7 +64,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
               ? 'text-gray-600 cursor-not-allowed'
               : item.danger
               ? 'text-red-400 hover:bg-red-500/10'
-              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-800 hover:text-gray-900 dark:text-white'
+              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           {item.icon && <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>}

@@ -75,7 +75,7 @@ export default function AnalyticsPage() {
             <Flame size={16} className="text-orange-400" />
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Heatmaps</h3>
           </div>
-          <select className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-xs text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500">
+          <select className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-xs text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500">
             <option value="7d">Last 7 days</option>
             <option value="30d">Last 30 days</option>
             <option value="90d">Last 90 days</option>
@@ -201,13 +201,13 @@ function StatCard({
 
 function HeatmapCard({ page, clicks, hotspot, coverage }: { page: string; clicks: number; hotspot: string; coverage: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-100 dark:bg-gray-800/50 p-4 hover:border-gray-600 transition-colors cursor-pointer">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-100 dark:bg-gray-800/50 p-4 hover:border-gray-400 dark:hover:border-gray-600 transition-colors cursor-pointer">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-mono text-gray-600 dark:text-gray-400">{page}</span>
         <span className="text-[10px] text-gray-500">{clicks.toLocaleString()} clicks</span>
       </div>
       <p className="text-xs text-gray-500">Hotspot: <span className="text-gray-700 dark:text-gray-300">{hotspot}</span></p>
-      <div className="mt-2 w-full bg-gray-700 rounded-full h-1.5">
+      <div className="mt-2 w-full bg-gray-300 dark:bg-gray-700 rounded-full h-1.5">
         <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: coverage }} />
       </div>
       <p className="text-[10px] text-gray-600 mt-1">{coverage} page coverage</p>
@@ -217,7 +217,7 @@ function HeatmapCard({ page, clicks, hotspot, coverage }: { page: string; clicks
 
 function DeadZoneRow({ page, element, lastClick, suggestion }: { page: string; element: string; lastClick: string; suggestion: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-800/30 p-3">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-50 dark:bg-gray-800/30 p-3">
       <div className="flex items-center gap-2 mb-1">
         <span className="text-xs font-mono text-gray-500">{page}</span>
         <ChevronRight size={10} className="text-gray-600" />
@@ -253,7 +253,7 @@ function SuggestionRow({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-800/30 p-4 flex items-start justify-between gap-4">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-50 dark:bg-gray-800/30 p-4 flex items-start justify-between gap-4">
       <div className="flex-1">
         <p className="text-sm text-gray-900 dark:text-white font-medium">{title}</p>
         <p className="text-xs text-gray-500 mt-0.5">{description}</p>
@@ -283,7 +283,7 @@ function ToggleRow({ label, description, enabled: defaultEnabled }: { label: str
       <button
         onClick={() => setEnabled(!enabled)}
         className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${
-          enabled ? 'bg-blue-600' : 'bg-gray-700'
+          enabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-700'
         }`}
       >
         <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${

@@ -72,13 +72,13 @@ export default function AuditLogPage() {
             placeholder="Search logs..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500"
           />
         </div>
         <select
           value={actionFilter}
           onChange={e => setActionFilter(e.target.value)}
-          className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500"
+          className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500"
         >
           <option value="all">All actions</option>
           <option value="api_call">API Calls</option>
@@ -96,7 +96,7 @@ export default function AuditLogPage() {
           const time = new Date(entry.timestamp)
 
           return (
-            <div key={entry.id} className="flex items-start gap-3 px-5 py-3 border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-800/20 transition-colors">
+            <div key={entry.id} className="flex items-start gap-3 px-5 py-3 border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors">
               {/* Action icon */}
               <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${config.color}`}>
                 <Icon size={14} />

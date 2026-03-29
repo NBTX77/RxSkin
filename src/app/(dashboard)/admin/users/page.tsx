@@ -75,13 +75,13 @@ export default function UsersPage() {
             placeholder="Search users..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500"
           />
         </div>
         <select
           value={roleFilter}
           onChange={e => setRoleFilter(e.target.value)}
-          className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500"
+          className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500"
         >
           <option value="all">All roles</option>
           <option value="ADMIN">Admin</option>
@@ -103,10 +103,10 @@ export default function UsersPage() {
         </div>
 
         {filtered.map(user => (
-          <div key={user.id} className="grid grid-cols-1 sm:grid-cols-[1fr_120px_80px_100px_140px_40px] gap-2 sm:gap-4 items-center px-5 py-3 border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-800/30 transition-colors">
+          <div key={user.id} className="grid grid-cols-1 sm:grid-cols-[1fr_120px_80px_100px_140px_40px] gap-2 sm:gap-4 items-center px-5 py-3 border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
             {/* User info */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
                 <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                   {user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </span>

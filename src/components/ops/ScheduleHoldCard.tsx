@@ -38,7 +38,7 @@ export const ScheduleHoldCard = memo(function ScheduleHoldCard({ ticket, onConte
   return (
     <div
       onContextMenu={onContextMenu}
-      className="bg-gray-100 dark:bg-gray-800/50 border border-gray-700/50 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-600 transition-colors cursor-pointer"
+      className="bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-600 transition-colors cursor-pointer"
     >
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">

@@ -137,7 +137,7 @@ export function ScheduleHoldList() {
               className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 sort === opt.value
                   ? 'bg-blue-600/20 text-blue-400'
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-800'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
               {opt.label}

@@ -48,7 +48,7 @@ export const TechCard = memo(function TechCard({ tech, onClick, isSelected }: Te
       className={`w-full text-left rounded-lg p-3 cursor-pointer transition-colors ${
         isSelected
           ? 'bg-gray-100 dark:bg-gray-800 border border-blue-500/30'
-          : 'bg-gray-100 dark:bg-gray-800/50 border border-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-600'
+          : 'bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-600'
       }`}
     >
       <div className="flex items-start gap-3">

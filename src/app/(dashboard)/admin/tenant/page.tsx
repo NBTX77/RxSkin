@@ -35,7 +35,7 @@ export default function TenantSettingsPage() {
             <div className="w-12 h-12 rounded-lg bg-blue-600 flex items-center justify-center">
               <span className="text-gray-900 dark:text-white font-bold text-sm">RX</span>
             </div>
-            <button className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-lg border border-gray-700 transition-colors">
+            <button className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-lg border border-gray-300 dark:border-gray-700 transition-colors">
               Upload Logo
             </button>
           </div>
@@ -134,7 +134,7 @@ function FormField({
       <input
         type={type}
         defaultValue={defaultValue}
-        className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50"
+        className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50"
       />
       {hint && <p className="text-[10px] text-gray-600 mt-1">{hint}</p>}
     </div>

@@ -131,7 +131,7 @@ function AppearanceTab() {
                 className={`flex items-start gap-3 p-4 rounded-lg border transition-colors text-left ${
                   active
                     ? 'border-blue-500/50 bg-blue-600/10'
-                    : 'border-gray-700 bg-gray-100 dark:bg-gray-800/50 hover:border-gray-600'
+                    : 'border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800/50 hover:border-gray-400 dark:hover:border-gray-600'
                 }`}
               >
                 <Icon size={20} className={active ? 'text-blue-400' : 'text-gray-500'} />
@@ -289,7 +289,7 @@ function ToggleRow({ label, description, defaultValue }: { label: string; descri
       <button
         onClick={() => setEnabled(!enabled)}
         className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${
-          enabled ? 'bg-blue-600' : 'bg-gray-700'
+          enabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-700'
         }`}
       >
         <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
