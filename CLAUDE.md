@@ -176,9 +176,9 @@ Full auth architecture: `docs/AUTH_ARCHITECTURE.md`
 ## UI Architecture (Decided 2026-03-28)
 
 ### Navigation Pattern
-- **Desktop:** Fixed left sidebar (w-64) with department-specific nav items
-- **Mobile:** Bottom nav bar (5 main items + search) — stays for primary pages
-- **Both:** Persistent top bar with search icon + **UserAvatar dropdown** pinned to top-right
+- **Desktop:** Collapsible left sidebar — icon rail (w-12) by default, expands to w-52 on hover (overlay, not push). Department label shown under "RX Skin" branding. Dept switcher popover on RX logo click (admin/LT only).
+- **Mobile:** Bottom nav bar (5 main items) — stays for primary pages
+- **Both:** Persistent top bar with search icon (Ctrl+K) + **UserAvatar dropdown** pinned to top-right
 - **UserAvatar dropdown:** Profile & Settings link, Admin Panel link (admin-only), Sign Out
 - **Theme toggle:** Moved from sidebar/mobile nav into Settings → Appearance tab
 
