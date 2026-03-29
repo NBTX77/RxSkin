@@ -108,7 +108,7 @@ export function ProjectsClient() {
     }, [department])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 min-w-0">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-semibold text-white">
@@ -183,10 +183,14 @@ export function ProjectsClient() {
         <>
           {viewMode === 'kanban' && (
             <ErrorBoundary section="Project Kanban">
-              <ProjectKanban
-                projects={filteredProjects}
-                onProjectClick={setSelectedProjectId}
-              />
+              <div className="-mx-4 lg:-mx-6 overflow-x-auto">
+                <div className="px-4 lg:px-6">
+                  <ProjectKanban
+                    projects={filteredProjects}
+                    onProjectClick={setSelectedProjectId}
+                  />
+                </div>
+              </div>
             </ErrorBoundary>
           )}
 

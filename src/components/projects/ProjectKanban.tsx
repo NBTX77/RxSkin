@@ -66,7 +66,7 @@ export function ProjectKanban({
   onProjectClick,
 }: ProjectKanbanProps) {
   return (
-    <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 px-2 sm:px-4">
+    <div className="flex gap-3 pb-4">
       {KANBAN_COLUMNS.map((column) => {
         const columnProjects = projects.filter((p) =>
           column.statusFilter(p.status)

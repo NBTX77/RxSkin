@@ -21,7 +21,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <TopBar />
         </ErrorBoundary>
 
-        <div className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6">
+        <div className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6 min-w-0">
           <ErrorBoundary section="Page Content">
             {children}
           </ErrorBoundary>
