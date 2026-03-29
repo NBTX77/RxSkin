@@ -30,6 +30,7 @@ import {
   CreditCard,
   ShieldCheck,
   HardDrive,
+  Network,
 } from 'lucide-react'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 import { ToolsSection } from '@/components/layout/ToolsSection'
@@ -69,6 +70,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/team', label: 'Team', icon: Users },
       { href: '/fleet', label: 'Fleet Map', icon: Map },
       { href: '/datto', label: 'Backup', icon: HardDrive },
+      { href: '/meraki', label: 'Meraki', icon: Network },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
     expandableSections: {
@@ -154,6 +156,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/cbr', label: 'CBR', icon: ClipboardCheck },
       { href: '/fleet', label: 'Fleet Map', icon: Map },
       { href: '/datto', label: 'Backup', icon: HardDrive },
+      { href: '/meraki', label: 'Meraki', icon: Network },
       { href: '/settings', label: 'Settings', icon: Settings },
     ],
   },
