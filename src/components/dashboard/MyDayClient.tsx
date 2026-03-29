@@ -54,6 +54,7 @@ export function MyDayClient() {
           label="Open Tickets"
           value={String(openTickets.length)}
           color="blue"
+          emphasis
         />
         <StatCard
           icon={<Clock size={18} />}
@@ -173,26 +174,28 @@ function StatCard({
   label,
   value,
   color,
+  emphasis = false,
 }: {
   icon: React.ReactNode
   label: string
   value: string
   color: 'blue' | 'purple' | 'green' | 'red'
+  emphasis?: boolean
 }) {
   const styles = {
-    blue:   'bg-blue-500/5 border-blue-500/20 text-blue-400',
+    blue:   emphasis ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-500/5 border-blue-500/20 text-blue-400',
     purple: 'bg-purple-500/5 border-purple-500/20 text-purple-400',
     green:  'bg-green-500/5 border-green-500/20 text-green-400',
     red:    'bg-red-500/5 border-red-500/20 text-red-400',
   }
 
   return (
-    <div className={`rounded-xl border p-4 ${styles[color]}`}>
-      <div className="flex items-center gap-2 mb-2 opacity-70">
+    <div className={`rounded-xl border px-4 py-2 ${styles[color]}`}>
+      <div className="flex items-center gap-2 mb-0.5 opacity-70">
         {icon}
-        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{label}</span>
+        <span className={`text-sm ${emphasis ? 'font-semibold' : 'font-medium'} text-gray-600 dark:text-gray-400`}>{label}</span>
       </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className={`${emphasis ? 'text-3xl font-extrabold' : 'text-2xl font-bold'} text-gray-900 dark:text-white`}>{value}</p>
     </div>
   )
 }
