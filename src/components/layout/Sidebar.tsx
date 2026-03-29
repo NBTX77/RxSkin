@@ -22,6 +22,7 @@ import {
   LayoutDashboard,
   Users,
   LayoutGrid,
+  ClipboardCheck,
 } from 'lucide-react'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 import { ToolsSection } from '@/components/layout/ToolsSection'
@@ -89,6 +90,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/companies', label: 'My Accounts', icon: Building2 },
       { href: '/agreements', label: 'Agreements', icon: FileCheck },
       { href: '/opportunities', label: 'Opportunities', icon: TrendingUp },
+      { href: '/cbr', label: 'CBR', icon: ClipboardCheck },
       { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
       { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
       { href: '/settings', label: 'Settings', icon: Settings },
@@ -118,6 +120,7 @@ const departmentNav: DepartmentNavConfig = {
       { href: '/projects', label: 'All Projects', icon: FolderKanban },
       { href: '/departments', label: 'Departments', icon: Users },
       { href: '/financials', label: 'Financials', icon: DollarSign },
+      { href: '/cbr', label: 'CBR', icon: ClipboardCheck },
       { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
       { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
       { href: '/settings', label: 'Settings', icon: Settings },
