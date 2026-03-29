@@ -89,8 +89,8 @@ export function normalizeTicket(raw: Record<string, unknown>): Ticket {
 export function normalizeScheduleEntry(raw: Record<string, unknown>): ScheduleEntry {
   return {
     id: num(raw.id) ?? 0,
-    ticketId: nestedNum(raw.where, 'id'),
-    ticketSummary: nested(raw.where, 'summary') || undefined,
+    ticketId: raw.objectId ? num(raw.objectId) : undefined,
+    ticketSummary: nested(raw.where, 'summary') || str(raw.name) || undefined,
     memberId: nestedNum(raw.member, 'id') ?? 0,
     memberName: nested(raw.member, 'name'),
     start: str(raw.dateStart),

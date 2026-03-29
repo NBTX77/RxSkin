@@ -60,7 +60,7 @@ export function ScheduleEventDetail({ entry, onClose }: ScheduleEventDetailProps
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-sm rounded-xl border border-gray-700 bg-white dark:bg-gray-900 shadow-2xl">
+      <div className="relative z-10 w-full max-w-sm rounded-xl border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 shadow-2xl">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-gray-200 dark:border-gray-800 p-4">
           <div className="flex-1 min-w-0">

@@ -7,17 +7,19 @@
 // and visual capacity indicators per tech.
 // ============================================================
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import FullCalendar from '@fullcalendar/react'
 import resourceTimelinePlugin from '@fullcalendar/resource-timeline'
 import interactionPlugin from '@fullcalendar/interaction'
 import type { EventInput, EventDropArg, EventClickArg } from '@fullcalendar/core'
 import type { ScheduleEntry, Member } from '@/types'
 import { useScheduleEntries, useCreateScheduleEntry, useRescheduleEntry } from '@/hooks/useScheduleEntries'
-import { useMembers, useUnscheduledTickets, useAssignScheduleEntry, calculateMemberHours } from '@/hooks/useDispatch'
+import { useUnscheduledTickets, useAssignScheduleEntry, calculateMemberHours } from '@/hooks/useDispatch'
+import { useDepartment } from '@/components/department/DepartmentProvider'
 import { UnscheduledSidebar } from './UnscheduledSidebar'
 import { ScheduleEventDetail } from '@/components/schedule/ScheduleEventDetail'
-import { ChevronLeft, ChevronRight, RefreshCw, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, RefreshCw, Loader2, X, Filter, ChevronDown } from 'lucide-react'
 
 type DispatchView = 'resourceTimelineDay' | 'resourceTimelineWeek'
 
@@ -25,6 +27,15 @@ const VIEW_LABELS: Record<DispatchView, string> = {
   resourceTimelineDay: 'Day',
   resourceTimelineWeek: 'Week',
 }
+
+const DEPT_OPTIONS: { value: string; label: string }[] = [
+  { value: 'all', label: 'All Depts' },
+  { value: 'IT', label: 'IT' },
+  { value: 'SI', label: 'SI' },
+  { value: 'AM', label: 'AM' },
+  { value: 'GA', label: 'G&A' },
+  { value: 'LT', label: 'Leadership' },
+]
 
 function fcViewToApiView(fcView: string): 'day' | 'week' {
   return fcView === 'resourceTimelineWeek' ? 'week' : 'day'
@@ -51,13 +62,58 @@ export function DispatchBoard() {
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEntry | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
+  // Department context
+  const { department: userDept, isLeadership } = useDepartment()
+
+  // Department filter — defaults to user's dept (LT defaults to 'all')
+  const [deptFilter, setDeptFilter] = useState<string>(isLeadership ? 'all' : userDept)
+
+  // Member filter state
+  const [selectedMembers, setSelectedMembers] = useState<number[]>([])
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
+
+  // Reset member selection when department changes
+  useEffect(() => {
+    setSelectedMembers([])
+  }, [deptFilter])
+
+  // Fetch members list for member filter
+  const { data: allMembers = [] } = useQuery<Member[]>({
+    queryKey: ['members'],
+    queryFn: async () => {
+      const res = await fetch('/api/members')
+      if (!res.ok) throw new Error('Failed to fetch members')
+      return res.json()
+    },
+    staleTime: 10 * 60 * 1000, // 10 min
+  })
+
+  // Filter members by selected department
+  const filteredMembers = useMemo(() => {
+    if (deptFilter === 'all') return allMembers
+    return allMembers.filter(m => m.department === deptFilter)
+  }, [allMembers, deptFilter])
+
   // Data hooks
   const { data: entries = [], isLoading: entriesLoading, refetch, isFetching } = useScheduleEntries({
     date: currentDate,
     view: fcViewToApiView(currentView),
+    department: deptFilter === 'all' ? undefined : deptFilter,
   })
 
-  const { data: members = [], isLoading: membersLoading } = useMembers()
+  // Apply client-side member filter
+  const filteredEntries = useMemo(() => {
+    if (selectedMembers.length === 0) return entries
+    return entries.filter(entry => selectedMembers.includes(entry.memberId))
+  }, [entries, selectedMembers])
+
+  // Filter resources (members) based on dept + member filter
+  const displayMembers = useMemo(() => {
+    if (selectedMembers.length > 0) {
+      return filteredMembers.filter(m => selectedMembers.includes(m.id))
+    }
+    return filteredMembers
+  }, [filteredMembers, selectedMembers])
 
   // Calculate which ticket IDs are already scheduled
   const scheduledTicketIds = useMemo(() => {
@@ -84,18 +140,18 @@ export function DispatchBoard() {
   // Build FullCalendar resources from members
   const resources = useMemo(
     () =>
-      members.map((m) => ({
+      displayMembers.map((m) => ({
         id: String(m.id),
         title: m.name,
         extendedProps: { member: m },
       })),
-    [members]
+    [displayMembers]
   )
 
   // Build FullCalendar events
   const events: EventInput[] = useMemo(
     () =>
-      entries.map((entry) => ({
+      filteredEntries.map((entry) => ({
         id: String(entry.id),
         resourceId: String(entry.memberId),
         title: entry.ticketSummary || `${entry.memberName} - ${entry.type}`,
@@ -105,7 +161,7 @@ export function DispatchBoard() {
         borderColor: getEventColor(entry),
         extendedProps: { entry },
       })),
-    [entries]
+    [filteredEntries]
   )
 
   // Drag between rows = reassign tech (+ optional time change)
@@ -225,8 +281,14 @@ export function DispatchBoard() {
     }, 0)
   }
 
+  const toggleMember = (memberId: number) => {
+    setSelectedMembers(prev =>
+      prev.includes(memberId) ? prev.filter(id => id !== memberId) : [...prev, memberId]
+    )
+  }
+
   const calendarTitle = calendarRef.current?.getApi()?.view.title ?? ''
-  const isLoading = entriesLoading || membersLoading
+  const isLoading = entriesLoading
 
   return (
     <div className="flex -m-4 lg:-m-6 h-[calc(100vh-3.5rem)] min-h-0">
@@ -242,37 +304,75 @@ export function DispatchBoard() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Toolbar */}
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <button
               onClick={handlePrev}
-              className="rounded-md border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="rounded-md border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={handleToday}
-              className="rounded-md border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="rounded-md border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Today
             </button>
             <button
               onClick={handleNext}
-              className="rounded-md border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="rounded-md border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
-            <h2 className="ml-2 text-lg font-medium text-gray-900 dark:text-white">{calendarTitle}</h2>
+            <h2 className="ml-1 text-sm font-medium text-gray-900 dark:text-white sm:text-base whitespace-nowrap">{calendarTitle}</h2>
             {isFetching && <Loader2 className="h-4 w-4 animate-spin text-gray-500" />}
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Department filter */}
+            <div className="relative">
+              <select
+                value={deptFilter}
+                onChange={(e) => setDeptFilter(e.target.value)}
+                className="appearance-none rounded-md border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 pl-2 pr-7 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {DEPT_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none" />
+            </div>
+
+            {/* Member filter — desktop */}
+            <div className="hidden sm:block relative">
+              <MemberFilterDropdown
+                members={filteredMembers}
+                selectedMembers={selectedMembers}
+                onToggle={toggleMember}
+                onClear={() => setSelectedMembers([])}
+              />
+            </div>
+
+            {/* Mobile filter toggle */}
+            <button
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="sm:hidden rounded-md border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
+            >
+              <Filter className="h-3 w-3" />
+              Filter
+              {selectedMembers.length > 0 && (
+                <span className="bg-blue-500 text-white text-[10px] rounded-full px-1 min-w-[16px] text-center">
+                  {selectedMembers.length}
+                </span>
+              )}
+            </button>
+
             {/* View toggle */}
-            <div className="flex items-center gap-1 rounded-lg border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-1">
+            <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-0.5">
               {(Object.entries(VIEW_LABELS) as [DispatchView, string][]).map(([view, label]) => (
                 <button
                   key={view}
                   onClick={() => handleViewChange(view)}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${
                     currentView === view
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -286,13 +386,77 @@ export function DispatchBoard() {
             <button
               onClick={() => refetch()}
               disabled={isFetching}
-              className="rounded-md border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              className="rounded-md border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
               title="Refresh"
             >
-              <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
+
+        {/* Mobile filters panel — collapsible */}
+        {showMobileFilters && (
+          <div className="sm:hidden border-b border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                Filter by member ({filteredMembers.length})
+              </span>
+              {selectedMembers.length > 0 && (
+                <button
+                  onClick={() => setSelectedMembers([])}
+                  className="text-xs text-blue-500 hover:text-blue-400"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+              {filteredMembers.map(member => (
+                <button
+                  key={member.id}
+                  onClick={() => toggleMember(member.id)}
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${
+                    selectedMembers.includes(member.id)
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  {member.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Selected member chips — show inline on desktop when members are selected */}
+        {selectedMembers.length > 0 && (
+          <div className="hidden sm:flex items-center gap-1.5 flex-wrap px-4 py-1.5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <span className="text-xs text-gray-500">Showing:</span>
+            {selectedMembers.map(id => {
+              const member = allMembers.find(m => m.id === id)
+              return member ? (
+                <span
+                  key={id}
+                  className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 text-xs font-medium"
+                >
+                  {member.name}
+                  <button
+                    onClick={() => toggleMember(id)}
+                    className="hover:text-blue-800 dark:hover:text-blue-200"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ) : null
+            })}
+            <button
+              onClick={() => setSelectedMembers([])}
+              className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              Clear
+            </button>
+          </div>
+        )}
 
         {/* Calendar */}
         <div className="flex-1 overflow-auto">
@@ -393,6 +557,111 @@ export function DispatchBoard() {
           entry={selectedEvent}
           onClose={() => setSelectedEvent(null)}
         />
+      )}
+    </div>
+  )
+}
+
+// ── Member Filter Dropdown (Desktop) ─────────────────────────
+
+interface MemberFilterDropdownProps {
+  members: Member[]
+  selectedMembers: number[]
+  onToggle: (id: number) => void
+  onClear: () => void
+}
+
+function MemberFilterDropdown({ members, selectedMembers, onToggle, onClear }: MemberFilterDropdownProps) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const ref = useRef<HTMLDivElement>(null)
+
+  // Close on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    if (open) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  const filtered = useMemo(() => {
+    if (!search) return members
+    const q = search.toLowerCase()
+    return members.filter(m => m.name.toLowerCase().includes(q))
+  }, [members, search])
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="rounded-md border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
+      >
+        <Filter className="h-3 w-3" />
+        Members
+        {selectedMembers.length > 0 && (
+          <span className="bg-blue-500 text-white text-[10px] rounded-full px-1 min-w-[16px] text-center">
+            {selectedMembers.length}
+          </span>
+        )}
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-64 rounded-lg border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 shadow-xl z-50">
+          {/* Search */}
+          <div className="p-2 border-b border-gray-200 dark:border-gray-800">
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search members..."
+              className="w-full px-2 py-1 rounded-md bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700/50 text-gray-900 dark:text-white text-xs placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              autoFocus
+            />
+          </div>
+          {/* Header */}
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-800">
+            <span className="text-[10px] text-gray-500">{filtered.length} members</span>
+            {selectedMembers.length > 0 && (
+              <button onClick={onClear} className="text-[10px] text-blue-500 hover:text-blue-400">
+                Clear all
+              </button>
+            )}
+          </div>
+          {/* Member list */}
+          <div className="max-h-48 overflow-y-auto py-1">
+            {filtered.map(member => (
+              <button
+                key={member.id}
+                onClick={() => onToggle(member.id)}
+                className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left transition-colors ${
+                  selectedMembers.includes(member.id)
+                    ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
+              >
+                <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 ${
+                  selectedMembers.includes(member.id)
+                    ? 'bg-blue-600 border-blue-600'
+                    : 'border-gray-300 dark:border-gray-600'
+                }`}>
+                  {selectedMembers.includes(member.id) && (
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                <span className="truncate">{member.name}</span>
+              </button>
+            ))}
+            {filtered.length === 0 && (
+              <div className="px-3 py-4 text-center text-xs text-gray-500">No members found</div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )

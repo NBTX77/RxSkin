@@ -40,9 +40,12 @@ export class CWApiError extends Error {
  * Escape a string value for use in CW OData filter conditions.
  * Prevents injection by escaping double quotes and backslashes.
  */
-function escapeCwFilter(value: string): string {
+export function escapeCwFilterValue(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 }
+
+/** @deprecated Use escapeCwFilterValue instead */
+const escapeCwFilter = escapeCwFilterValue
 
 /**
  * Build the Authorization header value for CW API Key auth.
@@ -306,7 +309,7 @@ export async function getScheduleEntries(
   if (filters.memberId) conditions.push(`member/id=${filters.memberId}`)
   params.set('conditions', conditions.join(' AND '))
   params.set('pageSize', '250')
-  params.set('fields', 'id,objectId,objectType,member,dateStart,dateEnd,status,type,where,company')
+  params.set('fields', 'id,objectId,objectType,name,member,dateStart,dateEnd,status,type,where,company')
 
   const raw = await cwFetch<Record<string, unknown>[]>(creds, `/schedule/entries?${params}`)
   return raw.map(normalizeScheduleEntry)
