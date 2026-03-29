@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   Check,
@@ -90,9 +90,10 @@ const platforms: PlatformDef[] = [
   },
   {
     id: 'datto',
-    name: 'Datto BCDR',
+    name: 'Datto BCDR + SaaS',
     tier: 1,
-    description: 'Backup — devices, agents, recovery points',
+    description: 'Backup & disaster recovery — devices, agents, alerts, SaaS protection',
+    docsUrl: 'https://portal.dattobackup.com',
     fields: [
       { key: 'baseUrl', label: 'API Base URL', type: 'url' },
       { key: 'publicKey', label: 'Public Key', type: 'password' },
@@ -119,6 +120,26 @@ const platforms: PlatformDef[] = [
       { key: 'clientId', label: 'Application (Client) ID', type: 'text' },
       { key: 'clientSecret', label: 'Client Secret', type: 'password' },
       { key: 'tenantId', label: 'Directory (Tenant) ID', type: 'text' },
+    ],
+  },
+  {
+    id: 'meraki',
+    name: 'Cisco Meraki',
+    tier: 1,
+    description: 'Network monitoring — devices, uplinks, wireless, alerts, licensing (MSP multi-org)',
+    fields: [
+      { key: 'apiKey', label: 'API Key (Bearer Token)', type: 'password' },
+      { key: 'webhookSecret', label: 'Webhook Secret (optional)', type: 'password' },
+    ],
+  },
+  {
+    id: 'smileback',
+    name: 'SmileBack',
+    tier: 1,
+    description: 'CSAT/NPS surveys — ticket, tech, and company satisfaction scores',
+    fields: [
+      { key: 'apiKey', label: 'API Key', type: 'password' },
+      { key: 'webhookSecret', label: 'Webhook Secret (optional)', type: 'password' },
     ],
   },
   {
@@ -264,6 +285,172 @@ function PlatformCard({
               Test Connection
             </button>
           </div>
+
+          {/* Demo mode toggle for Meraki */}
+          {platform.id === 'meraki' && (
+            <MerakiDemoToggle />
+          )}
+
+          {/* Demo mode + enable toggle for Datto */}
+          {platform.id === 'datto' && (
+            <DattoDemoToggle />
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Datto Integration Toggles ───────────────────────────────
+
+function DattoDemoToggle() {
+  const [isDemoMode, setIsDemoMode] = useState(true)
+  const [isEnabled, setIsEnabled] = useState(true)
+  const [isToggling, setIsToggling] = useState(false)
+  // Load initial state
+  useEffect(() => {
+    fetch('/api/datto?endpoint=config')
+      .then(r => r.json())
+      .then(data => {
+        setIsDemoMode(data.dataMode === 'demo')
+        setIsEnabled(data.enabled !== false)
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleToggleMode = async () => {
+    setIsToggling(true)
+    const newMode = isDemoMode ? 'live' : 'demo'
+    try {
+      const res = await fetch('/api/datto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'config', dataMode: newMode }),
+      })
+      if (res.ok) setIsDemoMode(!isDemoMode)
+    } catch {} finally {
+      setIsToggling(false)
+    }
+  }
+
+  const handleToggleEnabled = async () => {
+    setIsToggling(true)
+    try {
+      const res = await fetch('/api/datto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'config', enabled: !isEnabled }),
+      })
+      if (res.ok) setIsEnabled(!isEnabled)
+    } catch {} finally {
+      setIsToggling(false)
+    }
+  }
+
+  return (
+    <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-800 space-y-3">
+      {/* Enable/Disable */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Integration Enabled</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Show Datto in the sidebar and fetch data</p>
+        </div>
+        <button
+          onClick={handleToggleEnabled}
+          disabled={isToggling}
+          className={`relative w-10 h-5 rounded-full transition-colors ${
+            isEnabled ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-700'
+          } ${isToggling ? 'opacity-50' : ''}`}
+        >
+          <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+            isEnabled ? 'translate-x-5' : 'translate-x-0'
+          }`} />
+        </button>
+      </div>
+
+      {/* Demo / Live toggle */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Data Mode</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Switch between demo data and live Datto API</p>
+        </div>
+        <button
+          onClick={handleToggleMode}
+          disabled={isToggling}
+          className={`relative w-10 h-5 rounded-full transition-colors ${
+            isDemoMode ? 'bg-amber-500' : 'bg-blue-500'
+          } ${isToggling ? 'opacity-50' : ''}`}
+        >
+          <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+            isDemoMode ? 'translate-x-0' : 'translate-x-5'
+          }`} />
+        </button>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className={`text-[10px] font-medium ${isDemoMode ? 'text-amber-500' : 'text-blue-500'}`}>
+          {isDemoMode ? '⚡ Demo mode — showing mock devices & alerts' : '🔴 Live mode — connected to Datto API'}
+        </span>
+      </div>
+
+    </div>
+  )
+}
+
+// ── Meraki Demo Mode Toggle ─────────────────────────────────
+
+function MerakiDemoToggle() {
+  const [isDemoMode, setIsDemoMode] = useState(false)
+  const [isToggling, setIsToggling] = useState(false)
+
+  // Read initial state from cookie
+  useEffect(() => {
+    const match = document.cookie.match(/meraki_demo_mode=([^;]+)/)
+    if (match) setIsDemoMode(match[1] === 'true')
+  }, [])
+
+  const handleToggle = async () => {
+    setIsToggling(true)
+    try {
+      const res = await fetch('/api/meraki/demo-mode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !isDemoMode }),
+      })
+      if (res.ok) {
+        setIsDemoMode(!isDemoMode)
+        // Also set localStorage for client-side reads
+        localStorage.setItem('meraki_demo_mode', (!isDemoMode).toString())
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsToggling(false)
+    }
+  }
+
+  return (
+    <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-800">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Demo Data Mode</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Use realistic mock data instead of live API calls</p>
+        </div>
+        <button
+          onClick={handleToggle}
+          disabled={isToggling}
+          className={`relative w-10 h-5 rounded-full transition-colors ${
+            isDemoMode ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-700'
+          } ${isToggling ? 'opacity-50' : ''}`}
+        >
+          <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+            isDemoMode ? 'translate-x-5' : 'translate-x-0'
+          }`} />
+        </button>
+      </div>
+      {isDemoMode && (
+        <div className="mt-2 flex items-center gap-1.5">
+          <AlertTriangle size={12} className="text-amber-500" />
+          <span className="text-[10px] text-amber-500 font-medium">Demo mode active — dashboard shows mock data</span>
         </div>
       )}
     </div>

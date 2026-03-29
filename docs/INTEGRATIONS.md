@@ -384,6 +384,19 @@ GET    /devices/{serial}/clients                   Clients on specific device
 9. **Network Detail** — Drill-down: device list, top clients by usage, wireless connection health
 10. **Org Selector** — Filter all views to single org or "All Organizations" aggregate
 
+**Demo Data Mode:**
+- All API routes fall back to realistic mock data when `MERAKI_API_KEY` is not configured
+- Admin → Integrations → Meraki card has a **"Use Demo Data"** toggle
+- When toggle is ON, all routes return mock data even if live credentials exist
+- Toggle persists in localStorage (`meraki_demo_mode`) + cookie for server-side reading
+- Amber "DEMO" badge appears in sidebar nav when demo mode is active
+- Mock data includes 3 orgs, 50+ devices, realistic alerts, licensing, and wireless stats
+
+**Admin Credential Management:**
+- API key and webhook secret configurable from Admin → Integrations page (Tier 1 service account)
+- Test Connection button: calls `GET /organizations`, shows org count + network count on success
+- Status indicators: Connected (green), Demo Mode (amber), Not Configured (gray), Error (red)
+
 **Cross-CW Integration:**
 - Map Meraki `organizationId` → ConnectWise `companyId` for client-level network health
 - Surface WAN uplink alerts as priority indicators on company dashboard

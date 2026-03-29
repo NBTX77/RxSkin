@@ -5,6 +5,7 @@
 
 import { RateLimitError, CWApiError } from '@/lib/cw/client'
 import { SamsaraApiError } from '@/lib/samsara/client'
+import { MerakiApiError } from '@/lib/meraki/client'
 
 /** Standard error response body sent to the browser. */
 export type ApiErrorResponse = {
@@ -66,13 +67,25 @@ export function handleApiError(error: unknown): Response {
   if (error instanceof CWApiError) {
     if (error.status === 404) return apiErrors.notFound()
     if (error.status === 401 || error.status === 403) return apiErrors.forbidden()
-    return apiErrors.internal(`ConnectWise API error: ${error.status}`)
+    return apiErrors.internal(`ConnectWise API error: ${error.message}`)
   }
 
   if (error instanceof SamsaraApiError) {
+    if (error.status === 404) return apiErrors.notFound()
     if (error.status === 401 || error.status === 403) return apiErrors.forbidden()
-    return apiErrors.internal(`Samsara API error: ${error.status}`)
+    return apiErrors.internal(`Samsara API error: ${error.message}`)
+  }
+
+  if (error instanceof MerakiApiError) {
+    if (error.status === 429) return apiErrors.rateLimited(Math.ceil(error.retryAfterMs / 1000))
+    if (error.status === 404) return apiErrors.notFound()
+    if (error.status === 401 || error.status === 403) return apiErrors.forbidden()
+    return apiErrors.internal(`Meraki API error: ${error.message}`)
+  }
+
+  if (error instanceof Error) {
+    return apiErrors.internal(error.message)
   }
 
   return apiErrors.internal()
-}
+} 

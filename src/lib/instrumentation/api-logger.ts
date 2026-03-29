@@ -19,6 +19,7 @@ export type Platform =
   | 'sentinelone'
   | 'passportal'
   | 'scalepad'
+  | 'smileback'
 
 export interface ApiCallContext {
   tenantId: string

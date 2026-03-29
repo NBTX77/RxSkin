@@ -299,3 +299,5 @@ Architecture fully designed (2026-03-28). Research document: `RX-Skin-Middleware
 - **Cache TTLs:** Device statuses 5min, orgs 1hr, licensing 24hr, alerts 2min
 - **Webhook receiver** for real-time device offline/online alerts (reduces polling)
 - **Cross-CW integration planned** — Map Meraki orgId → CW companyId for client-level network health
+- **Dummy data mode (toggleable)** — All API routes fall back to realistic mock data when credentials aren't configured OR when demo mode is explicitly enabled via Admin → Integrations → Meraki card. Demo toggle persists in localStorage + cookie (server-readable). Amber "DEMO" badge shown in dashboard header when active.
+- **Admin credential management** — Meraki API key configurable from Admin → Integrations (existing PlatformDef pattern). Test connection validates against `GET /organizations`. No env vars required — admin UI is the primary config path.
