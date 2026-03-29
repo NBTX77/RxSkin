@@ -1,10 +1,10 @@
 'use client'
 
-import { Search } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { format } from 'date-fns'
 import { UserAvatar } from './UserAvatar'
+import { GlobalSearch } from './GlobalSearch'
 import { useDepartment } from '@/components/department/DepartmentProvider'
 
 function getBreadcrumb(pathname: string): { section: string; detail?: string } {
@@ -16,10 +16,14 @@ function getBreadcrumb(pathname: string): { section: string; detail?: string } {
   if (pathname === '/schedule') return { section: 'Schedule' }
   if (pathname === '/companies') return { section: 'Companies' }
   if (pathname.startsWith('/companies/')) return { section: 'Companies', detail: pathname.split('/').pop() }
+  if (pathname === '/dispatch') return { section: 'Dispatch Board' }
+  if (pathname === '/team') return { section: 'Team' }
   if (pathname === '/ops/fleet-map') return { section: 'Fleet Map' }
   if (pathname === '/ops/analytics') return { section: 'Analytics' }
   if (pathname === '/ops/holds') return { section: 'Schedule Holds' }
   if (pathname.startsWith('/ops')) return { section: 'Operations' }
+  if (pathname === '/financials') return { section: 'Financials' }
+  if (pathname === '/departments') return { section: 'Departments' }
   if (pathname.startsWith('/settings')) return { section: 'Settings' }
   if (pathname.startsWith('/admin')) return { section: 'Admin' }
   return { section: 'Dashboard' }
@@ -83,15 +87,7 @@ export function TopBar() {
 
       {/* Right: Search + Avatar */}
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => {
-            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }))
-          }}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          aria-label="Search"
-        >
-          <Search size={18} />
-        </button>
+        <GlobalSearch />
         <UserAvatar />
       </div>
     </header>

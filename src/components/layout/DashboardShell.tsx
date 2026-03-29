@@ -3,7 +3,6 @@
 import { Sidebar } from '@/components/layout/Sidebar'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { TopBar } from '@/components/layout/TopBar'
-import { GlobalSearch } from '@/components/layout/GlobalSearch'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { TimeTrackerProvider } from '@/contexts/TimeTrackerContext'
 import { TimerWidget } from '@/components/timer/TimerWidget'
@@ -34,11 +33,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         {/* Mobile bottom nav */}
         <ErrorBoundary section="MobileNav">
           <MobileNav />
-        </ErrorBoundary>
-
-        {/* Global search overlay (Ctrl+K) */}
-        <ErrorBoundary section="GlobalSearch">
-          <GlobalSearch />
         </ErrorBoundary>
 
         {/* Floating timer widget */}
