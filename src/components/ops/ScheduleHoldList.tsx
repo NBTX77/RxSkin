@@ -99,7 +99,7 @@ export function ScheduleHoldList() {
         <OpsHeader title="Schedule Holds" subtitle="Tickets waiting to be scheduled" />
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="bg-gray-900 border border-gray-800 rounded-lg p-3 animate-pulse h-20" />
+            <div key={i} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 animate-pulse h-20" />
           ))}
         </div>
       </div>
@@ -125,7 +125,7 @@ export function ScheduleHoldList() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search holds..."
-            className="w-full pl-9 pr-3 py-2 bg-gray-900 border border-gray-800 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
+            className="w-full pl-9 pr-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
           />
         </div>
         <div className="flex items-center gap-1.5">
@@ -137,7 +137,7 @@ export function ScheduleHoldList() {
               className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 sort === opt.value
                   ? 'bg-blue-600/20 text-blue-400'
-                  : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-800'
               }`}
             >
               {opt.label}

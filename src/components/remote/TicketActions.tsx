@@ -68,19 +68,19 @@ export function TicketActions({ ticket }: TicketActionsProps) {
   return (
     <>
       {/* Remote Tools section in sidebar */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
-        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4">
+        <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">
           Remote Tools
         </h3>
 
         {/* Selected computer display */}
         {selectedComputer && (
-          <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700">
+          <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700">
             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${selectedComputer.status === 'Online' ? 'bg-green-500' : 'bg-gray-600'}`} />
-            <span className="text-xs text-white font-medium truncate flex-1">{selectedComputer.computerName}</span>
+            <span className="text-xs text-gray-900 dark:text-white font-medium truncate flex-1">{selectedComputer.computerName}</span>
             <button
               onClick={() => { setSelectedComputer(null); setActionMode(null) }}
-              className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors"
+              className="text-[10px] text-gray-500 hover:text-gray-700 dark:text-gray-300 transition-colors"
             >
               Change
             </button>
@@ -133,7 +133,7 @@ export function TicketActions({ ticket }: TicketActionsProps) {
           {/* Pick Computer */}
           <button
             onClick={() => setShowPicker(true)}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <Monitor size={14} />
             {selectedComputer ? 'Change Computer' : 'Select Computer'}

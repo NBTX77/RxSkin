@@ -60,14 +60,14 @@ export function ScheduleEventDetail({ entry, onClose }: ScheduleEventDetailProps
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-sm rounded-xl border border-gray-700 bg-gray-900 shadow-2xl">
+      <div className="relative z-10 w-full max-w-sm rounded-xl border border-gray-700 bg-white dark:bg-gray-900 shadow-2xl">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-gray-800 p-4">
+        <div className="flex items-start justify-between border-b border-gray-200 dark:border-gray-800 p-4">
           <div className="flex-1 min-w-0">
-            <h3 className="truncate text-sm font-semibold text-white">
+            <h3 className="truncate text-sm font-semibold text-gray-900 dark:text-white">
               {entry.ticketSummary || `${entry.type} — ${entry.memberName}`}
             </h3>
-            <div className="mt-1 flex items-center gap-2 text-xs text-gray-400">
+            <div className="mt-1 flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
               <span
                 className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
                   entry.status === 'Schedule Hold'
@@ -86,7 +86,7 @@ export function ScheduleEventDetail({ entry, onClose }: ScheduleEventDetailProps
           <button
             onClick={onClose}
             aria-label="Close"
-            className="ml-2 rounded-md p-1 text-gray-500 hover:bg-gray-800 hover:text-white transition-colors"
+            className="ml-2 rounded-md p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:text-white transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -98,7 +98,7 @@ export function ScheduleEventDetail({ entry, onClose }: ScheduleEventDetailProps
           <div className="flex items-center gap-3 text-sm">
             <Clock className="h-4 w-4 shrink-0 text-gray-500" />
             <div>
-              <div className="text-white">
+              <div className="text-gray-900 dark:text-white">
                 {formatDate(entry.start)} &middot; {formatTime(entry.start)} – {formatTime(entry.end)}
               </div>
               <div className="text-xs text-gray-500">{formatDuration(duration)}</div>
@@ -108,14 +108,14 @@ export function ScheduleEventDetail({ entry, onClose }: ScheduleEventDetailProps
           {/* Technician */}
           <div className="flex items-center gap-3 text-sm">
             <User className="h-4 w-4 shrink-0 text-gray-500" />
-            <span className="text-gray-300">{entry.memberName}</span>
+            <span className="text-gray-700 dark:text-gray-300">{entry.memberName}</span>
           </div>
 
           {/* Company */}
           {entry.companyName && (
             <div className="flex items-center gap-3 text-sm">
               <Building2 className="h-4 w-4 shrink-0 text-gray-500" />
-              <span className="text-gray-300">{entry.companyName}</span>
+              <span className="text-gray-700 dark:text-gray-300">{entry.companyName}</span>
             </div>
           )}
 
@@ -135,7 +135,7 @@ export function ScheduleEventDetail({ entry, onClose }: ScheduleEventDetailProps
         </div>
 
         {/* Footer actions */}
-        <div className="flex items-center justify-between border-t border-gray-800 px-4 py-3">
+        <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-4 py-3">
           <button
             onClick={handleDelete}
             disabled={deleteEntry.isPending}

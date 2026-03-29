@@ -63,19 +63,19 @@ export function ScriptRunner({ computer, isOpen, onClose }: ScriptRunnerProps) {
     <>
       <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" onClick={onClose} />
 
-      <div role="dialog" aria-modal="true" aria-label="Run Script" className="fixed inset-y-0 right-0 w-full max-w-md z-50 bg-gray-950 border-l border-gray-800 shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col">
+      <div role="dialog" aria-modal="true" aria-label="Run Script" className="fixed inset-y-0 right-0 w-full max-w-md z-50 bg-gray-50 dark:bg-gray-950 border-l border-gray-200 dark:border-gray-800 shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-800">
           <div>
-            <h2 className="text-sm font-semibold text-white">Run Script</h2>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Run Script</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Target: <span className="text-gray-400">{computer.computerName}</span>
+              Target: <span className="text-gray-600 dark:text-gray-400">{computer.computerName}</span>
             </p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:text-white hover:bg-gray-800 transition-colors"
           >
             <X size={14} />
           </button>
@@ -90,7 +90,7 @@ export function ScriptRunner({ computer, isOpen, onClose }: ScriptRunnerProps) {
         )}
 
         {/* Quick actions */}
-        <div className="px-5 py-3 border-b border-gray-800">
+        <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-800">
           <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Quick Actions</p>
           <div className="grid grid-cols-2 gap-2">
             {QUICK_ACTIONS.map((qa) => (
@@ -101,7 +101,7 @@ export function ScriptRunner({ computer, isOpen, onClose }: ScriptRunnerProps) {
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                   qa.danger
                     ? 'text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20'
-                    : 'text-gray-300 bg-gray-900 hover:bg-gray-800 border border-gray-800'
+                    : 'text-gray-700 dark:text-gray-300 bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800'
                 }`}
               >
                 <span>{qa.icon}</span>
@@ -112,7 +112,7 @@ export function ScriptRunner({ computer, isOpen, onClose }: ScriptRunnerProps) {
         </div>
 
         {/* Search */}
-        <div className="px-5 py-3 border-b border-gray-800">
+        <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-800">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
             <label htmlFor="script-search" className="sr-only">Search scripts</label>
@@ -122,7 +122,7 @@ export function ScriptRunner({ computer, isOpen, onClose }: ScriptRunnerProps) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search all scripts..."
-              className="w-full pl-9 pr-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -132,7 +132,7 @@ export function ScriptRunner({ computer, isOpen, onClose }: ScriptRunnerProps) {
           {isLoading ? (
             <div className="space-y-2 px-2">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-14 bg-gray-900 rounded-lg animate-pulse" />
+                <div key={i} className="h-14 bg-white dark:bg-gray-900 rounded-lg animate-pulse" />
               ))}
             </div>
           ) : scripts.length === 0 ? (
@@ -145,13 +145,13 @@ export function ScriptRunner({ computer, isOpen, onClose }: ScriptRunnerProps) {
                 key={script.id}
                 onClick={() => setConfirmScript(script)}
                 disabled={runMutation.isPending}
-                className="w-full flex items-start gap-3 px-3 py-3 rounded-lg hover:bg-gray-900 transition-colors text-left"
+                className="w-full flex items-start gap-3 px-3 py-3 rounded-lg hover:bg-white dark:bg-gray-900 transition-colors text-left"
               >
-                <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Play size={12} className="text-blue-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-white block truncate">{script.name}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white block truncate">{script.name}</span>
                   {script.folder && (
                     <span className="text-[11px] text-gray-600 flex items-center gap-1 mt-0.5">
                       <Folder size={10} /> {script.folder}
@@ -168,13 +168,13 @@ export function ScriptRunner({ computer, isOpen, onClose }: ScriptRunnerProps) {
 
         {/* Confirm dialog */}
         {confirmScript && (
-          <div className="px-5 py-4 border-t border-gray-800 bg-gray-900">
+          <div className="px-5 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-900">
             <div className="flex items-start gap-3">
               <AlertTriangle size={16} className="text-yellow-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm text-white font-medium">Run &ldquo;{confirmScript.name}&rdquo;?</p>
+                <p className="text-sm text-gray-900 dark:text-white font-medium">Run &ldquo;{confirmScript.name}&rdquo;?</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  This will execute on <span className="text-gray-300">{computer.computerName}</span>
+                  This will execute on <span className="text-gray-700 dark:text-gray-300">{computer.computerName}</span>
                 </p>
                 <div className="flex items-center gap-2 mt-3">
                   <button
@@ -191,7 +191,7 @@ export function ScriptRunner({ computer, isOpen, onClose }: ScriptRunnerProps) {
                   </button>
                   <button
                     onClick={() => setConfirmScript(null)}
-                    className="px-4 py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                    className="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-800 transition-colors"
                   >
                     Cancel
                   </button>

@@ -107,9 +107,9 @@ export function GlobalSearch() {
 
       {/* Dialog */}
       <div role="dialog" aria-modal="true" aria-label="Global search" className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[101]">
-        <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
           {/* Search input */}
-          <div className="flex items-center px-4 gap-3 border-b border-gray-800">
+          <div className="flex items-center px-4 gap-3 border-b border-gray-200 dark:border-gray-800">
             <Search size={18} className="text-gray-500 flex-shrink-0" />
             <label htmlFor="global-search" className="sr-only">Search tickets, companies, techs</label>
             <input
@@ -119,9 +119,9 @@ export function GlobalSearch() {
               value={query}
               onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0) }}
               placeholder="Search tickets, companies, techs..."
-              className="flex-1 py-3.5 bg-transparent text-white placeholder-gray-500 text-sm focus:outline-none"
+              className="flex-1 py-3.5 bg-transparent text-gray-900 dark:text-white placeholder-gray-500 text-sm focus:outline-none"
             />
-            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-800 text-gray-500 border border-gray-700">
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 border border-gray-700">
               ESC
             </kbd>
           </div>
@@ -153,7 +153,7 @@ export function GlobalSearch() {
                       key={`t-${t.id}`}
                       onClick={() => handleSelect(`/tickets/${t.id}`)}
                       className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                        selectedIndex === idx ? 'bg-blue-600/20 text-white' : 'text-gray-300 hover:bg-gray-800'
+                        selectedIndex === idx ? 'bg-blue-600/20 text-white' : 'text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
                     >
                       {icons.ticket}
@@ -177,7 +177,7 @@ export function GlobalSearch() {
                       key={`c-${c.id}`}
                       onClick={() => handleSelect('/companies')}
                       className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                        selectedIndex === idx ? 'bg-blue-600/20 text-white' : 'text-gray-300 hover:bg-gray-800'
+                        selectedIndex === idx ? 'bg-blue-600/20 text-white' : 'text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
                     >
                       {icons.company}
@@ -198,7 +198,7 @@ export function GlobalSearch() {
                       key={`m-${m.id}`}
                       onClick={() => handleSelect('/settings')}
                       className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                        selectedIndex === idx ? 'bg-blue-600/20 text-white' : 'text-gray-300 hover:bg-gray-800'
+                        selectedIndex === idx ? 'bg-blue-600/20 text-white' : 'text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
                     >
                       {icons.member}
@@ -221,7 +221,7 @@ export function GlobalSearch() {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-800 text-[11px] text-gray-600">
+          <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-200 dark:border-gray-800 text-[11px] text-gray-600">
             <span>Navigate with arrow keys</span>
             <span>Enter to select</span>
           </div>

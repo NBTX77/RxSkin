@@ -20,9 +20,9 @@ export function OpsHeader({ title, subtitle, lastSync, onRefresh, isRefreshing }
   }
 
   return (
-    <div className="flex items-center justify-between pb-4 border-b border-gray-800 mb-4">
+    <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-800 mb-4">
       <div>
-        <h1 className="text-xl font-bold text-white">{title}</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h1>
         {subtitle && (
           <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
         )}
@@ -46,7 +46,7 @@ export function OpsHeader({ title, subtitle, lastSync, onRefresh, isRefreshing }
             disabled={isRefreshing}
             aria-label="Refresh data"
             aria-busy={isRefreshing}
-            className="px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg text-sm transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
+            className="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-800 rounded-lg text-sm transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
           >
             <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
           </button>

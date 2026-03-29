@@ -230,7 +230,7 @@ function SortableColumnHeader({ column }: { column: ColumnDef }) {
           {...listeners}
           className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
         >
-          <GripVertical size={12} className="text-gray-400 dark:text-gray-600 rotate-90" />
+          <GripVertical size={12} className="text-gray-600 dark:text-gray-400 dark:text-gray-600 rotate-90" />
         </span>
         {column.label}
       </div>

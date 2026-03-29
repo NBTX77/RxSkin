@@ -8,7 +8,7 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-950 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
       {/* Desktop sidebar */}
       <ErrorBoundary section="Sidebar">
         <Sidebar />

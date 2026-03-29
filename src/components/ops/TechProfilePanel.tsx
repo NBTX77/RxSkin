@@ -21,7 +21,7 @@ function PriorityPill({ priority }: { priority: string }) {
     Medium: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
     Low: 'bg-green-500/10 text-green-400 border-green-500/20',
   }
-  const cls = colors[priority] ?? 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+  const cls = colors[priority] ?? 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20'
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full border ${cls}`}>
       {priority}
@@ -44,14 +44,14 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
 
       {/* Panel */}
       <div
-        className={`fixed top-0 right-0 h-full z-50 bg-gray-900 border-l border-gray-800 shadow-2xl transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full z-50 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-2xl transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         } w-full sm:w-[360px]`}
       >
         {tech && (
           <div className="flex flex-col h-full overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border ${
                   tech.hosColor === 'red'
@@ -60,35 +60,35 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
                     ? 'bg-yellow-500/20 border-yellow-500/40'
                     : 'bg-blue-500/20 border-blue-500/40'
                 }`}>
-                  <span className="text-white">{getInitials(tech.name)}</span>
+                  <span className="text-gray-900 dark:text-white">{getInitials(tech.name)}</span>
                 </div>
                 <div>
-                  <h2 className="text-base font-semibold text-white">{tech.name}</h2>
+                  <h2 className="text-base font-semibold text-gray-900 dark:text-white">{tech.name}</h2>
                   <p className="text-xs text-gray-500">{tech.memberIdentifier || 'Unknown ID'}</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-800 rounded-lg transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Quick metrics */}
-            <div className="grid grid-cols-2 gap-3 p-4 border-b border-gray-800">
+            <div className="grid grid-cols-2 gap-3 p-4 border-b border-gray-200 dark:border-gray-800">
               <div className="flex items-center gap-2">
                 <Truck size={14} className="text-gray-500" />
                 <div>
                   <div className="text-xs text-gray-500">Truck</div>
-                  <div className="text-sm text-white">{tech.truckName}</div>
+                  <div className="text-sm text-gray-900 dark:text-white">{tech.truckName}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin size={14} className="text-gray-500" />
                 <div>
                   <div className="text-xs text-gray-500">Location</div>
-                  <div className="text-sm text-white">
+                  <div className="text-sm text-gray-900 dark:text-white">
                     {tech.lat.toFixed(4)}, {tech.lng.toFixed(4)}
                   </div>
                 </div>
@@ -97,7 +97,7 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
                 <Gauge size={14} className="text-gray-500" />
                 <div>
                   <div className="text-xs text-gray-500">Speed</div>
-                  <div className={`text-sm ${tech.speed > 0 ? 'text-green-400' : 'text-gray-400'}`}>
+                  <div className={`text-sm ${tech.speed > 0 ? 'text-green-400' : 'text-gray-600 dark:text-gray-400'}`}>
                     {tech.speed > 0 ? `${tech.speed} mph` : 'Parked'}
                   </div>
                 </div>
@@ -121,14 +121,14 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {/* Open Tickets */}
               <div>
-                <h3 className="text-sm font-semibold text-white mb-2">Active Ticket</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Active Ticket</h3>
                 {tech.currentTicket ? (
-                  <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-3">
+                  <div className="bg-gray-100 dark:bg-gray-800/50 border border-gray-700/50 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-gray-500">#{tech.currentTicket.id}</span>
                       <PriorityPill priority={tech.currentTicket.priority} />
                     </div>
-                    <p className="text-sm text-white">{tech.currentTicket.summary}</p>
+                    <p className="text-sm text-gray-900 dark:text-white">{tech.currentTicket.summary}</p>
                     {tech.currentTicket.company && (
                       <p className="text-xs text-gray-500 mt-1">{tech.currentTicket.company}</p>
                     )}
@@ -141,15 +141,15 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
               {/* Schedule Hold Tickets */}
               {tech.scheduledHold.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-white mb-2">Schedule Holds ({tech.scheduledHold.length})</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Schedule Holds ({tech.scheduledHold.length})</h3>
                   <div className="space-y-2">
                     {tech.scheduledHold.map((hold) => (
-                      <div key={hold.id} className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-3">
+                      <div key={hold.id} className="bg-gray-100 dark:bg-gray-800/50 border border-gray-700/50 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs text-gray-500">#{hold.id}</span>
                           <PriorityPill priority={hold.priority} />
                         </div>
-                        <p className="text-sm text-white">{hold.summary}</p>
+                        <p className="text-sm text-gray-900 dark:text-white">{hold.summary}</p>
                         {hold.company && (
                           <p className="text-xs text-gray-500 mt-1">{hold.company}</p>
                         )}
@@ -161,7 +161,7 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
 
               {/* Today's Schedule */}
               <div>
-                <h3 className="text-sm font-semibold text-white mb-2">Today&apos;s Schedule ({tech.dispatch.length})</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Today&apos;s Schedule ({tech.dispatch.length})</h3>
                 {tech.dispatch.length > 0 ? (
                   <div className="space-y-2">
                     {tech.dispatch.map((d) => {
@@ -175,7 +175,7 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
                       return (
                         <div
                           key={d.id}
-                          className={`bg-gray-800/50 border border-gray-700/50 border-l-2 ${typeColors[d.type] ?? 'border-l-gray-400'} rounded-lg p-3`}
+                          className={`bg-gray-100 dark:bg-gray-800/50 border border-gray-700/50 border-l-2 ${typeColors[d.type] ?? 'border-l-gray-400'} rounded-lg p-3`}
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-500">
@@ -185,13 +185,13 @@ export function TechProfilePanel({ tech, onClose }: TechProfilePanelProps) {
                               d.status === 'In Progress'
                                 ? 'bg-green-500/10 text-green-400'
                                 : d.status === 'Completed'
-                                ? 'bg-gray-500/10 text-gray-400'
+                                ? 'bg-gray-500/10 text-gray-600 dark:text-gray-400'
                                 : 'bg-blue-500/10 text-blue-400'
                             }`}>
                               {d.status ?? d.type}
                             </span>
                           </div>
-                          <p className="text-sm text-white mt-1">{d.name}</p>
+                          <p className="text-sm text-gray-900 dark:text-white mt-1">{d.name}</p>
                         </div>
                       )
                     })}

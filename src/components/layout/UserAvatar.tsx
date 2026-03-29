@@ -56,24 +56,24 @@ export function UserAvatar() {
     <div ref={menuRef} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-800 transition-colors"
+        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         aria-label="User menu"
         aria-expanded={open}
       >
         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-          <span className="text-white text-xs font-semibold">{initials}</span>
+          <span className="text-gray-900 dark:text-white text-xs font-semibold">{initials}</span>
         </div>
-        <span className="hidden sm:block text-sm text-gray-300 font-medium max-w-[120px] truncate">
+        <span className="hidden sm:block text-sm text-gray-700 dark:text-gray-300 font-medium max-w-[120px] truncate">
           {user.name}
         </span>
         <ChevronDown size={14} className={`text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-gray-900 border border-gray-800 rounded-xl shadow-xl shadow-black/40 z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-xl shadow-black/40 z-50 overflow-hidden">
           {/* User info header */}
-          <div className="px-4 py-3 border-b border-gray-800">
-            <p className="text-sm font-medium text-white truncate">{user.name}</p>
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.name}</p>
             <p className="text-xs text-gray-500 truncate">{user.email}</p>
             <p className="text-[10px] text-gray-600 mt-1 uppercase tracking-wider">{user.role}</p>
           </div>
@@ -83,7 +83,7 @@ export function UserAvatar() {
             <Link
               href="/settings"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+              className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-800 hover:text-gray-900 dark:text-white transition-colors"
             >
               <User size={16} />
               Profile & Settings
@@ -93,7 +93,7 @@ export function UserAvatar() {
               <Link
                 href="/admin"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-800 hover:text-gray-900 dark:text-white transition-colors"
               >
                 <Shield size={16} />
                 Admin Panel
@@ -102,10 +102,10 @@ export function UserAvatar() {
           </div>
 
           {/* Sign out */}
-          <div className="border-t border-gray-800 py-1">
+          <div className="border-t border-gray-200 dark:border-gray-800 py-1">
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800 hover:text-red-400 transition-colors"
+              className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-400 transition-colors"
             >
               <LogOut size={16} />
               Sign out

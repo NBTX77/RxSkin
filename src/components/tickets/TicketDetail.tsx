@@ -76,15 +76,15 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
   if (ticketLoading || !ticket) {
     return (
       <div className="space-y-4">
-        <div className="h-8 w-48 bg-gray-800 rounded animate-pulse" />
-        <div className="h-32 bg-gray-800 rounded-xl animate-pulse" />
-        <div className="h-64 bg-gray-800 rounded-xl animate-pulse" />
+        <div className="h-8 w-48 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+        <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+        <div className="h-64 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
       </div>
     )
   }
 
   const dotColor = PRIORITY_DOT[ticket.priority] ?? 'bg-gray-500'
-  const statusStyle = STATUS_STYLES[ticket.status] ?? 'text-gray-400 bg-gray-500/10 border-gray-500/20'
+  const statusStyle = STATUS_STYLES[ticket.status] ?? 'text-gray-600 dark:text-gray-400 bg-gray-500/10 border-gray-500/20'
   const totalTime = timeEntries.reduce((sum, e) => sum + e.hoursWorked, 0)
 
   return (
@@ -93,22 +93,22 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
       <div className="flex items-center justify-between gap-3">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white transition-colors text-sm"
         >
           <ArrowLeft size={16} />
           Back
         </button>
 
         <div className="flex items-center gap-2">
-          <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-1.5">
+          <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-700 hover:text-gray-900 dark:text-white transition-colors flex items-center gap-1.5">
             <Timer size={13} />
             Start Timer
           </button>
-          <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-1.5">
+          <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-700 hover:text-gray-900 dark:text-white transition-colors flex items-center gap-1.5">
             <Calendar size={13} />
             Schedule
           </button>
-          <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-1.5">
+          <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-700 hover:text-gray-900 dark:text-white transition-colors flex items-center gap-1.5">
             <User size={13} />
             Reassign
           </button>
@@ -127,7 +127,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
         {/* Left: Activity Feed (2/3 width) */}
         <div className="lg:col-span-2 space-y-4">
           {/* Ticket header */}
-          <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-5">
             <div className="flex items-start gap-3">
               <span className={`inline-block w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${dotColor}`} />
               <div className="flex-1 min-w-0">
@@ -136,15 +136,15 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border ${statusStyle}`}>
                     {ticket.status}
                   </span>
-                  <span className="text-xs text-gray-600 px-1.5 py-0.5 rounded bg-gray-800">{ticket.priority}</span>
+                  <span className="text-xs text-gray-600 px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800">{ticket.priority}</span>
                 </div>
-                <h1 className="text-lg font-semibold text-white leading-snug">{ticket.summary}</h1>
+                <h1 className="text-lg font-semibold text-gray-900 dark:text-white leading-snug">{ticket.summary}</h1>
               </div>
             </div>
           </div>
 
           {/* Add note inline */}
-          <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4">
             <div className="flex gap-3">
               <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">
                 TB
@@ -155,12 +155,12 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Add a note... (Enter to send)"
                   rows={2}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
                 <div className="flex items-center justify-between mt-2">
                   <div className="flex items-center gap-2">
                     <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
-                      <input id="note-internal" type="checkbox" className="w-3 h-3 rounded border-gray-600 bg-gray-800" />
+                      <input id="note-internal" type="checkbox" className="w-3 h-3 rounded border-gray-600 bg-gray-100 dark:bg-gray-800" />
                       Internal
                     </label>
                   </div>
@@ -189,11 +189,11 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           </div>
 
           {/* Tab toggle */}
-          <div className="flex items-center gap-1 bg-gray-900 rounded-lg border border-gray-800 p-1">
+          <div className="flex items-center gap-1 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-1">
             <button
               onClick={() => setActiveTab('notes')}
               className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
-                activeTab === 'notes' ? 'bg-gray-800 text-white' : 'text-gray-500 hover:text-gray-300'
+                activeTab === 'notes' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300'
               }`}
             >
               Notes ({notes.length})
@@ -201,7 +201,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
             <button
               onClick={() => setActiveTab('time')}
               className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
-                activeTab === 'time' ? 'bg-gray-800 text-white' : 'text-gray-500 hover:text-gray-300'
+                activeTab === 'time' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300'
               }`}
             >
               Time ({timeEntries.length}) — {totalTime}h
@@ -212,12 +212,12 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           {activeTab === 'notes' ? (
             <div className="space-y-3">
               {notes.map((note) => (
-                <div key={note.id} className={`rounded-xl border p-4 ${note.isInternal ? 'border-yellow-500/20 bg-yellow-500/5' : 'border-gray-800 bg-gray-900'}`}>
+                <div key={note.id} className={`rounded-xl border p-4 ${note.isInternal ? 'border-yellow-500/20 bg-yellow-500/5' : 'border-gray-200 dark:border-gray-800 bg-gray-900'}`}>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-[10px] font-bold text-gray-300">
+                    <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-[10px] font-bold text-gray-700 dark:text-gray-300">
                       {note.createdBy.split(' ').map(n => n[0]).join('')}
                     </div>
-                    <span className="text-xs font-medium text-gray-300">{note.createdBy}</span>
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{note.createdBy}</span>
                     {note.isInternal && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 font-medium">Internal</span>
                     )}
@@ -225,7 +225,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                       {formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed">{note.text}</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{note.text}</p>
                 </div>
               ))}
               {notes.length === 0 && (
@@ -235,16 +235,16 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           ) : (
             <div className="space-y-2">
               {timeEntries.map((entry) => (
-                <div key={entry.id} className="rounded-xl border border-gray-800 bg-gray-900 p-4 flex items-center justify-between">
+                <div key={entry.id} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4 flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-200">{entry.memberName}</span>
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{entry.memberName}</span>
                       <span className="text-xs text-gray-600">{entry.workType}</span>
                     </div>
                     {entry.notes && <p className="text-xs text-gray-500 mt-1">{entry.notes}</p>}
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-semibold text-white">{entry.hoursWorked}h</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{entry.hoursWorked}h</p>
                     <p className="text-xs text-gray-600">
                       {entry.billable ? 'Billable' : 'Non-billable'}
                     </p>
@@ -261,8 +261,8 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
         {/* Right: Metadata sidebar (1/3 width) */}
         <div className="space-y-4">
           {/* Key info */}
-          <div className="rounded-xl border border-gray-800 bg-gray-900 p-4 space-y-4">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Details</h3>
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4 space-y-4">
+            <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Details</h3>
 
             <div className="space-y-3">
               <DetailRow icon={<Tag size={14} />} label="Board" value={ticket.board} />
@@ -276,21 +276,21 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           </div>
 
           {/* Hours */}
-          <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Time</h3>
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4">
+            <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Time</h3>
             <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-3 bg-gray-800 rounded-lg">
-                <p className="text-xl font-bold text-white">{totalTime}</p>
+              <div className="text-center p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{totalTime}</p>
                 <p className="text-[11px] text-gray-500">Actual</p>
               </div>
-              <div className="text-center p-3 bg-gray-800 rounded-lg">
-                <p className="text-xl font-bold text-white">{ticket.budgetHours ?? '—'}</p>
+              <div className="text-center p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{ticket.budgetHours ?? '—'}</p>
                 <p className="text-[11px] text-gray-500">Budget</p>
               </div>
             </div>
             {ticket.budgetHours && ticket.budgetHours > 0 && (
               <div className="mt-3">
-                <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full ${
                       totalTime / ticket.budgetHours > 0.9 ? 'bg-red-500' :
@@ -304,8 +304,8 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           </div>
 
           {/* Quick actions */}
-          <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Actions</h3>
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4">
+            <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Quick Actions</h3>
             <div className="space-y-2">
               {/* Change Status */}
               <div className="relative">
@@ -317,7 +317,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                   {actionLoading === 'status' ? 'Updating...' : 'Change Status'}
                 </button>
                 {showStatusMenu && (
-                  <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-gray-800 border border-gray-700 rounded-lg shadow-lg py-1">
+                  <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-gray-100 dark:bg-gray-800 border border-gray-700 rounded-lg shadow-lg py-1">
                     {['New', 'In Progress', 'Waiting on Client', 'Scheduled', 'Resolved', 'Closed'].map((status) => (
                       <button
                         key={status}
@@ -334,8 +334,8 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                           queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
                           setActionLoading(null)
                         }}
-                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-700 transition-colors ${
-                          ticket.status === status ? 'text-blue-400 font-medium' : 'text-gray-300'
+                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
+                          ticket.status === status ? 'text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'
                         }`}
                       >
                         {status}
@@ -355,7 +355,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                   {actionLoading === 'time' ? 'Adding...' : 'Add Time Entry'}
                 </button>
                 {showTimeForm && (
-                  <div className="mt-2 p-3 bg-gray-800 rounded-lg space-y-2">
+                  <div className="mt-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg space-y-2">
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
@@ -364,7 +364,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                         max="24"
                         value={timeHours}
                         onChange={(e) => setTimeHours(parseFloat(e.target.value) || 0.25)}
-                        className="w-20 px-2 py-1 rounded bg-gray-900 border border-gray-700 text-white text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        className="w-20 px-2 py-1 rounded bg-white dark:bg-gray-900 border border-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
                       />
                       <span className="text-xs text-gray-500">hours</span>
                     </div>
@@ -373,7 +373,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                       value={timeNotes}
                       onChange={(e) => setTimeNotes(e.target.value)}
                       placeholder="Notes (optional)"
-                      className="w-full px-2 py-1 rounded bg-gray-900 border border-gray-700 text-white text-xs placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                      className="w-full px-2 py-1 rounded bg-white dark:bg-gray-900 border border-gray-700 text-gray-900 dark:text-white text-xs placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-purple-500"
                     />
                     <button
                       onClick={async () => {
@@ -488,7 +488,7 @@ function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: strin
         {icon}
         {label}
       </span>
-      <span className="text-xs text-gray-300 font-medium">{value}</span>
+      <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">{value}</span>
     </div>
   )
 }

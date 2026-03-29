@@ -32,7 +32,7 @@ const mockUsers: AppUser[] = [
 const roleColors: Record<string, string> = {
   ADMIN: 'bg-orange-600/20 text-orange-400 border-orange-500/30',
   TECH: 'bg-blue-600/20 text-blue-400 border-blue-500/30',
-  VIEWER: 'bg-gray-600/20 text-gray-400 border-gray-500/30',
+  VIEWER: 'bg-gray-600/20 text-gray-600 dark:text-gray-400 border-gray-500/30',
 }
 
 const deptColors: Record<string, string> = {
@@ -57,7 +57,7 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">Users</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Users</h2>
           <p className="text-sm text-gray-500 mt-1">Manage user accounts, roles, and permissions.</p>
         </div>
         <button className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
@@ -75,13 +75,13 @@ export default function UsersPage() {
             placeholder="Search users..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
           />
         </div>
         <select
           value={roleFilter}
           onChange={e => setRoleFilter(e.target.value)}
-          className="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
+          className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500"
         >
           <option value="all">All roles</option>
           <option value="ADMIN">Admin</option>
@@ -91,9 +91,9 @@ export default function UsersPage() {
       </div>
 
       {/* User list */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 overflow-hidden">
         {/* Desktop header */}
-        <div className="hidden sm:grid grid-cols-[1fr_120px_80px_100px_140px_40px] gap-4 px-5 py-3 border-b border-gray-800 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <div className="hidden sm:grid grid-cols-[1fr_120px_80px_100px_140px_40px] gap-4 px-5 py-3 border-b border-gray-200 dark:border-gray-800 text-xs font-semibold text-gray-500 uppercase tracking-wider">
           <span>User</span>
           <span>Role</span>
           <span>Dept</span>
@@ -103,16 +103,16 @@ export default function UsersPage() {
         </div>
 
         {filtered.map(user => (
-          <div key={user.id} className="grid grid-cols-1 sm:grid-cols-[1fr_120px_80px_100px_140px_40px] gap-2 sm:gap-4 items-center px-5 py-3 border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
+          <div key={user.id} className="grid grid-cols-1 sm:grid-cols-[1fr_120px_80px_100px_140px_40px] gap-2 sm:gap-4 items-center px-5 py-3 border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-800/30 transition-colors">
             {/* User info */}
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-medium text-gray-400">
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                   {user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </span>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-white truncate">{user.name}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.name}</p>
                 <p className="text-xs text-gray-500 truncate">{user.email}</p>
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function UsersPage() {
             </span>
 
             {/* Actions */}
-            <button className="text-gray-500 hover:text-gray-300 transition-colors p-1 rounded">
+            <button className="text-gray-500 hover:text-gray-700 dark:text-gray-300 transition-colors p-1 rounded">
               <MoreVertical size={14} />
             </button>
           </div>

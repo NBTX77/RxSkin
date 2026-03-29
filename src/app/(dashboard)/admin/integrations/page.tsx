@@ -144,7 +144,7 @@ export default function IntegrationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white">Integrations</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Integrations</h2>
         <p className="text-sm text-gray-500 mt-1">
           Manage API credentials for all connected platforms. Credentials are encrypted with AES-256-GCM.
         </p>
@@ -213,14 +213,14 @@ function PlatformCard({
   const StatusIcon = st.icon
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 overflow-hidden">
       {/* Header (always visible) */}
       <button
         onClick={onToggle}
-        className="flex items-center justify-between w-full px-5 py-4 text-left hover:bg-gray-800/30 transition-colors"
+        className="flex items-center justify-between w-full px-5 py-4 text-left hover:bg-gray-100 dark:hover:bg-gray-800/30 transition-colors"
       >
         <div>
-          <p className="text-sm font-medium text-white">{platform.name}</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{platform.name}</p>
           <p className="text-xs text-gray-500 mt-0.5">{platform.description}</p>
         </div>
         <span className={`flex items-center gap-1.5 text-xs ${st.color}`}>
@@ -231,20 +231,20 @@ function PlatformCard({
 
       {/* Expanded: credential form */}
       {expanded && (
-        <div className="border-t border-gray-800 px-5 py-4 space-y-4">
+        <div className="border-t border-gray-200 dark:border-gray-800 px-5 py-4 space-y-4">
           {platform.fields.map(field => (
             <div key={field.key}>
-              <label className="block text-xs font-medium text-gray-400 mb-1.5">{field.label}</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">{field.label}</label>
               <div className="relative">
                 <input
                   type={field.type === 'password' && !showSecrets ? 'password' : 'text'}
                   placeholder={field.type === 'url' ? 'https://...' : `Enter ${field.label.toLowerCase()}`}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 font-mono"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 font-mono"
                 />
                 {field.type === 'password' && (
                   <button
                     onClick={() => setShowSecrets(!showSecrets)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-300"
                   >
                     {showSecrets ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
@@ -259,7 +259,7 @@ function PlatformCard({
             </button>
             <button
               onClick={() => setTesting(true)}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-lg border border-gray-700 transition-colors"
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg border border-gray-700 transition-colors"
             >
               Test Connection
             </button>

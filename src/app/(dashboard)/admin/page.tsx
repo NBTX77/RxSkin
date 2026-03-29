@@ -60,7 +60,7 @@ const colorMap: Record<string, { bg: string; text: string; border: string }> = {
   purple: { bg: 'bg-purple-600/15', text: 'text-purple-400', border: 'border-purple-500/20' },
   cyan: { bg: 'bg-cyan-600/15', text: 'text-cyan-400', border: 'border-cyan-500/20' },
   orange: { bg: 'bg-orange-600/15', text: 'text-orange-400', border: 'border-orange-500/20' },
-  gray: { bg: 'bg-gray-600/15', text: 'text-gray-400', border: 'border-gray-500/20' },
+  gray: { bg: 'bg-gray-600/15', text: 'text-gray-600 dark:text-gray-400', border: 'border-gray-500/20' },
 }
 
 export default function AdminOverviewPage() {
@@ -77,7 +77,7 @@ export default function AdminOverviewPage() {
             <Link
               key={href}
               href={href}
-              className="rounded-xl border border-gray-800 bg-gray-900 p-5 hover:border-gray-700 transition-colors group"
+              className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-5 hover:border-gray-700 transition-colors group"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className={`w-10 h-10 rounded-lg ${colors.bg} border ${colors.border} flex items-center justify-center`}>
@@ -85,7 +85,7 @@ export default function AdminOverviewPage() {
                 </div>
                 <span className="text-[10px] text-gray-600 uppercase tracking-wider">{stat}</span>
               </div>
-              <p className="text-sm font-medium text-white group-hover:text-blue-400 transition-colors">{label}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-400 transition-colors">{label}</p>
               <p className="text-xs text-gray-500 mt-1">{description}</p>
             </Link>
           )

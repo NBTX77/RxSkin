@@ -20,12 +20,12 @@ const colorMap = {
 
 export const KpiCard = memo(function KpiCard({ label, value, icon, color = 'blue', detail }: KpiCardProps) {
   return (
-    <div className={`${colorMap[color]} border border-gray-800 rounded-xl p-4`}>
+    <div className={`${colorMap[color]} border border-gray-200 dark:border-gray-800 rounded-xl p-4`}>
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">{label}</span>
         {icon && <span className="opacity-60">{icon}</span>}
       </div>
-      <div className="text-2xl font-bold text-white mt-1">{value}</div>
+      <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</div>
       {detail && (
         <p className="text-xs text-gray-500 mt-1">{detail}</p>
       )}

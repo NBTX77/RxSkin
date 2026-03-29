@@ -18,7 +18,7 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white">Analytics</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Analytics</h2>
         <p className="text-sm text-gray-500 mt-1">
           Behavior tracking, heatmaps, and AI-powered site insights. All data feeds into the Admin Advisor bot for improvement suggestions.
         </p>
@@ -33,10 +33,10 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Tracking Configuration */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Eye size={16} className="text-blue-400" />
-          <h3 className="text-sm font-semibold text-gray-300">Tracking Configuration</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Tracking Configuration</h3>
         </div>
 
         <div className="space-y-4">
@@ -69,13 +69,13 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Heatmaps */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Flame size={16} className="text-orange-400" />
-            <h3 className="text-sm font-semibold text-gray-300">Heatmaps</h3>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Heatmaps</h3>
           </div>
-          <select className="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-300 focus:outline-none focus:border-blue-500">
+          <select className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-xs text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500">
             <option value="7d">Last 7 days</option>
             <option value="30d">Last 30 days</option>
             <option value="90d">Last 90 days</option>
@@ -95,10 +95,10 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Dead Zones (AI-detected) */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Map size={16} className="text-red-400" />
-          <h3 className="text-sm font-semibold text-gray-300">Dead Zones</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Dead Zones</h3>
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-600/15 text-cyan-400 border border-cyan-500/20">
             AI detected
           </span>
@@ -128,10 +128,10 @@ export default function AnalyticsPage() {
       </div>
 
       {/* AI Suggestions */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-cyan-400" />
-          <h3 className="text-sm font-semibold text-gray-300">AI Improvement Suggestions</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI Improvement Suggestions</h3>
         </div>
         <p className="text-xs text-gray-500">
           Based on click patterns, session data, and heatmaps. Review and approve changes before implementation.
@@ -188,11 +188,11 @@ function StatCard({
   const c = colorMap[color]
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4">
       <div className={`w-8 h-8 rounded-lg ${c} flex items-center justify-center mb-2`}>
         <Icon size={16} />
       </div>
-      <p className="text-lg font-semibold text-white">{value}</p>
+      <p className="text-lg font-semibold text-gray-900 dark:text-white">{value}</p>
       <p className="text-xs text-gray-500">{label}</p>
       <p className="text-[10px] text-green-400 mt-1">{change} — {period}</p>
     </div>
@@ -201,12 +201,12 @@ function StatCard({
 
 function HeatmapCard({ page, clicks, hotspot, coverage }: { page: string; clicks: number; hotspot: string; coverage: string }) {
   return (
-    <div className="rounded-lg border border-gray-700/50 bg-gray-800/50 p-4 hover:border-gray-600 transition-colors cursor-pointer">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-100 dark:bg-gray-800/50 p-4 hover:border-gray-600 transition-colors cursor-pointer">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-mono text-gray-400">{page}</span>
+        <span className="text-xs font-mono text-gray-600 dark:text-gray-400">{page}</span>
         <span className="text-[10px] text-gray-500">{clicks.toLocaleString()} clicks</span>
       </div>
-      <p className="text-xs text-gray-500">Hotspot: <span className="text-gray-300">{hotspot}</span></p>
+      <p className="text-xs text-gray-500">Hotspot: <span className="text-gray-700 dark:text-gray-300">{hotspot}</span></p>
       <div className="mt-2 w-full bg-gray-700 rounded-full h-1.5">
         <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: coverage }} />
       </div>
@@ -217,11 +217,11 @@ function HeatmapCard({ page, clicks, hotspot, coverage }: { page: string; clicks
 
 function DeadZoneRow({ page, element, lastClick, suggestion }: { page: string; element: string; lastClick: string; suggestion: string }) {
   return (
-    <div className="rounded-lg border border-gray-700/50 bg-gray-800/30 p-3">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-800/30 p-3">
       <div className="flex items-center gap-2 mb-1">
         <span className="text-xs font-mono text-gray-500">{page}</span>
         <ChevronRight size={10} className="text-gray-600" />
-        <span className="text-xs text-gray-300">{element}</span>
+        <span className="text-xs text-gray-700 dark:text-gray-300">{element}</span>
       </div>
       <p className="text-[10px] text-gray-600 mb-1.5">Last click: {lastClick}</p>
       <p className="text-xs text-cyan-400/80 italic">&ldquo;{suggestion}&rdquo;</p>
@@ -241,21 +241,21 @@ function SuggestionRow({
   status: 'pending' | 'approved' | 'rejected' | 'implemented'
 }) {
   const impactColors: Record<string, string> = {
-    Low: 'text-gray-400 bg-gray-600/20',
+    Low: 'text-gray-600 dark:text-gray-400 bg-gray-600/20',
     Medium: 'text-yellow-400 bg-yellow-600/20',
     High: 'text-orange-400 bg-orange-600/20',
   }
   const statusColors: Record<string, string> = {
-    pending: 'text-gray-400 bg-gray-600/20',
+    pending: 'text-gray-600 dark:text-gray-400 bg-gray-600/20',
     approved: 'text-green-400 bg-green-600/20',
     rejected: 'text-red-400 bg-red-600/20',
     implemented: 'text-blue-400 bg-blue-600/20',
   }
 
   return (
-    <div className="rounded-lg border border-gray-700/50 bg-gray-800/30 p-4 flex items-start justify-between gap-4">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-800/30 p-4 flex items-start justify-between gap-4">
       <div className="flex-1">
-        <p className="text-sm text-white font-medium">{title}</p>
+        <p className="text-sm text-gray-900 dark:text-white font-medium">{title}</p>
         <p className="text-xs text-gray-500 mt-0.5">{description}</p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
@@ -277,7 +277,7 @@ function ToggleRow({ label, description, enabled: defaultEnabled }: { label: str
   return (
     <div className="flex items-center justify-between gap-4">
       <div>
-        <p className="text-sm text-gray-300">{label}</p>
+        <p className="text-sm text-gray-700 dark:text-gray-300">{label}</p>
         <p className="text-xs text-gray-600">{description}</p>
       </div>
       <button

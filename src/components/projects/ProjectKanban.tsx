@@ -75,14 +75,14 @@ export function ProjectKanban({
         return (
           <div
             key={column.id}
-            className={`min-w-[260px] sm:min-w-[280px] w-[260px] sm:w-[280px] flex-shrink-0 bg-gray-900/80 rounded-xl border border-gray-700/50 p-3 ${COLUMN_ACCENT[column.color]}`}
+            className={`min-w-[260px] sm:min-w-[280px] w-[260px] sm:w-[280px] flex-shrink-0 bg-white dark:bg-gray-900/80 rounded-xl border border-gray-200 dark:border-gray-700/50 p-3 ${COLUMN_ACCENT[column.color]}`}
           >
             {/* Column header */}
             <div className="flex items-center justify-between mb-3">
               <span className={`${BADGE_BASE_CLASSES} ${getProjectStageStyle(column.name)}`}>
                 {column.name}
               </span>
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-800/80 text-xs font-medium text-gray-200">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-50 dark:bg-gray-800/80 text-xs font-medium text-gray-800 dark:text-gray-200">
                 {columnProjects.length}
               </span>
             </div>

@@ -71,7 +71,7 @@ export default function AIBotsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white">AI & Bots</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">AI & Bots</h2>
         <p className="text-sm text-gray-500 mt-1">
           Configure AI assistants, chatbots, and automated intelligence features.
           AI has access to behavior analytics data to help improve the site.
@@ -79,10 +79,10 @@ export default function AIBotsPage() {
       </div>
 
       {/* Global AI Settings */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-cyan-400" />
-          <h3 className="text-sm font-semibold text-gray-300">Global AI Settings</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Global AI Settings</h3>
         </div>
 
         <div className="space-y-4">
@@ -103,8 +103,8 @@ export default function AIBotsPage() {
           />
 
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1.5">AI Provider</label>
-            <select className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-300 focus:outline-none focus:border-blue-500">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">AI Provider</label>
+            <select className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500">
               <option value="anthropic">Anthropic (Claude)</option>
               <option value="openai">OpenAI (GPT)</option>
               <option value="custom">Custom API</option>
@@ -112,11 +112,11 @@ export default function AIBotsPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1.5">API Key</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">API Key</label>
             <input
               type="password"
               placeholder="sk-..."
-              className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500 font-mono"
+              className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500 font-mono"
             />
             <p className="text-[10px] text-gray-600 mt-1">Stored encrypted. Used for all AI features.</p>
           </div>
@@ -130,16 +130,16 @@ export default function AIBotsPage() {
         {bots.map(bot => {
           const Icon = bot.icon
           return (
-            <div key={bot.id} className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+            <div key={bot.id} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-5">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    bot.enabled ? 'bg-cyan-600/20' : 'bg-gray-800'
+                    bot.enabled ? 'bg-cyan-600/20' : 'bg-gray-100 dark:bg-gray-800'
                   }`}>
                     <Icon size={20} className={bot.enabled ? 'text-cyan-400' : 'text-gray-500'} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white">{bot.name}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{bot.name}</p>
                     <p className="text-[10px] text-gray-500 mt-0.5">Scope: {bot.scope}</p>
                   </div>
                 </div>
@@ -160,7 +160,7 @@ export default function AIBotsPage() {
 
               <div className="flex flex-wrap gap-2">
                 {bot.capabilities.map(cap => (
-                  <span key={cap} className="text-[10px] px-2 py-1 rounded-full bg-gray-800 text-gray-500 border border-gray-700/50">
+                  <span key={cap} className="text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 border border-gray-200 dark:border-gray-700/50">
                     {cap}
                   </span>
                 ))}
@@ -171,10 +171,10 @@ export default function AIBotsPage() {
       </div>
 
       {/* Chatbot Placement */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <MessageSquare size={16} className="text-blue-400" />
-          <h3 className="text-sm font-semibold text-gray-300">Chatbot Placement</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Chatbot Placement</h3>
         </div>
 
         <div className="space-y-4">
@@ -207,7 +207,7 @@ function ToggleRow({ label, description, enabled: defaultEnabled }: { label: str
   return (
     <div className="flex items-center justify-between gap-4">
       <div>
-        <p className="text-sm text-gray-300">{label}</p>
+        <p className="text-sm text-gray-700 dark:text-gray-300">{label}</p>
         <p className="text-xs text-gray-600">{description}</p>
       </div>
       <button

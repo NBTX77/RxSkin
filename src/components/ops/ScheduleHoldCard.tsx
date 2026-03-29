@@ -15,7 +15,7 @@ function PriorityPill({ priority }: { priority: string }) {
     Medium: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
     Low: 'bg-green-500/10 text-green-400 border-green-500/20',
   }
-  const cls = colors[priority] ?? 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+  const cls = colors[priority] ?? 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20'
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full border ${cls}`}>
       {priority}
@@ -38,7 +38,7 @@ export const ScheduleHoldCard = memo(function ScheduleHoldCard({ ticket, onConte
   return (
     <div
       onContextMenu={onContextMenu}
-      className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-3 hover:bg-gray-800 hover:border-gray-600 transition-colors cursor-pointer"
+      className="bg-gray-100 dark:bg-gray-800/50 border border-gray-700/50 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-600 transition-colors cursor-pointer"
     >
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
@@ -49,10 +49,10 @@ export const ScheduleHoldCard = memo(function ScheduleHoldCard({ ticket, onConte
           <span className="text-xs text-gray-500">{formattedDate}</span>
         )}
       </div>
-      <p className="text-sm text-white mb-1">{ticket.summary}</p>
+      <p className="text-sm text-gray-900 dark:text-white mb-1">{ticket.summary}</p>
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-500">{ticket.company}</span>
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray-600 dark:text-gray-400">
           {ticket.member === 'Unassigned' ? (
             <span className="text-yellow-400">Unassigned</span>
           ) : (

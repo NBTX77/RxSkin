@@ -37,7 +37,7 @@ export function EntryTypeFilter({ activeFilter, onFilterChange, counts }: EntryT
             className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
               isActive
                 ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                : 'bg-gray-800/50 text-gray-500 border border-gray-700/50 hover:text-gray-300 hover:bg-gray-800'
+                : 'bg-gray-100 dark:bg-gray-800/50 text-gray-500 border border-gray-200 dark:border-gray-700/50 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-800'
             }`}
           >
             {label}

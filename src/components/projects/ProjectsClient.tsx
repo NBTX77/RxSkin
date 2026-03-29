@@ -111,13 +111,13 @@ export function ProjectsClient() {
     <div className="space-y-4 min-w-0">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-semibold text-white">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
           {DEPT_LABELS[department] || 'Projects'}
         </h1>
 
         {/* View mode toggles */}
         {availableViews.length > 1 && (
-          <div className="flex items-center gap-1 bg-gray-900/80 border border-gray-700/50 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-lg p-1">
             {availableViews.map(({ mode, icon: Icon, label }) => (
               <button
                 key={mode}
@@ -126,7 +126,7 @@ export function ProjectsClient() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                   viewMode === mode
                     ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20'
-                    : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-800'
                 }`}
               >
                 <Icon size={14} />
@@ -149,10 +149,10 @@ export function ProjectsClient() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search projects..."
-            className="w-full pl-9 pr-4 py-2 bg-gray-900/80 border border-gray-700/50 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-colors"
+            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-colors"
           />
         </div>
-        <button className="flex items-center gap-1.5 px-3 py-2 bg-gray-900/80 border border-gray-700/50 rounded-lg text-sm text-gray-400 hover:text-white hover:border-gray-600 transition-colors">
+        <button className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white hover:border-gray-600 transition-colors">
           <SlidersHorizontal size={14} />
           <span className="hidden sm:inline">Filter</span>
         </button>

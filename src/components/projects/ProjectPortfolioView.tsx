@@ -92,17 +92,17 @@ export function ProjectPortfolioView({
     <div className="space-y-6">
       {/* Executive summary bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
+        <div className="bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Total Projects</p>
-          <p className="text-2xl font-bold text-white">{totalProjects}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalProjects}</p>
         </div>
-        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
+        <div className="bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Total Budget Hours</p>
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {Math.round(totalBudget).toLocaleString()}
           </p>
         </div>
-        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
+        <div className="bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Overall Utilization</p>
           <p
             className={`text-2xl font-bold ${
@@ -116,9 +116,9 @@ export function ProjectPortfolioView({
             {Math.round(globalPct)}%
           </p>
         </div>
-        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
+        <div className="bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Departments Active</p>
-          <p className="text-2xl font-bold text-white">{deptSummaries.length}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{deptSummaries.length}</p>
         </div>
       </div>
 
@@ -128,13 +128,13 @@ export function ProjectPortfolioView({
           return (
             <div
               key={dept.code}
-              className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4 space-y-3"
+              className="bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-xl p-4 space-y-3"
             >
               {/* Dept header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FolderKanban size={16} className="text-gray-400" />
-                  <h3 className="text-sm font-semibold text-white">
+                  <FolderKanban size={16} className="text-gray-600 dark:text-gray-400" />
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                     {dept.name}
                   </h3>
                   <span className="text-xs text-gray-500">

@@ -196,14 +196,14 @@ export function ScheduleCalendar() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Calendar className="h-5 w-5 text-blue-400" />
-          <h1 className="text-2xl font-semibold text-white">Schedule</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Schedule</h1>
           {isFetching && (
             <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
           )}
         </div>
 
         {/* View switcher */}
-        <div className="flex items-center gap-1 rounded-lg border border-gray-700 bg-gray-900 p-1">
+        <div className="flex items-center gap-1 rounded-lg border border-gray-700 bg-white dark:bg-gray-900 p-1">
           {(Object.entries(VIEW_LABELS) as [ViewMode, string][]).map(([view, label]) => (
             <button
               key={view}
@@ -211,7 +211,7 @@ export function ScheduleCalendar() {
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 currentView === view
                   ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-800'
               }`}
             >
               {label}
@@ -225,28 +225,28 @@ export function ScheduleCalendar() {
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrev}
-            className="rounded-md border border-gray-700 bg-gray-900 p-2 text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+            className="rounded-md border border-gray-700 bg-white dark:bg-gray-900 p-2 text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-800 transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             onClick={handleToday}
-            className="rounded-md border border-gray-700 bg-gray-900 px-3 py-1.5 text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+            className="rounded-md border border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-800 transition-colors"
           >
             Today
           </button>
           <button
             onClick={handleNext}
-            className="rounded-md border border-gray-700 bg-gray-900 p-2 text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+            className="rounded-md border border-gray-700 bg-white dark:bg-gray-900 p-2 text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-800 transition-colors"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
-          <h2 className="ml-2 text-lg font-medium text-white">{calendarTitle}</h2>
+          <h2 className="ml-2 text-lg font-medium text-gray-900 dark:text-white">{calendarTitle}</h2>
         </div>
         <button
           onClick={() => refetch()}
           disabled={isFetching}
-          className="rounded-md border border-gray-700 bg-gray-900 p-2 text-gray-400 hover:text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
+          className="rounded-md border border-gray-700 bg-white dark:bg-gray-900 p-2 text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
           title="Refresh schedule"
         >
           <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
@@ -254,7 +254,7 @@ export function ScheduleCalendar() {
       </div>
 
       {/* Calendar */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-2 sm:p-4">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-2 sm:p-4">
         {isLoading ? (
           <div className="flex h-96 items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
@@ -327,10 +327,10 @@ export function ScheduleCalendar() {
         <>
           <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" onClick={() => setCreateForm(null)} />
           <div role="dialog" aria-modal="true" aria-label="Create schedule entry" className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-sm z-50">
-            <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-                <h3 className="text-sm font-semibold text-white">New Schedule Entry</h3>
-                <button onClick={() => setCreateForm(null)} aria-label="Close" className="p-1 rounded hover:bg-gray-800 text-gray-400">
+            <div className="bg-white dark:bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">New Schedule Entry</h3>
+                <button onClick={() => setCreateForm(null)} aria-label="Close" className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400">
                   <X size={16} />
                 </button>
               </div>
@@ -341,23 +341,23 @@ export function ScheduleCalendar() {
                   {new Date(createForm.end).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit' })}
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Ticket ID</label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Ticket ID</label>
                   <input
                     type="number"
                     value={createTicketId}
                     onChange={(e) => setCreateTicketId(e.target.value)}
                     placeholder="e.g. 12345"
-                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Member ID</label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Member ID</label>
                   <input
                     type="number"
                     value={createMemberId}
                     onChange={(e) => setCreateMemberId(e.target.value)}
                     placeholder="e.g. 100"
-                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <button

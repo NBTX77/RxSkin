@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex items-center gap-3">
         <Link
           href="/dashboard"
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-300 transition-colors"
         >
           <ArrowLeft size={14} />
           Dashboard
@@ -55,7 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <span className="text-gray-700">/</span>
         <div className="flex items-center gap-2">
           <Shield size={16} className="text-orange-400" />
-          <h1 className="text-lg font-semibold text-white">Admin Panel</h1>
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Admin Panel</h1>
         </div>
       </div>
 
@@ -72,7 +72,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                     active
                       ? 'bg-orange-600/15 text-orange-400 border border-orange-500/20'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-800'
                   }`}
                 >
                   <Icon size={16} />

@@ -47,7 +47,7 @@ export function PriorityDonut({ data }: PriorityDonutProps) {
       </ResponsiveContainer>
       <div className="flex flex-wrap gap-3 justify-center mt-2">
         {data.map((entry) => (
-          <div key={entry.priority} className="flex items-center gap-1.5 text-xs text-gray-400">
+          <div key={entry.priority} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
             <span
               className="w-2.5 h-2.5 rounded-full"
               style={{ backgroundColor: entry.color }}

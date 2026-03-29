@@ -178,11 +178,11 @@ export function Sidebar() {
               className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-white/20 transition-shadow`}
               aria-label="Switch department"
             >
-              <span className="text-white font-bold text-sm">RX</span>
+              <span className="text-gray-900 dark:text-white font-bold text-sm">RX</span>
             </button>
           ) : (
             <div className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center flex-shrink-0`}>
-              <span className="text-white font-bold text-sm">RX</span>
+              <span className="text-gray-900 dark:text-white font-bold text-sm">RX</span>
             </div>
           )}
           {isHovered && (

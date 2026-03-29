@@ -47,13 +47,13 @@ export function TopBar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 h-14 bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 flex items-center justify-between px-4 lg:px-6">
+    <header className="sticky top-0 z-30 h-14 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700/50 flex items-center justify-between px-4 lg:px-6">
       {/* Left: Logo on mobile, empty on desktop (sidebar has logo) */}
       <div className="flex items-center gap-3 lg:hidden">
         <div className={`w-7 h-7 rounded-lg ${getColorBg(config.color)} flex items-center justify-center`}>
-          <span className="text-white font-bold text-xs">RX</span>
+          <span className="text-gray-900 dark:text-white font-bold text-xs">RX</span>
         </div>
-        <span className="text-white font-semibold text-sm">RX Skin</span>
+        <span className="text-gray-900 dark:text-white font-semibold text-sm">RX Skin</span>
       </div>
 
       {/* Left: Greeting on dashboard, breadcrumb on other pages (desktop only) */}
@@ -71,7 +71,7 @@ export function TopBar() {
           <span className="text-gray-900 dark:text-gray-300 font-medium">{breadcrumb.section}</span>
           {breadcrumb.detail && (
             <>
-              <span className="text-gray-400 dark:text-gray-600">/</span>
+              <span className="text-gray-600 dark:text-gray-400 dark:text-gray-600">/</span>
               <span className="text-gray-500">{breadcrumb.detail}</span>
             </>
           )}
@@ -84,7 +84,7 @@ export function TopBar() {
           onClick={() => {
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }))
           }}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors"
+          className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-800 transition-colors"
           aria-label="Search"
         >
           <Search size={18} />

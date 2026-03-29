@@ -47,7 +47,7 @@ export function BudgetGauge({ budgetHours, actualHours, compact = false }: Budge
 
   return (
     <div className="space-y-2 mb-2">
-      <div className="flex items-center justify-between text-sm text-gray-300">
+      <div className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
         <span>Budget Hours</span>
         <span className="text-xs text-gray-500">
           {Math.round(actualHours)} / {Math.round(budgetHours)} ({Math.round(percentage)}%)

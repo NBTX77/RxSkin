@@ -85,25 +85,25 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebar
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search techs..."
-          className="w-full pl-9 pr-3 py-2 bg-gray-800/60 border border-gray-700/50 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
+          className="w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-gray-800/60 border border-gray-700/50 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
         />
       </div>
 
       {/* Quick stats */}
       <div className="grid grid-cols-4 gap-2 mb-3">
-        <div className="text-center py-1.5 bg-gray-800/50 rounded-lg">
-          <div className="text-xs font-bold text-white">{techs.length}</div>
+        <div className="text-center py-1.5 bg-gray-100 dark:bg-gray-800/50 rounded-lg">
+          <div className="text-xs font-bold text-gray-900 dark:text-white">{techs.length}</div>
           <div className="text-[10px] text-gray-500">Field</div>
         </div>
-        <div className="text-center py-1.5 bg-gray-800/50 rounded-lg">
+        <div className="text-center py-1.5 bg-gray-100 dark:bg-gray-800/50 rounded-lg">
           <div className="text-xs font-bold text-blue-400">{dispatched}</div>
           <div className="text-[10px] text-gray-500">Active</div>
         </div>
-        <div className="text-center py-1.5 bg-gray-800/50 rounded-lg">
+        <div className="text-center py-1.5 bg-gray-100 dark:bg-gray-800/50 rounded-lg">
           <div className={`text-xs font-bold ${lowHos > 0 ? 'text-red-400' : 'text-green-400'}`}>{lowHos}</div>
           <div className="text-[10px] text-gray-500">Low HOS</div>
         </div>
-        <div className="text-center py-1.5 bg-gray-800/50 rounded-lg">
+        <div className="text-center py-1.5 bg-gray-100 dark:bg-gray-800/50 rounded-lg">
           <div className="text-xs font-bold text-yellow-400">{techs.reduce((sum, t) => sum + t.scheduledHold.length, 0)}</div>
           <div className="text-[10px] text-gray-500">Holds</div>
         </div>
@@ -136,7 +136,7 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebar
   return (
     <>
       {/* Desktop sidebar */}
-      <div className="hidden lg:flex flex-col w-[280px] flex-shrink-0 bg-gray-900 border-r border-gray-700/50 p-3 overflow-hidden">
+      <div className="hidden lg:flex flex-col w-[280px] flex-shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700/50 p-3 overflow-hidden">
         {content}
       </div>
 
@@ -144,15 +144,15 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebar
       <div className="lg:hidden fixed bottom-16 left-0 right-0 z-40">
         <button
           onClick={() => setMobileExpanded(!mobileExpanded)}
-          className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-900 border-t border-gray-800"
+          className="w-full flex items-center justify-between px-4 py-2.5 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
         >
-          <span className="text-sm font-medium text-white">
+          <span className="text-sm font-medium text-gray-900 dark:text-white">
             Technicians ({techs.length})
           </span>
-          {mobileExpanded ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronUp size={16} className="text-gray-400" />}
+          {mobileExpanded ? <ChevronDown size={16} className="text-gray-600 dark:text-gray-400" /> : <ChevronUp size={16} className="text-gray-600 dark:text-gray-400" />}
         </button>
         {mobileExpanded && (
-          <div className="bg-gray-900 border-t border-gray-800 p-3 max-h-[60vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-3 max-h-[60vh] overflow-y-auto">
             {content}
           </div>
         )}

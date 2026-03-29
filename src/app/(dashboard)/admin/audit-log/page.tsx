@@ -57,7 +57,7 @@ export default function AuditLogPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white">Audit Log</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Audit Log</h2>
         <p className="text-sm text-gray-500 mt-1">
           All API calls, credential access, logins, and admin actions. Filterable by user, date, and platform.
         </p>
@@ -72,13 +72,13 @@ export default function AuditLogPage() {
             placeholder="Search logs..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
           />
         </div>
         <select
           value={actionFilter}
           onChange={e => setActionFilter(e.target.value)}
-          className="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
+          className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500"
         >
           <option value="all">All actions</option>
           <option value="api_call">API Calls</option>
@@ -89,14 +89,14 @@ export default function AuditLogPage() {
       </div>
 
       {/* Log entries */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 overflow-hidden">
         {filtered.map(entry => {
           const config = actionConfig[entry.action]
           const Icon = config.icon
           const time = new Date(entry.timestamp)
 
           return (
-            <div key={entry.id} className="flex items-start gap-3 px-5 py-3 border-b border-gray-800/50 hover:bg-gray-800/20 transition-colors">
+            <div key={entry.id} className="flex items-start gap-3 px-5 py-3 border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-800/20 transition-colors">
               {/* Action icon */}
               <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${config.color}`}>
                 <Icon size={14} />
@@ -105,12 +105,12 @@ export default function AuditLogPage() {
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm text-white font-medium">{entry.userName}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 border border-gray-700/50">
+                  <span className="text-sm text-gray-900 dark:text-white font-medium">{entry.userName}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 border border-gray-200 dark:border-gray-700/50">
                     {config.label}
                   </span>
                   {entry.platform && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700/50">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-400 border border-gray-200 dark:border-gray-700/50">
                       {entry.platform}
                     </span>
                   )}

@@ -27,7 +27,7 @@ function PriorityPill({ priority }: { priority: string }) {
     Medium: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
     Low: 'bg-green-500/10 text-green-400 border-green-500/20',
   }
-  const cls = colors[priority] ?? 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+  const cls = colors[priority] ?? 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20'
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full border ${cls}`}>
       {priority}
@@ -47,20 +47,20 @@ export const TechCard = memo(function TechCard({ tech, onClick, isSelected }: Te
       onClick={onClick}
       className={`w-full text-left rounded-lg p-3 cursor-pointer transition-colors ${
         isSelected
-          ? 'bg-gray-800 border border-blue-500/30'
-          : 'bg-gray-800/50 border border-gray-700/50 hover:bg-gray-800 hover:border-gray-600'
+          ? 'bg-gray-100 dark:bg-gray-800 border border-blue-500/30'
+          : 'bg-gray-100 dark:bg-gray-800/50 border border-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-gray-600'
       }`}
     >
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border flex-shrink-0 ${avatarColor}`}>
-          <span className="text-white">{getInitials(tech.name)}</span>
+          <span className="text-gray-900 dark:text-white">{getInitials(tech.name)}</span>
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-white truncate">{tech.name}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{tech.name}</p>
             <span className={`text-xs font-medium ${tech.speed > 0 ? 'text-green-400' : 'text-gray-500'}`}>
               {tech.speed > 0 ? `${tech.speed} mph` : 'Parked'}
             </span>
@@ -93,7 +93,7 @@ export const TechCard = memo(function TechCard({ tech, onClick, isSelected }: Te
           {tech.dispatch.length > 0 && (
             <div className="mt-2 space-y-1">
               {tech.dispatch.slice(0, 2).map((d) => (
-                <div key={d.id} className="flex items-center gap-2 text-xs text-gray-400">
+                <div key={d.id} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                   <span className={`w-1.5 h-1.5 rounded-full ${
                     d.type === 'On-Site' ? 'bg-blue-400' :
                     d.type === 'Remote' ? 'bg-green-400' :

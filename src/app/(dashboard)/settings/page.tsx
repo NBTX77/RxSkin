@@ -32,10 +32,10 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold text-white">Settings</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Settings</h1>
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-gray-800 overflow-x-auto">
+      <div className="flex gap-1 border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -43,7 +43,7 @@ export default function SettingsPage() {
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === id
                 ? 'border-blue-500 text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-700'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:border-gray-700'
             }`}
           >
             <Icon size={16} />
@@ -71,15 +71,15 @@ function ProfileTab() {
   return (
     <div className="space-y-6">
       {/* Avatar + Name */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
         <div className="flex items-center gap-4 mb-6">
           <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center">
-            <span className="text-white text-xl font-semibold">
+            <span className="text-gray-900 dark:text-white text-xl font-semibold">
               {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U'}
             </span>
           </div>
           <div>
-            <p className="text-lg font-medium text-white">{user?.name}</p>
+            <p className="text-lg font-medium text-gray-900 dark:text-white">{user?.name}</p>
             <p className="text-sm text-gray-500">{user?.email}</p>
           </div>
         </div>
@@ -93,8 +93,8 @@ function ProfileTab() {
       </div>
 
       {/* ConnectWise Connection */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <h2 className="text-sm font-semibold text-gray-300 mb-4">ConnectWise Connection</h2>
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">ConnectWise Connection</h2>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between items-center">
             <span className="text-gray-500">Status</span>
@@ -121,8 +121,8 @@ function AppearanceTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <h2 className="text-sm font-semibold text-gray-300 mb-4">Theme</h2>
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Theme</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {themes.map(({ id, label, icon: Icon, description }) => {
             const active = theme === id
@@ -133,12 +133,12 @@ function AppearanceTab() {
                 className={`flex items-start gap-3 p-4 rounded-lg border transition-colors text-left ${
                   active
                     ? 'border-blue-500/50 bg-blue-600/10'
-                    : 'border-gray-700 bg-gray-800/50 hover:border-gray-600'
+                    : 'border-gray-700 bg-gray-100 dark:bg-gray-800/50 hover:border-gray-600'
                 }`}
               >
                 <Icon size={20} className={active ? 'text-blue-400' : 'text-gray-500'} />
                 <div className="flex-1">
-                  <p className={`text-sm font-medium ${active ? 'text-blue-400' : 'text-gray-300'}`}>{label}</p>
+                  <p className={`text-sm font-medium ${active ? 'text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>{label}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{description}</p>
                 </div>
                 {active && <Check size={16} className="text-blue-400 mt-0.5" />}
@@ -148,8 +148,8 @@ function AppearanceTab() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <h2 className="text-sm font-semibold text-gray-300 mb-4">Display</h2>
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Display</h2>
         <div className="space-y-4">
           <ToggleRow label="Compact mode" description="Reduce spacing in tables and lists" defaultValue={false} />
           <ToggleRow label="Show ticket IDs" description="Display CW ticket numbers in lists" defaultValue={true} />
@@ -199,16 +199,16 @@ function ConnectionsTab() {
       </p>
 
       {connections.map(conn => (
-        <div key={conn.id} className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <div key={conn.id} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                conn.connected ? 'bg-green-600/20' : 'bg-gray-800'
+                conn.connected ? 'bg-green-600/20' : 'bg-gray-100 dark:bg-gray-800'
               }`}>
                 <conn.icon size={20} className={conn.connected ? 'text-green-400' : 'text-gray-500'} />
               </div>
               <div>
-                <p className="text-sm font-medium text-white">{conn.label}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{conn.label}</p>
                 <p className="text-xs text-gray-500">{conn.description}</p>
               </div>
             </div>
@@ -232,7 +232,7 @@ function ConnectionsTab() {
 
           <div className="flex flex-wrap gap-2">
             {conn.features.map(feat => (
-              <span key={feat} className="text-[10px] px-2 py-1 rounded-full bg-gray-800 text-gray-500 border border-gray-700/50">
+              <span key={feat} className="text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 border border-gray-200 dark:border-gray-700/50">
                 {feat}
               </span>
             ))}
@@ -248,8 +248,8 @@ function ConnectionsTab() {
 function NotificationsTab() {
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <h2 className="text-sm font-semibold text-gray-300 mb-4">Email Notifications</h2>
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Email Notifications</h2>
         <div className="space-y-4">
           <ToggleRow label="Ticket assigned to me" description="When a new ticket is assigned to you" defaultValue={true} />
           <ToggleRow label="Ticket status changes" description="When tickets you're watching change status" defaultValue={true} />
@@ -257,8 +257,8 @@ function NotificationsTab() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <h2 className="text-sm font-semibold text-gray-300 mb-4">In-App Notifications</h2>
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-6">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">In-App Notifications</h2>
         <div className="space-y-4">
           <ToggleRow label="Desktop notifications" description="Browser push notifications for alerts" defaultValue={false} />
           <ToggleRow label="Sound alerts" description="Play a sound for new notifications" defaultValue={false} />
@@ -274,7 +274,7 @@ function InfoRow({ label, value, mono }: { label: string; value: string; mono?: 
   return (
     <div className="flex justify-between items-center">
       <span className="text-gray-500">{label}</span>
-      <span className={`text-gray-200 ${mono ? 'font-mono text-xs' : ''}`}>{value}</span>
+      <span className={`text-gray-800 dark:text-gray-200 ${mono ? 'font-mono text-xs' : ''}`}>{value}</span>
     </div>
   )
 }
@@ -285,7 +285,7 @@ function ToggleRow({ label, description, defaultValue }: { label: string; descri
   return (
     <div className="flex items-center justify-between gap-4">
       <div>
-        <p className="text-sm text-gray-300">{label}</p>
+        <p className="text-sm text-gray-700 dark:text-gray-300">{label}</p>
         <p className="text-xs text-gray-600">{description}</p>
       </div>
       <button

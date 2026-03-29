@@ -34,25 +34,25 @@ export function ProjectFinancialTable({
     <div className="space-y-4">
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
+        <div className="bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Total Budget</p>
-          <p className="text-xl font-bold text-white">
+          <p className="text-xl font-bold text-gray-900 dark:text-white">
             {Math.round(totalBudget).toLocaleString()}h
           </p>
           <p className="text-xs text-gray-500 mt-1">
             {formatCurrency(totalBudget)} est. revenue
           </p>
         </div>
-        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
+        <div className="bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Total Actual</p>
-          <p className="text-xl font-bold text-white">
+          <p className="text-xl font-bold text-gray-900 dark:text-white">
             {Math.round(totalActual).toLocaleString()}h
           </p>
           <p className="text-xs text-gray-500 mt-1">
             {formatCurrency(totalActual)} billed
           </p>
         </div>
-        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
+        <div className="bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Budget Utilization</p>
           <p
             className={`text-xl font-bold ${
@@ -76,7 +76,7 @@ export function ProjectFinancialTable({
             </span>
           </div>
         </div>
-        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
+        <div className="bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Over Budget</p>
           <p
             className={`text-xl font-bold ${
@@ -92,12 +92,12 @@ export function ProjectFinancialTable({
       </div>
 
       {/* Table */}
-      <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl overflow-hidden">
+      <div className="bg-white dark:bg-gray-900/80 border border-gray-700/50 rounded-xl overflow-hidden">
         {/* Desktop table */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-700/50 text-left">
+              <tr className="border-b border-gray-200 dark:border-gray-700/50 text-left">
                 <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Project
                 </th>
@@ -121,7 +121,7 @@ export function ProjectFinancialTable({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700/30">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700/30">
               {projects.map((project) => {
                 const pct =
                   project.budgetHours > 0
@@ -133,7 +133,7 @@ export function ProjectFinancialTable({
                   <tr
                     key={project.id}
                     onClick={() => onProjectClick(project.id)}
-                    className="hover:bg-gray-800/40 cursor-pointer transition-colors"
+                    className="hover:bg-gray-50 dark:bg-gray-800/40 cursor-pointer transition-colors"
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -143,20 +143,20 @@ export function ProjectFinancialTable({
                             className="text-red-400 flex-shrink-0"
                           />
                         )}
-                        <span className="text-white font-medium truncate max-w-[240px]">
+                        <span className="text-gray-900 dark:text-white font-medium truncate max-w-[240px]">
                           {project.name}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-400 truncate max-w-[160px]">
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400 truncate max-w-[160px]">
                       {project.company}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-300 font-mono">
+                    <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300 font-mono">
                       {Math.round(project.budgetHours)}h
                     </td>
                     <td
                       className={`px-4 py-3 text-right font-mono ${
-                        isOver ? 'text-red-400' : 'text-gray-300'
+                        isOver ? 'text-red-400' : 'text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       {Math.round(project.actualHours)}h
@@ -168,11 +168,11 @@ export function ProjectFinancialTable({
                         compact
                       />
                     </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-xs">
                       {project.billingMethod || '—'}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
                         {project.status}
                       </span>
                     </td>
@@ -184,7 +184,7 @@ export function ProjectFinancialTable({
         </div>
 
         {/* Mobile cards */}
-        <div className="md:hidden divide-y divide-gray-700/30">
+        <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700/30">
           {projects.map((project) => {
             const pct =
               project.budgetHours > 0
@@ -196,7 +196,7 @@ export function ProjectFinancialTable({
               <button
                 key={project.id}
                 onClick={() => onProjectClick(project.id)}
-                className="w-full text-left p-4 hover:bg-gray-800/40 transition-colors"
+                className="w-full text-left p-4 hover:bg-gray-50 dark:bg-gray-800/40 transition-colors"
               >
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-center gap-1.5 flex-1 min-w-0">
@@ -206,7 +206,7 @@ export function ProjectFinancialTable({
                         className="text-red-400 flex-shrink-0"
                       />
                     )}
-                    <span className="text-sm font-medium text-white truncate">
+                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {project.name}
                     </span>
                   </div>
@@ -215,7 +215,7 @@ export function ProjectFinancialTable({
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 mb-2">{project.company}</p>
-                <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
+                <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-2">
                   <span>
                     Budget: {Math.round(project.budgetHours)}h → Actual:{' '}
                     {Math.round(project.actualHours)}h

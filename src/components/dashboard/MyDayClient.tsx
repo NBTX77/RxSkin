@@ -79,9 +79,9 @@ export function MyDayClient() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Schedule Timeline (2/5) */}
         <div className="lg:col-span-2">
-          <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-              <h2 className="text-sm font-semibold text-gray-200 flex items-center gap-2">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+              <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
                 <Calendar size={15} className="text-blue-400" />
                 Today&apos;s Schedule
               </h2>
@@ -107,7 +107,7 @@ export function MyDayClient() {
                 ))}
               </div>
             ) : todaySchedule.length > 0 ? (
-              <div className="divide-y divide-gray-800">
+              <div className="divide-y divide-gray-200 dark:divide-gray-800">
                 {todaySchedule.map((entry) => (
                   <ScheduleItem key={entry.id} entry={entry} />
                 ))}
@@ -122,9 +122,9 @@ export function MyDayClient() {
 
         {/* My Tickets (3/5) */}
         <div className="lg:col-span-3">
-          <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-              <h2 className="text-sm font-semibold text-gray-200 flex items-center gap-2">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+              <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
                 <TicketIcon size={15} className="text-purple-400" />
                 My Open Tickets
               </h2>
@@ -158,7 +158,7 @@ export function MyDayClient() {
             ) : (
               <div className="px-4 py-8 text-center">
                 <CheckCircle2 size={24} className="text-green-400 mx-auto mb-2" />
-                <p className="text-gray-400 text-sm">All clear! No open tickets.</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">All clear! No open tickets.</p>
               </div>
             )}
           </div>
@@ -190,9 +190,9 @@ function StatCard({
     <div className={`rounded-xl border p-4 ${styles[color]}`}>
       <div className="flex items-center gap-2 mb-2 opacity-70">
         {icon}
-        <span className="text-xs font-medium text-gray-400">{label}</span>
+        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
     </div>
   )
 }
@@ -208,7 +208,7 @@ function ScheduleItem({ entry }: { entry: ScheduleEntry }) {
   return (
     <Link
       href={entry.ticketId ? `/tickets/${entry.ticketId}` : '/schedule'}
-      className="block px-4 py-3 hover:bg-gray-800/50 transition-colors"
+      className="block px-4 py-3 hover:bg-gray-100 dark:bg-gray-800/50 transition-colors"
     >
       <div className="flex items-center gap-3">
         <div className="flex-shrink-0 w-12 text-center">
@@ -217,7 +217,7 @@ function ScheduleItem({ entry }: { entry: ScheduleEntry }) {
         </div>
         <div className="h-10 w-0.5 bg-blue-500/30 rounded-full flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-gray-200 font-medium truncate">
+          <p className="text-sm text-gray-800 dark:text-gray-200 font-medium truncate">
             {entry.ticketSummary ?? 'Appointment'}
           </p>
           <p className="text-xs text-gray-500">{entry.companyName ?? entry.type}</p>

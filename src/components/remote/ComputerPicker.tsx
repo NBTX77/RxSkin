@@ -53,17 +53,17 @@ export function ComputerPicker({ companyName, isOpen, onClose, onSelect }: Compu
       <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Panel */}
-      <div role="dialog" aria-modal="true" aria-label="Select Computer" className="fixed inset-y-0 right-0 w-full max-w-md z-50 bg-gray-950 border-l border-gray-800 shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col">
+      <div role="dialog" aria-modal="true" aria-label="Select Computer" className="fixed inset-y-0 right-0 w-full max-w-md z-50 bg-gray-50 dark:bg-gray-950 border-l border-gray-200 dark:border-gray-800 shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-800">
           <div>
-            <h2 className="text-sm font-semibold text-white">Select Computer</h2>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Select Computer</h2>
             <p className="text-xs text-gray-500 mt-0.5">{companyName}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => refetch()}
-              className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+              className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:text-white hover:bg-gray-800 transition-colors"
               aria-label="Refresh computer list"
             >
               <RefreshCw size={14} />
@@ -71,7 +71,7 @@ export function ComputerPicker({ companyName, isOpen, onClose, onSelect }: Compu
             <button
               onClick={onClose}
               aria-label="Close"
-              className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+              className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:text-white hover:bg-gray-800 transition-colors"
             >
               <X size={14} />
             </button>
@@ -79,7 +79,7 @@ export function ComputerPicker({ companyName, isOpen, onClose, onSelect }: Compu
         </div>
 
         {/* Search */}
-        <div className="px-5 py-3 border-b border-gray-800">
+        <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-800">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
             <label htmlFor="computer-search" className="sr-only">Search computers</label>
@@ -89,7 +89,7 @@ export function ComputerPicker({ companyName, isOpen, onClose, onSelect }: Compu
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or IP..."
-              className="w-full pl-9 pr-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               autoFocus
             />
           </div>
@@ -100,7 +100,7 @@ export function ComputerPicker({ companyName, isOpen, onClose, onSelect }: Compu
           {isLoading ? (
             <div className="space-y-2 px-2">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 bg-gray-900 rounded-lg animate-pulse" />
+                <div key={i} className="h-16 bg-white dark:bg-gray-900 rounded-lg animate-pulse" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
@@ -134,7 +134,7 @@ export function ComputerPicker({ companyName, isOpen, onClose, onSelect }: Compu
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-gray-800 text-xs text-gray-600">
+        <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-800 text-xs text-gray-600">
           {computers.length} computer{computers.length !== 1 ? 's' : ''} managed
         </div>
       </div>
@@ -150,7 +150,7 @@ function ComputerRow({
   onSelect: (c: AutomateComputer) => void
 }) {
   const isOnline = computer.status === 'Online'
-  const icon = TYPE_ICON[computer.type] ?? <Monitor size={14} className="text-gray-400" />
+  const icon = TYPE_ICON[computer.type] ?? <Monitor size={14} className="text-gray-600 dark:text-gray-400" />
   const memUsedPct = computer.totalMemoryGB > 0
     ? Math.round(((computer.totalMemoryGB - computer.freeMemoryGB) / computer.totalMemoryGB) * 100)
     : 0
@@ -158,11 +158,11 @@ function ComputerRow({
   return (
     <button
       onClick={() => onSelect(computer)}
-      className="w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-900 transition-colors text-left group"
+      className="w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white dark:bg-gray-900 transition-colors text-left group"
     >
       {/* Status + Type icon */}
       <div className="relative flex-shrink-0">
-        <div className="w-9 h-9 rounded-lg bg-gray-800 flex items-center justify-center group-hover:bg-gray-700 transition-colors">
+        <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
           {icon}
         </div>
         <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-gray-950 ${isOnline ? 'bg-green-500' : 'bg-gray-600'}`} />
@@ -171,7 +171,7 @@ function ComputerRow({
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white truncate">{computer.computerName}</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{computer.computerName}</span>
           {computer.isRebootNeeded && (
             <span className="text-[9px] px-1 py-0.5 rounded bg-orange-500/20 text-orange-400 font-medium flex-shrink-0">
               Reboot

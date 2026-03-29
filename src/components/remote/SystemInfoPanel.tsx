@@ -28,24 +28,24 @@ export function SystemInfoPanel({ computer, isOpen, onClose }: SystemInfoPanelPr
   const memPct = computer.totalMemoryGB > 0
     ? Math.round((memUsedGB / computer.totalMemoryGB) * 100)
     : 0
-  const icon = TYPE_ICON[computer.type] ?? <Monitor size={16} className="text-gray-400" />
+  const icon = TYPE_ICON[computer.type] ?? <Monitor size={16} className="text-gray-600 dark:text-gray-400" />
 
   return (
     <>
       <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="fixed inset-y-0 right-0 w-full max-w-md z-50 bg-gray-950 border-l border-gray-800 shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col">
+      <div className="fixed inset-y-0 right-0 w-full max-w-md z-50 bg-gray-50 dark:bg-gray-950 border-l border-gray-200 dark:border-gray-800 shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                 {icon}
               </div>
               <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-gray-950 ${isOnline ? 'bg-green-500' : 'bg-gray-600'}`} />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white">{computer.computerName}</h2>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{computer.computerName}</h2>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className={`text-[11px] font-medium ${isOnline ? 'text-green-400' : 'text-gray-500'}`}>
                   {isOnline ? 'Online' : 'Offline'}
@@ -56,7 +56,7 @@ export function SystemInfoPanel({ computer, isOpen, onClose }: SystemInfoPanelPr
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:text-white hover:bg-gray-800 transition-colors"
           >
             <X size={14} />
           </button>
@@ -171,8 +171,8 @@ function MetricCard({
 
 function InfoSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 p-4 space-y-3">
-      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{title}</h3>
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4 space-y-3">
+      <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{title}</h3>
       {children}
     </div>
   )
@@ -186,7 +186,7 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
         {icon}
         {label}
       </span>
-      <span className="text-xs text-gray-300 font-medium text-right max-w-[60%] truncate">{value}</span>
+      <span className="text-xs text-gray-700 dark:text-gray-300 font-medium text-right max-w-[60%] truncate">{value}</span>
     </div>
   )
 }
