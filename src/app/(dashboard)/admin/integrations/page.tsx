@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   Check,
@@ -10,6 +10,10 @@ import {
   RefreshCw,
   Shield,
   AlertTriangle,
+  Plus,
+  Pencil,
+  Plug,
+  Ban,
 } from 'lucide-react'
 
 // ── Platform definitions ─────────────────────────────────────
@@ -202,6 +206,9 @@ export default function IntegrationsPage() {
           />
         ))}
       </div>
+
+      {/* Microsoft 365 Client Tenants (GDAP) */}
+      <ClientTenantsSection />
     </div>
   )
 }
@@ -453,6 +460,404 @@ function MerakiDemoToggle() {
           <span className="text-[10px] text-amber-500 font-medium">Demo mode active — dashboard shows mock data</span>
         </div>
       )}
+    </div>
+  )
+}
+
+// ── Client Tenants Section ──────────────────────────────────
+
+interface ClientTenantRecord {
+  id: string
+  azureTenantId: string
+  displayName: string
+  domain: string | null
+  cwCompanyId: number | null
+  gdapRelationshipId: string | null
+  gdapStatus: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+const gdapStatusColors: Record<string, string> = {
+  active: 'bg-green-500/10 text-green-600 dark:text-green-400',
+  pending: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400',
+  expired: 'bg-red-500/10 text-red-600 dark:text-red-400',
+}
+
+function ClientTenantsSection() {
+  const [tenants, setTenants] = useState<ClientTenantRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [testingId, setTestingId] = useState<string | null>(null)
+  const [testResult, setTestResult] = useState<{ id: string; success: boolean; message: string } | null>(null)
+
+  // Form state
+  const [formDisplayName, setFormDisplayName] = useState('')
+  const [formAzureTenantId, setFormAzureTenantId] = useState('')
+  const [formDomain, setFormDomain] = useState('')
+  const [formCwCompanyId, setFormCwCompanyId] = useState('')
+  const [formGdapRelationshipId, setFormGdapRelationshipId] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const fetchTenants = useCallback(async () => {
+    try {
+      const res = await fetch('/api/m365/tenants')
+      if (res.ok) {
+        const data = (await res.json()) as ClientTenantRecord[]
+        setTenants(data)
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchTenants()
+  }, [fetchTenants])
+
+  const resetForm = () => {
+    setFormDisplayName('')
+    setFormAzureTenantId('')
+    setFormDomain('')
+    setFormCwCompanyId('')
+    setFormGdapRelationshipId('')
+    setFormError(null)
+    setEditingId(null)
+  }
+
+  const handleEdit = (tenant: ClientTenantRecord) => {
+    setFormDisplayName(tenant.displayName)
+    setFormAzureTenantId(tenant.azureTenantId)
+    setFormDomain(tenant.domain ?? '')
+    setFormCwCompanyId(tenant.cwCompanyId?.toString() ?? '')
+    setFormGdapRelationshipId(tenant.gdapRelationshipId ?? '')
+    setFormError(null)
+    setEditingId(tenant.id)
+    setShowForm(true)
+  }
+
+  const handleSave = async () => {
+    if (!formDisplayName.trim() || !formAzureTenantId.trim()) {
+      setFormError('Display Name and Azure AD Tenant ID are required.')
+      return
+    }
+
+    setSaving(true)
+    setFormError(null)
+
+    const payload = {
+      displayName: formDisplayName.trim(),
+      azureTenantId: formAzureTenantId.trim(),
+      domain: formDomain.trim() || undefined,
+      cwCompanyId: formCwCompanyId ? parseInt(formCwCompanyId, 10) : undefined,
+      gdapRelationshipId: formGdapRelationshipId.trim() || undefined,
+    }
+
+    try {
+      let res: Response
+      if (editingId) {
+        res = await fetch('/api/m365/tenants', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingId, ...payload }),
+        })
+      } else {
+        res = await fetch('/api/m365/tenants', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+      }
+
+      if (res.ok) {
+        await fetchTenants()
+        resetForm()
+        setShowForm(false)
+      } else {
+        const err = (await res.json()) as { message?: string }
+        setFormError(err.message ?? 'Failed to save client tenant.')
+      }
+    } catch {
+      setFormError('Network error. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDisable = async (id: string) => {
+    try {
+      const res = await fetch('/api/m365/tenants', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      if (res.ok) {
+        await fetchTenants()
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const handleTestConnection = async (tenant: ClientTenantRecord) => {
+    setTestingId(tenant.id)
+    setTestResult(null)
+
+    try {
+      const res = await fetch('/api/m365/test-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientTenantId: tenant.azureTenantId }),
+      })
+      const data = (await res.json()) as { success: boolean; organizationName?: string; error?: string }
+      setTestResult({
+        id: tenant.id,
+        success: data.success,
+        message: data.success
+          ? `Connected: ${data.organizationName}`
+          : `Failed: ${data.error}`,
+      })
+    } catch {
+      setTestResult({
+        id: tenant.id,
+        success: false,
+        message: 'Network error — could not reach API.',
+      })
+    } finally {
+      setTestingId(null)
+    }
+  }
+
+  const activeTenants = tenants.filter((t) => t.isActive)
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+          <Plug size={12} />
+          Microsoft 365 Client Tenants (GDAP)
+        </h3>
+        <button
+          onClick={() => {
+            resetForm()
+            setShowForm(!showForm)
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+        >
+          <Plus size={12} />
+          Add Client Tenant
+        </button>
+      </div>
+
+      {/* Inline form */}
+      {showForm && (
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-5 space-y-4">
+          <p className="text-sm font-medium text-gray-900 dark:text-white">
+            {editingId ? 'Edit Client Tenant' : 'Add Client Tenant'}
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                Display Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formDisplayName}
+                onChange={(e) => setFormDisplayName(e.target.value)}
+                placeholder="Acme Corp"
+                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700/50 text-sm text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                Azure AD Tenant ID <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formAzureTenantId}
+                onChange={(e) => setFormAzureTenantId(e.target.value)}
+                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                disabled={!!editingId}
+                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700/50 text-sm text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 font-mono disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                Primary Domain
+              </label>
+              <input
+                type="text"
+                value={formDomain}
+                onChange={(e) => setFormDomain(e.target.value)}
+                placeholder="acmecorp.com"
+                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700/50 text-sm text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                CW Company ID
+              </label>
+              <input
+                type="number"
+                value={formCwCompanyId}
+                onChange={(e) => setFormCwCompanyId(e.target.value)}
+                placeholder="12345"
+                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700/50 text-sm text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                GDAP Relationship ID
+              </label>
+              <input
+                type="text"
+                value={formGdapRelationshipId}
+                onChange={(e) => setFormGdapRelationshipId(e.target.value)}
+                placeholder="Optional — GDAP relationship identifier"
+                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700/50 text-sm text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 font-mono"
+              />
+            </div>
+          </div>
+
+          {formError && (
+            <p className="text-xs text-red-500 flex items-center gap-1.5">
+              <AlertTriangle size={12} />
+              {formError}
+            </p>
+          )}
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : editingId ? 'Update Tenant' : 'Add Tenant'}
+            </button>
+            <button
+              onClick={() => {
+                setShowForm(false)
+                resetForm()
+              }}
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-700/50 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tenant table */}
+      {loading ? (
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-8 text-center">
+          <RefreshCw size={16} className="animate-spin mx-auto text-gray-400" />
+          <p className="text-xs text-gray-500 mt-2">Loading client tenants...</p>
+        </div>
+      ) : activeTenants.length === 0 && !showForm ? (
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-8 text-center">
+          <p className="text-sm text-gray-500">No client tenants configured.</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Add a client tenant to manage their Microsoft 365 environment via GDAP.
+          </p>
+        </div>
+      ) : activeTenants.length > 0 ? (
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 dark:border-gray-800">
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Display Name
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                    Domain
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    GDAP Status
+                  </th>
+                  <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {activeTenants.map((tenant) => (
+                  <tr
+                    key={tenant.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  >
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-gray-900 dark:text-white">{tenant.displayName}</p>
+                      <p className="text-xs text-gray-500 font-mono mt-0.5 truncate max-w-[200px]">
+                        {tenant.azureTenantId}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3 hidden sm:table-cell">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {tenant.domain ?? '--'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          gdapStatusColors[tenant.gdapStatus] ?? 'bg-gray-500/10 text-gray-500'
+                        }`}
+                      >
+                        {tenant.gdapStatus}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleTestConnection(tenant)}
+                          disabled={testingId === tenant.id}
+                          title="Test connection"
+                          className="p-1.5 rounded-md text-gray-500 hover:text-blue-500 hover:bg-blue-500/10 transition-colors disabled:opacity-50"
+                        >
+                          <RefreshCw
+                            size={14}
+                            className={testingId === tenant.id ? 'animate-spin' : ''}
+                          />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(tenant)}
+                          title="Edit"
+                          className="p-1.5 rounded-md text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10 transition-colors"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDisable(tenant.id)}
+                          title="Disable"
+                          className="p-1.5 rounded-md text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                        >
+                          <Ban size={14} />
+                        </button>
+                      </div>
+                      {/* Test result feedback */}
+                      {testResult?.id === tenant.id && (
+                        <p
+                          className={`text-[10px] mt-1 text-right ${
+                            testResult.success ? 'text-green-500' : 'text-red-500'
+                          }`}
+                        >
+                          {testResult.message}
+                        </p>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
