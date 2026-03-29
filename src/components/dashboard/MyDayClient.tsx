@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import Link from 'next/link'
+import { TicketCardSkeleton } from '@/components/ui/TicketCardSkeleton'
 
 export function MyDayClient() {
   const { data: session } = useSession()
@@ -102,7 +103,19 @@ export function MyDayClient() {
 
             {scheduleLoading ? (
               <div className="p-4 space-y-3">
-                {[1,2,3].map(i => <div key={i} className="h-16 rounded-lg bg-gray-800 animate-pulse" />)}
+                {[0,1,2].map(i => (
+                  <div key={i} className="flex items-center gap-3 animate-pulse" style={{ animationDelay: `${i * 75}ms` }}>
+                    <div className="w-12 space-y-1">
+                      <div className="h-3 w-10 bg-gray-200 dark:bg-gray-800 rounded mx-auto" />
+                      <div className="h-2 w-8 bg-gray-200 dark:bg-gray-800 rounded mx-auto" />
+                    </div>
+                    <div className="h-10 w-0.5 bg-gray-200 dark:bg-gray-800 rounded-full" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-3.5 w-3/4 bg-gray-200 dark:bg-gray-800 rounded" />
+                      <div className="h-2.5 w-1/2 bg-gray-200 dark:bg-gray-800 rounded" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : todaySchedule.length > 0 ? (
               <div className="divide-y divide-gray-800">
@@ -132,8 +145,8 @@ export function MyDayClient() {
             </div>
 
             {ticketsLoading ? (
-              <div className="p-4 space-y-3">
-                {[1,2,3,4].map(i => <div key={i} className="h-20 rounded-lg bg-gray-800 animate-pulse" />)}
+              <div className="p-3 space-y-2">
+                {[0,1,2,3].map(i => <TicketCardSkeleton key={i} style={{ animationDelay: `${i * 75}ms` }} />)}
               </div>
             ) : myTickets.length > 0 ? (
               <div className="p-3 space-y-2">

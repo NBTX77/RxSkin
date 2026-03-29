@@ -10,6 +10,7 @@ import { AlertCircle, RefreshCw, Search, LayoutGrid, List } from 'lucide-react'
 import { TicketCard } from './TicketCard'
 import Link from 'next/link'
 import { getPriorityBadgeStyle, getStatusBadgeStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
+import { TicketCardSkeleton } from '@/components/ui/TicketCardSkeleton'
 
 async function fetchTickets(filters: TicketFilters): Promise<Ticket[]> {
   const params = new URLSearchParams()
@@ -45,7 +46,7 @@ export function TicketListClient() {
     return (
       <div className="space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-24 rounded-xl bg-gray-800/50 animate-pulse" />
+          <TicketCardSkeleton key={i} style={{ animationDelay: `${i * 75}ms` }} />
         ))}
       </div>
     )
