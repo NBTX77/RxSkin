@@ -5,6 +5,8 @@ import { getTickets } from '@/lib/cw/client'
 import { getMockTickets } from '@/lib/mock-data'
 import type { Ticket } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 /** Returns distinct values for board, company, priority, status, and assignedTo
  *  so the ticket list page can populate filter dropdowns. */
 export async function GET() {

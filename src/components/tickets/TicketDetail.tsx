@@ -127,7 +127,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
         {/* Left: Activity Feed (2/3 width) */}
         <div className="lg:col-span-2 space-y-4">
           {/* Ticket header */}
-          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-5">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
             <div className="flex items-start gap-3">
               <span className={`inline-block w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${dotColor}`} />
               <div className="flex-1 min-w-0">
@@ -144,7 +144,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           </div>
 
           {/* Add note inline */}
-          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
             <div className="flex gap-3">
               <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">
                 TB
@@ -212,7 +212,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           {activeTab === 'notes' ? (
             <div className="space-y-3">
               {notes.map((note) => (
-                <div key={note.id} className={`rounded-xl border p-4 ${note.isInternal ? 'border-yellow-500/20 bg-yellow-500/5' : 'border-gray-200 dark:border-gray-800 bg-gray-900'}`}>
+                <div key={note.id} className={`rounded-xl border p-4 ${note.isInternal ? 'border-yellow-500/20 bg-yellow-500/5' : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900'}`}>
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-[10px] font-bold text-gray-700 dark:text-gray-300">
                       {note.createdBy.split(' ').map(n => n[0]).join('')}
@@ -222,7 +222,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 font-medium">Internal</span>
                     )}
                     <span className="text-xs text-gray-600 ml-auto">
-                      {formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })}
+                      {(() => { try { return formatDistanceToNow(new Date(note.createdAt), { addSuffix: true }) } catch { return 'Unknown' } })()}
                     </span>
                   </div>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{note.text}</p>
@@ -235,7 +235,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           ) : (
             <div className="space-y-2">
               {timeEntries.map((entry) => (
-                <div key={entry.id} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4 flex items-center justify-between">
+                <div key={entry.id} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{entry.memberName}</span>
@@ -261,7 +261,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
         {/* Right: Metadata sidebar (1/3 width) */}
         <div className="space-y-4">
           {/* Key info */}
-          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4 space-y-4">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-4">
             <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Details</h3>
 
             <div className="space-y-3">
@@ -276,7 +276,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           </div>
 
           {/* Hours */}
-          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
             <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Time</h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="text-center p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
@@ -304,7 +304,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           </div>
 
           {/* Quick actions */}
-          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-900 p-4">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
             <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Quick Actions</h3>
             <div className="space-y-2">
               {/* Change Status */}

@@ -4,6 +4,8 @@ import { apiErrors, handleApiError } from '@/lib/api/errors'
 import { getCWCredentials } from '@/lib/cw/credentials'
 import { getCompanies } from '@/lib/cw/client'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth()
