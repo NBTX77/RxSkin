@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { Search, ChevronUp, ChevronDown } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { Search, ChevronDown, ChevronUp, Users } from 'lucide-react'
 import type { FleetTech, TechFilter } from '@/types/ops'
 import { TechCard } from './TechCard'
 import { EntryTypeFilter } from './EntryTypeFilter'
@@ -12,10 +12,28 @@ interface TechSidebarProps {
   onSelectTech: (tech: FleetTech) => void
 }
 
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 1023px)')
+    setIsMobile(mql.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [])
+  return isMobile
+}
+
 export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebarProps) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<TechFilter>('all')
-  const [mobileExpanded, setMobileExpanded] = useState(false)
+  const isMobile = useIsMobile()
+  const [isCollapsed, setIsCollapsed] = useState(isMobile)
+
+  // Sync collapsed state when breakpoint changes
+  useEffect(() => {
+    setIsCollapsed(isMobile)
+  }, [isMobile])
 
   const filteredTechs = useMemo(() => {
     let result = techs
@@ -73,8 +91,25 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebar
   const dispatched = techs.filter((t) => t.dispatch.some((d) => d.status === 'In Progress')).length
   const lowHos = techs.filter((t) => t.hosColor === 'red' || t.hosColor === 'yellow').length
 
-  const content = (
-    <>
+  const headerBar = (
+    <button
+      onClick={() => setIsCollapsed(!isCollapsed)}
+      className="w-full flex items-center justify-between px-3 py-2.5"
+    >
+      <span className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+        <Users size={15} className="text-gray-500 dark:text-gray-400" />
+        Technicians ({techs.length})
+      </span>
+      {isCollapsed ? (
+        <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" />
+      ) : (
+        <ChevronUp size={16} className="text-gray-500 dark:text-gray-400" />
+      )}
+    </button>
+  )
+
+  const expandedContent = (
+    <div className="px-3 pb-3 flex flex-col overflow-hidden">
       {/* Search */}
       <div className="relative mb-3">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -114,8 +149,8 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebar
         <EntryTypeFilter activeFilter={filter} onFilterChange={setFilter} counts={counts} />
       </div>
 
-      {/* Tech cards */}
-      <div className="space-y-2 overflow-y-auto flex-1">
+      {/* Tech cards — scrollable */}
+      <div className="space-y-2 overflow-y-auto flex-1 min-h-0">
         {filteredTechs.map((tech) => (
           <TechCard
             key={tech.id}
@@ -130,32 +165,31 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebar
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 
+  // Desktop: floating card top-left
+  // Mobile: floating card at bottom
   return (
     <>
-      {/* Desktop sidebar */}
-      <div className="hidden lg:flex flex-col w-[280px] flex-shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700/50 p-3 overflow-hidden">
-        {content}
+      {/* Desktop — top-left floating card */}
+      <div
+        className={`hidden lg:flex flex-col absolute top-3 left-3 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200/50 dark:border-gray-700/30 transition-all ${
+          isCollapsed ? 'w-auto' : 'w-[300px] max-h-[calc(100vh-6rem)]'
+        }`}
+      >
+        {headerBar}
+        {!isCollapsed && expandedContent}
       </div>
 
-      {/* Mobile bottom sheet */}
-      <div className="lg:hidden fixed bottom-16 left-0 right-0 z-40">
-        <button
-          onClick={() => setMobileExpanded(!mobileExpanded)}
-          className="w-full flex items-center justify-between px-4 py-2.5 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
-        >
-          <span className="text-sm font-medium text-gray-900 dark:text-white">
-            Technicians ({techs.length})
-          </span>
-          {mobileExpanded ? <ChevronDown size={16} className="text-gray-600 dark:text-gray-400" /> : <ChevronUp size={16} className="text-gray-600 dark:text-gray-400" />}
-        </button>
-        {mobileExpanded && (
-          <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-3 max-h-[60vh] overflow-y-auto">
-            {content}
-          </div>
-        )}
+      {/* Mobile — bottom floating card */}
+      <div
+        className={`lg:hidden flex flex-col absolute left-2 right-2 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200/50 dark:border-gray-700/30 transition-all ${
+          isCollapsed ? 'bottom-2' : 'bottom-2 max-h-[60vh]'
+        }`}
+      >
+        {headerBar}
+        {!isCollapsed && expandedContent}
       </div>
     </>
   )

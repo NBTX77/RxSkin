@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useFleetData } from '@/hooks/useFleetData'
-import { OpsHeader } from '@/components/ops/OpsHeader'
+import { FleetStatusBar } from '@/components/ops/FleetStatusBar'
 import { TechSidebar } from '@/components/ops/TechSidebar'
 import { TechProfilePanel } from '@/components/ops/TechProfilePanel'
 import type { FleetTech } from '@/types/ops'
@@ -12,7 +12,7 @@ import type { FleetTech } from '@/types/ops'
 const FleetMap = dynamic(() => import('@/components/ops/FleetMap').then((mod) => ({ default: mod.FleetMap })), {
   ssr: false,
   loading: () => (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 rounded-xl flex items-center justify-center">
+    <div className="flex-1 bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
       <div className="text-gray-500 text-sm">Loading map...</div>
     </div>
   ),
@@ -24,12 +24,8 @@ export default function FleetMapPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <OpsHeader title="Fleet Map" subtitle="Real-time vehicle tracking" />
-        <div className="flex gap-0 h-[calc(100vh-180px)]">
-          <div className="hidden lg:block w-[280px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl animate-pulse" />
-          <div className="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl animate-pulse" />
-        </div>
+      <div className="-m-4 lg:-m-6 h-[calc(100vh-3.5rem)] flex flex-col">
+        <div className="relative flex-1 bg-gray-100 dark:bg-gray-950 animate-pulse" />
       </div>
     )
   }
@@ -37,37 +33,35 @@ export default function FleetMapPage() {
   const techs = data?.techs ?? []
 
   return (
-    <div className="space-y-4">
-      <OpsHeader
-        title="Fleet Map"
-        subtitle={`${techs.length} technician${techs.length !== 1 ? 's' : ''} in the field`}
-        lastSync={data?.lastSync}
-        onRefresh={() => refetch()}
-        isRefreshing={isFetching}
-      />
+    <div className="-m-4 lg:-m-6 h-[calc(100vh-3.5rem)] flex flex-col">
+      {/* Map fills entire area */}
+      <div className="relative flex-1 h-full">
+        <FleetMap
+          techs={techs}
+          onSelectTech={(tech) => setSelectedTech(tech)}
+        />
 
-      <div className="flex h-[calc(100vh-180px)] min-h-[400px] gap-0 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700/50">
-        {/* Tech sidebar (view-specific, not the app sidebar) */}
+        {/* Floating status bar — top-right */}
+        <FleetStatusBar
+          techCount={techs.length}
+          lastSync={data?.lastSync}
+          onRefresh={() => refetch()}
+          isRefreshing={isFetching}
+        />
+
+        {/* Floating tech sidebar — top-left on desktop, bottom on mobile */}
         <TechSidebar
           techs={techs}
           selectedTechId={selectedTech?.id}
           onSelectTech={(tech) => setSelectedTech(tech)}
         />
 
-        {/* Map */}
-        <div className="flex-1 relative">
-          <FleetMap
-            techs={techs}
-            onSelectTech={(tech) => setSelectedTech(tech)}
-          />
-        </div>
+        {/* Tech Profile Panel (slide-out) continues to overlay from right */}
+        <TechProfilePanel
+          tech={selectedTech}
+          onClose={() => setSelectedTech(null)}
+        />
       </div>
-
-      {/* Tech Profile Panel (slide-out) */}
-      <TechProfilePanel
-        tech={selectedTech}
-        onClose={() => setSelectedTech(null)}
-      />
     </div>
   )
 }
