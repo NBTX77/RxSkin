@@ -217,7 +217,9 @@ export function Sidebar() {
             <div key={sectionName}>
               <button
                 onClick={() => setExpandedSection(isExpanded ? null : sectionName)}
-                className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                aria-expanded={isExpanded}
+                aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${sectionName}`}
+                className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none ${
                   isSectionActive
                     ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
                     : 'text-gray-400 hover:text-white hover:bg-gray-800'
@@ -259,7 +261,9 @@ export function Sidebar() {
         <div className="px-3 py-3 border-t border-gray-800">
           <button
             onClick={() => setDeptSwitcherOpen(!deptSwitcherOpen)}
-            className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+            aria-expanded={deptSwitcherOpen}
+            aria-label="Switch department"
+            className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
           >
             <div className={`w-3 h-3 rounded-full ${getColorBg(config.color)}`} />
             <span className="flex-1 text-left">{config.name}</span>

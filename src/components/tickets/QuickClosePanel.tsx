@@ -56,10 +56,11 @@ export function QuickClosePanel({ ticket, isOpen, onClose, onConfirm }: QuickClo
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
             {/* Resolution note */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label htmlFor="resolution-note" className="block text-sm font-medium text-gray-300 mb-1.5">
                 Resolution Note <span className="text-red-400">*</span>
               </label>
               <textarea
+                id="resolution-note"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="What was done to resolve this ticket..."
@@ -71,7 +72,7 @@ export function QuickClosePanel({ ticket, isOpen, onClose, onConfirm }: QuickClo
 
             {/* Time entry */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label htmlFor="time-hours" className="block text-sm font-medium text-gray-300 mb-1.5">
                 <span className="flex items-center gap-1.5">
                   <Clock size={14} />
                   Time Spent (hours)
@@ -79,6 +80,7 @@ export function QuickClosePanel({ ticket, isOpen, onClose, onConfirm }: QuickClo
               </label>
               <div className="flex items-center gap-2">
                 <input
+                  id="time-hours"
                   type="number"
                   step="0.25"
                   min="0"
@@ -125,14 +127,14 @@ export function QuickClosePanel({ ticket, isOpen, onClose, onConfirm }: QuickClo
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-400 bg-gray-800 hover:bg-gray-700 transition-colors"
+              className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-400 bg-gray-800 hover:bg-gray-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!note.trim() || submitting}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-500 disabled:bg-green-800 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-500 disabled:bg-green-800 disabled:cursor-not-allowed transition-colors focus-visible:ring-2 focus-visible:ring-green-500 focus:outline-none"
             >
               <Send size={14} />
               {submitting ? 'Closing...' : 'Close Ticket'}

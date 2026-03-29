@@ -47,10 +47,11 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   }
 
   return (
-    <div ref={menuRef} style={style} className="min-w-[180px] bg-gray-900 border border-gray-700 rounded-lg shadow-xl py-1">
+    <div ref={menuRef} role="menu" style={style} className="min-w-[180px] bg-gray-900 border border-gray-700 rounded-lg shadow-xl py-1">
       {items.map((item, i) => (
         <button
           key={i}
+          role="menuitem"
           onClick={() => {
             if (!item.disabled) {
               item.onClick()

@@ -45,7 +45,8 @@ export function OpsHeader({ title, subtitle, lastSync, onRefresh, isRefreshing }
             onClick={onRefresh}
             disabled={isRefreshing}
             aria-label="Refresh data"
-            className="px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg text-sm transition-colors disabled:opacity-50"
+            aria-busy={isRefreshing}
+            className="px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg text-sm transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
           >
             <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
           </button>
