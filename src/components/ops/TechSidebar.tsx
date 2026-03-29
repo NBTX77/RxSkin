@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
-import { Search, ChevronDown, ChevronUp, Users } from 'lucide-react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
+import { Search, ChevronDown, ChevronUp, Users, GripVertical } from 'lucide-react'
 import type { FleetTech, TechFilter } from '@/types/ops'
 import { TechCard } from './TechCard'
 import { EntryTypeFilter } from './EntryTypeFilter'
@@ -29,11 +29,47 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebar
   const [filter, setFilter] = useState<TechFilter>('all')
   const isMobile = useIsMobile()
   const [isCollapsed, setIsCollapsed] = useState(isMobile)
+  const [position, setPosition] = useState({ x: 12, y: 12 })
+  const [isDragging, setIsDragging] = useState(false)
+  const dragOffset = useRef({ x: 0, y: 0 })
 
   // Sync collapsed state when breakpoint changes
   useEffect(() => {
     setIsCollapsed(isMobile)
   }, [isMobile])
+
+  // Drag handlers (desktop only)
+  const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    if (isMobile) return
+    e.preventDefault()
+    setIsDragging(true)
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    dragOffset.current = { x: clientX - position.x, y: clientY - position.y }
+  }, [isMobile, position])
+
+  useEffect(() => {
+    if (!isDragging) return
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      const clientX = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX
+      const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY
+      setPosition({
+        x: Math.max(0, clientX - dragOffset.current.x),
+        y: Math.max(0, clientY - dragOffset.current.y),
+      })
+    }
+    const handleEnd = () => setIsDragging(false)
+    window.addEventListener('mousemove', handleMove)
+    window.addEventListener('mouseup', handleEnd)
+    window.addEventListener('touchmove', handleMove)
+    window.addEventListener('touchend', handleEnd)
+    return () => {
+      window.removeEventListener('mousemove', handleMove)
+      window.removeEventListener('mouseup', handleEnd)
+      window.removeEventListener('touchmove', handleMove)
+      window.removeEventListener('touchend', handleEnd)
+    }
+  }, [isDragging])
 
   const filteredTechs = useMemo(() => {
     let result = techs
@@ -92,20 +128,30 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebar
   const lowHos = techs.filter((t) => t.hosColor === 'red' || t.hosColor === 'yellow').length
 
   const headerBar = (
-    <button
-      onClick={() => setIsCollapsed(!isCollapsed)}
-      className="w-full flex items-center justify-between px-3 py-2.5"
+    <div
+      className={`flex items-center justify-between px-3 py-2.5 select-none ${
+        !isMobile ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''
+      }`}
+      onMouseDown={handleDragStart}
+      onTouchStart={handleDragStart}
     >
-      <span className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+      <span className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 dark:text-white">
+        {!isMobile && <GripVertical size={14} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />}
         <Users size={15} className="text-gray-500 dark:text-gray-400" />
         Technicians ({techs.length})
       </span>
-      {isCollapsed ? (
-        <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" />
-      ) : (
-        <ChevronUp size={16} className="text-gray-500 dark:text-gray-400" />
-      )}
-    </button>
+      <button
+        onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed) }}
+        className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        aria-label={isCollapsed ? 'Expand technicians' : 'Collapse technicians'}
+      >
+        {isCollapsed ? (
+          <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" />
+        ) : (
+          <ChevronUp size={16} className="text-gray-500 dark:text-gray-400" />
+        )}
+      </button>
+    </div>
   )
 
   const expandedContent = (
@@ -172,11 +218,12 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebar
   // Mobile: floating card at bottom
   return (
     <>
-      {/* Desktop — top-left floating card */}
+      {/* Desktop — draggable floating card */}
       <div
-        className={`hidden lg:flex flex-col absolute top-3 left-3 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200/50 dark:border-gray-700/30 transition-all ${
-          isCollapsed ? 'w-auto' : 'w-[300px] max-h-[calc(100vh-6rem)]'
-        }`}
+        style={{ left: position.x, top: position.y }}
+        className={`hidden lg:flex flex-col absolute z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200/50 dark:border-gray-700/30 ${
+          isDragging ? '' : 'transition-all'
+        } ${isCollapsed ? 'w-auto' : 'w-[300px] max-h-[calc(100vh-6rem)]'}`}
       >
         {headerBar}
         {!isCollapsed && expandedContent}
