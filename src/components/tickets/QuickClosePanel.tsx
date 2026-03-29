@@ -32,14 +32,14 @@ export function QuickClosePanel({ ticket, isOpen, onClose, onConfirm }: QuickClo
       <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Panel */}
-      <div className="fixed inset-y-0 right-0 w-full max-w-md z-50 bg-gray-900 border-l border-gray-800 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+      <div role="dialog" aria-modal="true" aria-label="Close Ticket" className="fixed inset-y-0 right-0 w-full max-w-md z-50 bg-gray-900 border-l border-gray-800 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
           <div className="flex items-center gap-2">
             <CheckCircle2 size={18} className="text-green-400" />
             <h2 className="text-base font-semibold text-white">Close Ticket</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+          <button onClick={onClose} aria-label="Close" className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
             <X size={18} />
           </button>
         </div>

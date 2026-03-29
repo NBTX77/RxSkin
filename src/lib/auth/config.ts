@@ -4,6 +4,8 @@
 // ============================================================
 
 import NextAuth from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
+import type { Session, User } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { z } from 'zod'
 import { headers } from 'next/headers'
@@ -133,8 +135,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
 
   callbacks: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async jwt({ token, user }: any) {
+    async jwt({ token, user }: { token: JWT; user?: User & Record<string, unknown> }) {
       if (user) {
         token.id = user.id
         token.tenantId = user.tenantId
@@ -145,8 +146,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token
     },
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async session({ session, token }: any) {
+    async session({ session, token }: { session: Session; token: JWT & Record<string, unknown> }) {
       session.user.id = token.id as string
       session.user.tenantId = token.tenantId as string
       session.user.role = token.role as UserRole

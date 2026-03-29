@@ -14,9 +14,9 @@ import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import type { EventInput, EventDropArg, DateSelectArg, EventClickArg } from '@fullcalendar/core'
 import type { ScheduleEntry } from '@/types'
-import { useScheduleEntries, useRescheduleEntry } from '@/hooks/useScheduleEntries'
+import { useScheduleEntries, useRescheduleEntry, useCreateScheduleEntry } from '@/hooks/useScheduleEntries'
 import { ScheduleEventDetail } from './ScheduleEventDetail'
-import { Calendar, ChevronLeft, ChevronRight, RefreshCw, Loader2 } from 'lucide-react'
+import { Calendar, ChevronLeft, ChevronRight, RefreshCw, Loader2, X } from 'lucide-react'
 
 type ViewMode = 'timeGridDay' | 'timeGridWeek' | 'dayGridTwoWeek' | 'dayGridMonth' | 'listWeek'
 
@@ -57,6 +57,10 @@ export function ScheduleCalendar() {
   const [currentDate, setCurrentDate] = useState(() => new Date().toISOString().split('T')[0])
   const [currentView, setCurrentView] = useState<ViewMode>('timeGridWeek')
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEntry | null>(null)
+  const [createForm, setCreateForm] = useState<{ start: string; end: string } | null>(null)
+  const [createTicketId, setCreateTicketId] = useState('')
+  const [createMemberId, setCreateMemberId] = useState('')
+  const [createSubmitting, setCreateSubmitting] = useState(false)
 
   // Fetch schedule entries
   const { data: entries = [], isLoading, refetch, isFetching } = useScheduleEntries({
@@ -64,8 +68,9 @@ export function ScheduleCalendar() {
     view: fcViewToApiView(currentView),
   })
 
-  // Reschedule mutation (drag-and-drop)
+  // Mutations
   const reschedule = useRescheduleEntry()
+  const createEntry = useCreateScheduleEntry()
 
   // Convert ScheduleEntry[] → FullCalendar EventInput[]
   const events: EventInput[] = useMemo(
@@ -136,10 +141,11 @@ export function ScheduleCalendar() {
     setSelectedEvent(entry)
   }, [])
 
-  // Handle date selection (could create new entry)
+  // Handle date selection — open create entry form
   const handleDateSelect = useCallback((selectInfo: DateSelectArg) => {
-    // For now, just log — will wire up to create entry modal later
-    console.log('[schedule] Date selected:', selectInfo.startStr, '→', selectInfo.endStr)
+    setCreateForm({ start: selectInfo.startStr, end: selectInfo.endStr })
+    setCreateTicketId('')
+    setCreateMemberId('')
   }, [])
 
   // Navigation handlers
@@ -307,6 +313,76 @@ export function ScheduleCalendar() {
           entry={selectedEvent}
           onClose={() => setSelectedEvent(null)}
         />
+      )}
+
+      {/* Create entry dialog */}
+      {createForm && (
+        <>
+          <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" onClick={() => setCreateForm(null)} />
+          <div role="dialog" aria-modal="true" aria-label="Create schedule entry" className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-sm z-50">
+            <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+                <h3 className="text-sm font-semibold text-white">New Schedule Entry</h3>
+                <button onClick={() => setCreateForm(null)} aria-label="Close" className="p-1 rounded hover:bg-gray-800 text-gray-400">
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="text-xs text-gray-500">
+                  {new Date(createForm.start).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  {' — '}
+                  {new Date(createForm.end).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Ticket ID</label>
+                  <input
+                    type="number"
+                    value={createTicketId}
+                    onChange={(e) => setCreateTicketId(e.target.value)}
+                    placeholder="e.g. 12345"
+                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Member ID</label>
+                  <input
+                    type="number"
+                    value={createMemberId}
+                    onChange={(e) => setCreateMemberId(e.target.value)}
+                    placeholder="e.g. 100"
+                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <button
+                  disabled={!createTicketId || !createMemberId || createSubmitting}
+                  onClick={async () => {
+                    setCreateSubmitting(true)
+                    createEntry.mutate(
+                      {
+                        ticketId: parseInt(createTicketId, 10),
+                        memberId: parseInt(createMemberId, 10),
+                        start: createForm.start,
+                        end: createForm.end,
+                      },
+                      {
+                        onSuccess: () => {
+                          setCreateForm(null)
+                          setCreateSubmitting(false)
+                        },
+                        onError: () => {
+                          setCreateSubmitting(false)
+                        },
+                      }
+                    )
+                  }}
+                  className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 transition-colors"
+                >
+                  {createSubmitting ? 'Creating...' : 'Create Entry'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   )

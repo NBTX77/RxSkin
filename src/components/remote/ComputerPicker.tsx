@@ -53,7 +53,7 @@ export function ComputerPicker({ companyName, isOpen, onClose, onSelect }: Compu
       <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Panel */}
-      <div className="fixed inset-y-0 right-0 w-full max-w-md z-50 bg-gray-950 border-l border-gray-800 shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col">
+      <div role="dialog" aria-modal="true" aria-label="Select Computer" className="fixed inset-y-0 right-0 w-full max-w-md z-50 bg-gray-950 border-l border-gray-800 shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
           <div>
@@ -64,12 +64,13 @@ export function ComputerPicker({ companyName, isOpen, onClose, onSelect }: Compu
             <button
               onClick={() => refetch()}
               className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
-              title="Refresh"
+              aria-label="Refresh computer list"
             >
               <RefreshCw size={14} />
             </button>
             <button
               onClick={onClose}
+              aria-label="Close"
               className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
             >
               <X size={14} />
@@ -81,7 +82,9 @@ export function ComputerPicker({ companyName, isOpen, onClose, onSelect }: Compu
         <div className="px-5 py-3 border-b border-gray-800">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <label htmlFor="computer-search" className="sr-only">Search computers</label>
             <input
+              id="computer-search"
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}

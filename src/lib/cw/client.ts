@@ -53,8 +53,30 @@ function buildAuthHeader(creds: CWCredentials): string {
   return `Basic ${Buffer.from(raw).toString('base64')}`
 }
 
+const MAX_RETRIES = 3
+const BASE_DELAY_MS = 500
+
+/** Sleep for a given duration. */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/** Check if an error is retryable (rate limit or server error). */
+function isRetryable(err: unknown): boolean {
+  if (err instanceof RateLimitError) return true
+  if (err instanceof CWApiError && err.status >= 500) return true
+  return false
+}
+
+/** Get delay for retry attempt with exponential backoff + jitter. */
+function getRetryDelay(attempt: number, err: unknown): number {
+  if (err instanceof RateLimitError) return err.retryAfterMs
+  const base = BASE_DELAY_MS * Math.pow(2, attempt)
+  return base + Math.random() * base * 0.5
+}
+
 /**
- * Core fetch wrapper with auth injection, error handling, and instrumentation.
+ * Core fetch wrapper with auth injection, error handling, retry with backoff, and instrumentation.
  */
 async function cwFetch<T>(
   creds: CWCredentials,
@@ -68,68 +90,83 @@ async function cwFetch<T>(
   let statusCode: number | undefined
   let errorCode: string | undefined
   let errorMessage: string | undefined
+  let lastError: unknown
 
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Authorization': buildAuthHeader(creds),
-        'clientId': creds.clientId,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        ...options.headers,
-      },
-    })
-
-    statusCode = response.status
-
-    if (response.status === 429) {
-      const retryAfter = parseInt(response.headers.get('Retry-After') ?? '10', 10)
-      throw new RateLimitError(retryAfter)
-    }
-
-    if (!response.ok) {
-      const body = await response.text()
-      throw new CWApiError(response.status, body)
-    }
-
-    // 204 No Content
-    if (response.status === 204) {
-      return null as T
-    }
-
-    return response.json() as Promise<T>
-  } catch (err) {
-    if (err instanceof RateLimitError) {
-      errorCode = 'RATE_LIMITED'
-      errorMessage = err.message
-    } else if (err instanceof CWApiError) {
-      statusCode = err.status
-      errorCode = 'API_ERROR'
-      errorMessage = err.detail?.slice(0, 500)
-    } else if (err instanceof Error) {
-      errorCode = 'NETWORK_ERROR'
-      errorMessage = err.message
-    }
-    throw err
-  } finally {
-    // Fire-and-forget logging — never blocks the response
-    const elapsed = Math.round(performance.now() - start)
-    getDefaultTenantId()
-      .then((tenantId) => {
-        logApiCall(
-          { tenantId, platform: 'connectwise', endpoint: path, method },
-          {
-            statusCode,
-            responseTimeMs: elapsed,
-            requestPayloadSize: options.body ? String(options.body).length : undefined,
-            errorCode,
-            errorMessage,
-          }
-        )
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          'Authorization': buildAuthHeader(creds),
+          'clientId': creds.clientId,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...options.headers,
+        },
       })
-      .catch(() => {}) // Swallow — instrumentation must never break the app
+
+      statusCode = response.status
+
+      if (response.status === 429) {
+        const retryAfter = parseInt(response.headers.get('Retry-After') ?? '10', 10)
+        throw new RateLimitError(retryAfter)
+      }
+
+      if (!response.ok) {
+        const body = await response.text()
+        throw new CWApiError(response.status, body)
+      }
+
+      // 204 No Content
+      if (response.status === 204) {
+        return null as T
+      }
+
+      return response.json() as Promise<T>
+    } catch (err) {
+      lastError = err
+
+      if (err instanceof RateLimitError) {
+        errorCode = 'RATE_LIMITED'
+        errorMessage = err.message
+      } else if (err instanceof CWApiError) {
+        statusCode = err.status
+        errorCode = 'API_ERROR'
+        errorMessage = err.detail?.slice(0, 500)
+      } else if (err instanceof Error) {
+        errorCode = 'NETWORK_ERROR'
+        errorMessage = err.message
+      }
+
+      // Retry if retryable and not the last attempt
+      if (attempt < MAX_RETRIES && isRetryable(err)) {
+        const delay = getRetryDelay(attempt, err)
+        await sleep(delay)
+        continue
+      }
+
+      break
+    }
   }
+
+  // Log the final attempt
+  const elapsed = Math.round(performance.now() - start)
+  getDefaultTenantId()
+    .then((tenantId) => {
+      logApiCall(
+        { tenantId, platform: 'connectwise', endpoint: path, method },
+        {
+          statusCode,
+          responseTimeMs: elapsed,
+          requestPayloadSize: options.body ? String(options.body).length : undefined,
+          errorCode,
+          errorMessage,
+        }
+      )
+    })
+    .catch(() => {}) // Swallow — instrumentation must never break the app
+
+  throw lastError
 }
 
 // ── Tickets ───────────────────────────────────────────────────
@@ -218,6 +255,22 @@ export async function getTimeEntries(
   ticketId: number
 ): Promise<Record<string, unknown>[]> {
   return cwFetch(creds, `/time/entries?conditions=chargeToId=${ticketId} AND chargeToType="ServiceTicket"&orderBy=dateEntered desc&pageSize=50`)
+}
+
+/** Create a time entry for a ticket. */
+export async function createTimeEntry(
+  creds: CWCredentials,
+  data: { ticketId: number; actualHours: number; notes?: string }
+): Promise<Record<string, unknown>> {
+  return cwFetch(creds, `/time/entries`, {
+    method: 'POST',
+    body: JSON.stringify({
+      chargeToId: data.ticketId,
+      chargeToType: 'ServiceTicket',
+      actualHours: data.actualHours,
+      notes: data.notes ?? '',
+    }),
+  })
 }
 
 // ── Schedule ──────────────────────────────────────────────────

@@ -49,6 +49,9 @@ export function ProjectDetailOverlay({ projectId, onClose }: ProjectDetailOverla
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Project Details"
         className="absolute right-0 top-0 h-full w-full max-w-md bg-gray-900/95 backdrop-blur-lg border-l border-gray-800 shadow-2xl overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >

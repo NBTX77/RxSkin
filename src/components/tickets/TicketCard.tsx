@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import type { Ticket } from '@/types'
 import { Clock, User, Building2, MessageSquare } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -41,7 +42,7 @@ interface TicketCardProps {
   compact?: boolean
 }
 
-export function TicketCard({ ticket, compact = false }: TicketCardProps) {
+export const TicketCard = memo(function TicketCard({ ticket, compact = false }: TicketCardProps) {
   const borderColor = PRIORITY_COLORS[ticket.priority] ?? 'border-l-gray-600'
   const statusStyle = STATUS_STYLES[ticket.status] ?? 'text-gray-400 bg-gray-500/10 border-gray-500/20'
   const dotColor = PRIORITY_DOT[ticket.priority] ?? 'bg-gray-500'
@@ -83,7 +84,7 @@ export function TicketCard({ ticket, compact = false }: TicketCardProps) {
             {ticket.summary}
           </p>
         </div>
-        <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${dotColor}`} title={ticket.priority} />
+        <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${dotColor}`} role="img" aria-label={`Priority: ${ticket.priority}`} />
       </div>
 
       {/* Metadata row */}
@@ -133,4 +134,4 @@ export function TicketCard({ ticket, compact = false }: TicketCardProps) {
       )}
     </Link>
   )
-}
+})

@@ -1,10 +1,12 @@
-// GET /api/tickets/[id]/notes — List notes for a ticket
+// GET  /api/tickets/[id]/notes — List notes for a ticket
+// POST /api/tickets/[id]/notes — Add a note to a ticket
 
 import { auth } from '@/lib/auth/config'
 import { getTenantCredentials } from '@/lib/auth/credentials'
-import { getTicketNotes } from '@/lib/cw/client'
-import { cachedFetch } from '@/lib/cache/bff-cache'
+import { getTicketNotes, addTicketNote } from '@/lib/cw/client'
+import { cachedFetch, invalidateCacheKey } from '@/lib/cache/bff-cache'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
+import { z } from 'zod'
 import type { TicketNote } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -62,6 +64,49 @@ export async function GET(
     )
 
     return Response.json(notes)
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
+
+const addNoteSchema = z.object({
+  text: z.string().min(1).max(10000),
+  isInternal: z.boolean().optional().default(false),
+})
+
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user) return apiErrors.unauthorized()
+    if (session.user.role === 'VIEWER') return apiErrors.forbidden()
+
+    const ticketId = parseInt(params.id, 10)
+    if (isNaN(ticketId)) return apiErrors.badRequest('Invalid ticket ID')
+
+    if (!isCWConfigured()) {
+      return Response.json(
+        { code: 'SERVICE_UNAVAILABLE', message: 'ConnectWise API not configured', retryable: false },
+        { status: 503 }
+      )
+    }
+
+    const body = await request.json()
+    const parsed = addNoteSchema.safeParse(body)
+    if (!parsed.success) {
+      return apiErrors.badRequest(parsed.error.issues[0]?.message ?? 'Invalid request body')
+    }
+
+    const { tenantId } = session.user
+    const creds = await getTenantCredentials(tenantId)
+    const rawNote = await addTicketNote(creds, ticketId, parsed.data.text, parsed.data.isInternal)
+
+    // Bust notes cache
+    invalidateCacheKey(`${tenantId}:tickets:${ticketId}:notes`)
+
+    return Response.json(normalizeNote(rawNote, ticketId), { status: 201 })
   } catch (error) {
     return handleApiError(error)
   }

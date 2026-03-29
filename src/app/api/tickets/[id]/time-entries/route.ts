@@ -1,10 +1,12 @@
-// GET /api/tickets/[id]/time-entries — List time entries for a ticket
+// GET  /api/tickets/[id]/time-entries — List time entries for a ticket
+// POST /api/tickets/[id]/time-entries — Create a time entry for a ticket
 
 import { auth } from '@/lib/auth/config'
 import { getTenantCredentials } from '@/lib/auth/credentials'
-import { getTimeEntries } from '@/lib/cw/client'
-import { cachedFetch } from '@/lib/cache/bff-cache'
+import { getTimeEntries, createTimeEntry } from '@/lib/cw/client'
+import { cachedFetch, invalidateCacheKey } from '@/lib/cache/bff-cache'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
+import { z } from 'zod'
 import type { TimeEntry } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -63,6 +65,53 @@ export async function GET(
     )
 
     return Response.json(entries)
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
+
+const createTimeEntrySchema = z.object({
+  actualHours: z.number().positive().max(24),
+  notes: z.string().max(5000).optional(),
+})
+
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user) return apiErrors.unauthorized()
+    if (session.user.role === 'VIEWER') return apiErrors.forbidden()
+
+    const ticketId = parseInt(params.id, 10)
+    if (isNaN(ticketId)) return apiErrors.badRequest('Invalid ticket ID')
+
+    if (!isCWConfigured()) {
+      return Response.json(
+        { code: 'SERVICE_UNAVAILABLE', message: 'ConnectWise API not configured', retryable: false },
+        { status: 503 }
+      )
+    }
+
+    const body = await request.json()
+    const parsed = createTimeEntrySchema.safeParse(body)
+    if (!parsed.success) {
+      return apiErrors.badRequest(parsed.error.issues[0]?.message ?? 'Invalid request body')
+    }
+
+    const { tenantId } = session.user
+    const creds = await getTenantCredentials(tenantId)
+    const rawEntry = await createTimeEntry(creds, {
+      ticketId,
+      actualHours: parsed.data.actualHours,
+      notes: parsed.data.notes,
+    })
+
+    // Bust time entries cache
+    invalidateCacheKey(`${tenantId}:tickets:${ticketId}:time-entries`)
+
+    return Response.json(normalizeTimeEntry(rawEntry, ticketId), { status: 201 })
   } catch (error) {
     return handleApiError(error)
   }

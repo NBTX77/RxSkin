@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import type { Ticket, TicketNote, TimeEntry } from '@/types'
 import { QuickClosePanel } from './QuickClosePanel'
 import { TicketActions } from '@/components/remote/TicketActions'
 import {
   ArrowLeft, Clock, Building2, User, MessageSquare, Send,
-  CheckCircle2, Calendar, AlertCircle, Timer, Tag,
+  CheckCircle2, Calendar, AlertCircle, Timer, Tag, ArrowUpCircle,
 } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
@@ -34,9 +34,15 @@ interface TicketDetailProps {
 
 export function TicketDetail({ ticketId }: TicketDetailProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [newNote, setNewNote] = useState('')
   const [showClosePanel, setShowClosePanel] = useState(false)
   const [activeTab, setActiveTab] = useState<'notes' | 'time'>('notes')
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [showStatusMenu, setShowStatusMenu] = useState(false)
+  const [showTimeForm, setShowTimeForm] = useState(false)
+  const [timeHours, setTimeHours] = useState(0.5)
+  const [timeNotes, setTimeNotes] = useState('')
 
   const { data: ticket, isLoading: ticketLoading } = useQuery<Ticket>({
     queryKey: ['ticket', ticketId],
@@ -154,16 +160,28 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                 <div className="flex items-center justify-between mt-2">
                   <div className="flex items-center gap-2">
                     <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
-                      <input type="checkbox" className="w-3 h-3 rounded border-gray-600 bg-gray-800" />
+                      <input id="note-internal" type="checkbox" className="w-3 h-3 rounded border-gray-600 bg-gray-800" />
                       Internal
                     </label>
                   </div>
                   <button
-                    disabled={!newNote.trim()}
+                    disabled={!newNote.trim() || actionLoading === 'note'}
+                    onClick={async () => {
+                      setActionLoading('note')
+                      const isInternal = (document.getElementById('note-internal') as HTMLInputElement)?.checked ?? false
+                      await fetch(`/api/tickets/${ticketId}/notes`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: newNote, isInternal }),
+                      })
+                      queryClient.invalidateQueries({ queryKey: ['ticket-notes', ticketId] })
+                      setNewNote('')
+                      setActionLoading(null)
+                    }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 transition-colors"
                   >
                     <Send size={12} />
-                    Add Note
+                    {actionLoading === 'note' ? 'Sending...' : 'Add Note'}
                   </button>
                 </div>
               </div>
@@ -289,9 +307,122 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Actions</h3>
             <div className="space-y-2">
-              <QuickAction label="Change Status" color="blue" />
-              <QuickAction label="Add Time Entry" color="purple" />
-              <QuickAction label="Escalate" color="orange" />
+              {/* Change Status */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowStatusMenu(!showStatusMenu)}
+                  disabled={actionLoading === 'status'}
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors text-blue-400 hover:bg-blue-500/10 disabled:opacity-50"
+                >
+                  {actionLoading === 'status' ? 'Updating...' : 'Change Status'}
+                </button>
+                {showStatusMenu && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-gray-800 border border-gray-700 rounded-lg shadow-lg py-1">
+                    {['New', 'In Progress', 'Waiting on Client', 'Scheduled', 'Resolved', 'Closed'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={async () => {
+                          setShowStatusMenu(false)
+                          setActionLoading('status')
+                          await fetch(`/api/tickets/${ticketId}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify([
+                              { op: 'replace', path: '/status', value: { name: status } },
+                            ]),
+                          })
+                          queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
+                          setActionLoading(null)
+                        }}
+                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-700 transition-colors ${
+                          ticket.status === status ? 'text-blue-400 font-medium' : 'text-gray-300'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Add Time Entry */}
+              <div>
+                <button
+                  onClick={() => setShowTimeForm(!showTimeForm)}
+                  disabled={actionLoading === 'time'}
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors text-purple-400 hover:bg-purple-500/10 disabled:opacity-50"
+                >
+                  {actionLoading === 'time' ? 'Adding...' : 'Add Time Entry'}
+                </button>
+                {showTimeForm && (
+                  <div className="mt-2 p-3 bg-gray-800 rounded-lg space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        step="0.25"
+                        min="0.25"
+                        max="24"
+                        value={timeHours}
+                        onChange={(e) => setTimeHours(parseFloat(e.target.value) || 0.25)}
+                        className="w-20 px-2 py-1 rounded bg-gray-900 border border-gray-700 text-white text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                      />
+                      <span className="text-xs text-gray-500">hours</span>
+                    </div>
+                    <input
+                      type="text"
+                      value={timeNotes}
+                      onChange={(e) => setTimeNotes(e.target.value)}
+                      placeholder="Notes (optional)"
+                      className="w-full px-2 py-1 rounded bg-gray-900 border border-gray-700 text-white text-xs placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                    <button
+                      onClick={async () => {
+                        setActionLoading('time')
+                        await fetch(`/api/tickets/${ticketId}/time-entries`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ actualHours: timeHours, notes: timeNotes || undefined }),
+                        })
+                        queryClient.invalidateQueries({ queryKey: ['ticket-time', ticketId] })
+                        setShowTimeForm(false)
+                        setTimeHours(0.5)
+                        setTimeNotes('')
+                        setActionLoading(null)
+                      }}
+                      className="w-full px-2 py-1.5 rounded text-xs font-medium bg-purple-600 text-white hover:bg-purple-500 transition-colors"
+                    >
+                      Add Entry
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Escalate */}
+              <button
+                onClick={async () => {
+                  setActionLoading('escalate')
+                  await fetch(`/api/tickets/${ticketId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify([
+                      { op: 'replace', path: '/priority', value: { name: 'Critical' } },
+                    ]),
+                  })
+                  await fetch(`/api/tickets/${ticketId}/notes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: 'Ticket escalated to Critical priority.', isInternal: true }),
+                  })
+                  queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
+                  queryClient.invalidateQueries({ queryKey: ['ticket-notes', ticketId] })
+                  setActionLoading(null)
+                }}
+                disabled={actionLoading === 'escalate' || ticket.priority === 'Critical'}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors text-orange-400 hover:bg-orange-500/10 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                <ArrowUpCircle size={13} />
+                {actionLoading === 'escalate' ? 'Escalating...' : ticket.priority === 'Critical' ? 'Already Critical' : 'Escalate'}
+              </button>
             </div>
           </div>
 
@@ -306,8 +437,43 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
         isOpen={showClosePanel}
         onClose={() => setShowClosePanel(false)}
         onConfirm={async (data) => {
-          // TODO: Wire to real API
-          console.log('Close ticket:', data)
+          // 1. Set ticket status to Closed via JSON Patch
+          await fetch(`/api/tickets/${ticketId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify([
+              { op: 'replace', path: '/status', value: { name: 'Closed' } },
+            ]),
+          })
+
+          // 2. Add resolution note
+          if (data.note.trim()) {
+            await fetch(`/api/tickets/${ticketId}/notes`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                text: data.note,
+                isInternal: !data.notifyClient,
+              }),
+            })
+          }
+
+          // 3. Log time entry if hours > 0
+          if (data.hours > 0) {
+            await fetch(`/api/tickets/${ticketId}/time-entries`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                actualHours: data.hours,
+                notes: data.note,
+              }),
+            })
+          }
+
+          // 4. Invalidate all ticket queries
+          queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
+          queryClient.invalidateQueries({ queryKey: ['ticket-notes', ticketId] })
+          queryClient.invalidateQueries({ queryKey: ['ticket-time', ticketId] })
           setShowClosePanel(false)
         }}
       />
@@ -324,19 +490,6 @@ function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: strin
       </span>
       <span className="text-xs text-gray-300 font-medium">{value}</span>
     </div>
-  )
-}
-
-function QuickAction({ label, color }: { label: string; color: string }) {
-  const colorMap: Record<string, string> = {
-    blue: 'text-blue-400 hover:bg-blue-500/10',
-    purple: 'text-purple-400 hover:bg-purple-500/10',
-    orange: 'text-orange-400 hover:bg-orange-500/10',
-  }
-  return (
-    <button className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${colorMap[color] ?? 'text-gray-400 hover:bg-gray-800'}`}>
-      {label}
-    </button>
   )
 }
 

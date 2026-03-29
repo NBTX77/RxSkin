@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 
 interface KpiCardProps {
   label: string
@@ -18,7 +18,7 @@ const colorMap = {
   purple: 'bg-purple-500/5 text-purple-400',
 }
 
-export function KpiCard({ label, value, icon, color = 'blue', detail }: KpiCardProps) {
+export const KpiCard = memo(function KpiCard({ label, value, icon, color = 'blue', detail }: KpiCardProps) {
   return (
     <div className={`${colorMap[color]} border border-gray-800 rounded-xl p-4`}>
       <div className="flex items-center justify-between">
@@ -31,4 +31,4 @@ export function KpiCard({ label, value, icon, color = 'blue', detail }: KpiCardP
       )}
     </div>
   )
-}
+})

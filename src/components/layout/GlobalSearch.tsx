@@ -106,12 +106,14 @@ export function GlobalSearch() {
       <div className="fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm" onClick={() => setOpen(false)} />
 
       {/* Dialog */}
-      <div className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[101]">
+      <div role="dialog" aria-modal="true" aria-label="Global search" className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[101]">
         <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
           {/* Search input */}
           <div className="flex items-center px-4 gap-3 border-b border-gray-800">
             <Search size={18} className="text-gray-500 flex-shrink-0" />
+            <label htmlFor="global-search" className="sr-only">Search tickets, companies, techs</label>
             <input
+              id="global-search"
               autoFocus
               type="text"
               value={query}

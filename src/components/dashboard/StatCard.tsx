@@ -1,5 +1,7 @@
 'use client'
 
+import { memo } from 'react'
+
 interface StatCardProps {
   label: string
   value: number
@@ -14,7 +16,7 @@ const colorMap = {
   green: 'bg-green-500/10 border-green-500/20 text-green-400',
 }
 
-export function StatCard({ label, value, total, color = 'blue' }: StatCardProps) {
+export const StatCard = memo(function StatCard({ label, value, total, color = 'blue' }: StatCardProps) {
   const pct = total > 0 ? Math.round((value / total) * 100) : 0
 
   return (
@@ -24,4 +26,4 @@ export function StatCard({ label, value, total, color = 'blue' }: StatCardProps)
       <p className="text-xs opacity-60 mt-1">{pct}% of {total}</p>
     </div>
   )
-}
+})

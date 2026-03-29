@@ -55,7 +55,7 @@ export function ScheduleEventDetail({ entry, onClose }: ScheduleEventDetailProps
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 sm:pt-32">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 sm:pt-32" role="dialog" aria-modal="true" aria-label="Schedule entry details">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
@@ -85,6 +85,7 @@ export function ScheduleEventDetail({ entry, onClose }: ScheduleEventDetailProps
           </div>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="ml-2 rounded-md p-1 text-gray-500 hover:bg-gray-800 hover:text-white transition-colors"
           >
             <X className="h-4 w-4" />

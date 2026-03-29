@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import type { ScheduleHoldTicket } from '@/types/ops'
 
 interface ScheduleHoldCardProps {
@@ -22,7 +23,7 @@ function PriorityPill({ priority }: { priority: string }) {
   )
 }
 
-export function ScheduleHoldCard({ ticket, onContextMenu }: ScheduleHoldCardProps) {
+export const ScheduleHoldCard = memo(function ScheduleHoldCard({ ticket, onContextMenu }: ScheduleHoldCardProps) {
   const formattedDate = (() => {
     try {
       return new Date(ticket.dateEntered).toLocaleDateString([], {
@@ -61,4 +62,4 @@ export function ScheduleHoldCard({ ticket, onContextMenu }: ScheduleHoldCardProp
       </div>
     </div>
   )
-}
+})

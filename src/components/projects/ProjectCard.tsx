@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import type { Project } from '@/types'
 import { User, Clock } from 'lucide-react'
 import { BudgetGauge } from './BudgetGauge'
@@ -40,7 +41,7 @@ interface ProjectCardProps {
   onClick?: () => void
 }
 
-export function ProjectCard({ project, onClick }: ProjectCardProps) {
+export const ProjectCard = memo(function ProjectCard({ project, onClick }: ProjectCardProps) {
   const statusColor = getStatusColor(project.status)
   const statusLabel = getStatusLabel(project.status)
 
@@ -88,4 +89,4 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
       />
     </button>
   )
-}
+})

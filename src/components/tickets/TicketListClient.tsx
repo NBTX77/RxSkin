@@ -94,7 +94,9 @@ export function TicketListClient() {
       <div className="flex items-center gap-2">
         <form onSubmit={handleSearch} className="flex-1 relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <label htmlFor="ticket-search" className="sr-only">Search tickets</label>
           <input
+            id="ticket-search"
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -105,12 +107,14 @@ export function TicketListClient() {
         <div className="flex items-center bg-gray-800 rounded-lg border border-gray-700/50 p-0.5">
           <button
             onClick={() => setViewMode('cards')}
+            aria-label="Card view"
             className={`p-2 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'}`}
           >
             <LayoutGrid size={16} />
           </button>
           <button
             onClick={() => setViewMode('table')}
+            aria-label="Table view"
             className={`p-2 rounded-md transition-colors ${viewMode === 'table' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'}`}
           >
             <List size={16} />
@@ -191,7 +195,7 @@ export function TicketListClient() {
                     </td>
                     <td className="px-4 py-3 text-gray-400 hidden xl:table-cell text-sm">{ticket.assignedTo ?? '—'}</td>
                     <td className="px-4 py-3">
-                      <span className={`inline-block w-2.5 h-2.5 rounded-full ${priorityColor}`} title={ticket.priority} />
+                      <span className={`inline-block w-2.5 h-2.5 rounded-full ${priorityColor}`} role="img" aria-label={`Priority: ${ticket.priority}`} />
                     </td>
                   </tr>
                 )

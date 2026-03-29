@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import type { FleetTech } from '@/types/ops'
 
 interface TechCardProps {
@@ -34,7 +35,7 @@ function PriorityPill({ priority }: { priority: string }) {
   )
 }
 
-export function TechCard({ tech, onClick, isSelected }: TechCardProps) {
+export const TechCard = memo(function TechCard({ tech, onClick, isSelected }: TechCardProps) {
   const avatarColor = tech.hosColor === 'red'
     ? 'bg-red-500/20 border-red-500/40'
     : tech.hosColor === 'yellow'
@@ -109,4 +110,4 @@ export function TechCard({ tech, onClick, isSelected }: TechCardProps) {
       </div>
     </button>
   )
-}
+})

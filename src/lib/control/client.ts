@@ -221,16 +221,14 @@ export async function findSessionByComputerName(
 
 // ── Normalizers ─────────────────────────────────────────────
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function normalizeSession(raw: any): ScreenConnectSession {
+function normalizeSession(raw: Record<string, unknown>): ScreenConnectSession {
   return {
-    sessionId: raw.SessionID ?? raw.sessionId ?? raw.SessionId ?? '',
-    name: raw.Name ?? raw.name ?? '',
-    hostName: raw.GuestMachineName ?? raw.HostName ?? raw.hostName ?? raw.Name ?? '',
-    isOnline: raw.GuestConnectedCount > 0 || raw.IsOnline || raw.isOnline || false,
-    lastConnected: raw.GuestLastActivityTime ?? raw.LastConnected ?? raw.lastConnected ?? '',
-    guestOperatingSystemName: raw.GuestOperatingSystemName ?? raw.guestOperatingSystemName ?? '',
-    guestMachineName: raw.GuestMachineName ?? raw.guestMachineName ?? '',
+    sessionId: (raw.SessionID ?? raw.sessionId ?? raw.SessionId ?? '') as string,
+    name: (raw.Name ?? raw.name ?? '') as string,
+    hostName: (raw.GuestMachineName ?? raw.HostName ?? raw.hostName ?? raw.Name ?? '') as string,
+    isOnline: ((raw.GuestConnectedCount as number) > 0) || (raw.IsOnline as boolean) || (raw.isOnline as boolean) || false,
+    lastConnected: (raw.GuestLastActivityTime ?? raw.LastConnected ?? raw.lastConnected ?? '') as string,
+    guestOperatingSystemName: (raw.GuestOperatingSystemName ?? raw.guestOperatingSystemName ?? '') as string,
+    guestMachineName: (raw.GuestMachineName ?? raw.guestMachineName ?? '') as string,
   }
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

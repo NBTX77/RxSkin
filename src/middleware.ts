@@ -9,6 +9,11 @@ import type { NextRequest } from 'next/server'
 
 const PUBLIC_PATHS = ['/login', '/api/auth']
 
+/** Generate a compact trace ID (base36 timestamp + random suffix). */
+function generateTraceId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
+
 export default auth((req: NextRequest & { auth: unknown }) => {
   const { pathname } = req.nextUrl
 
@@ -25,7 +30,13 @@ export default auth((req: NextRequest & { auth: unknown }) => {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  return NextResponse.next()
+  // Attach trace ID to every response for request correlation
+  const response = NextResponse.next()
+  const traceId = req.headers.get('x-trace-id') || generateTraceId()
+  response.headers.set('x-trace-id', traceId)
+  // Pass trace ID downstream via request headers for API route access
+  response.headers.set('x-request-trace-id', traceId)
+  return response
 })
 
 export const config = {

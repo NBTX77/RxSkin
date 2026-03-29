@@ -238,49 +238,62 @@ export async function runScript(
 
 // ── Normalizers ─────────────────────────────────────────────
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function normalizeComputer(raw: any): AutomateComputer {
-  const totalMem = raw.TotalMemory ?? raw.totalMemory ?? 0
-  const freeMem = raw.FreeMemory ?? raw.freeMemory ?? 0
-  const uptimeMinutes = raw.SystemUptime ?? raw.systemUptime ?? 0
+/** Safely access a nested property from a raw API object (handles PascalCase + camelCase). */
+function prop(raw: Record<string, unknown>, pascal: string, camel: string): unknown {
+  return raw[pascal] ?? raw[camel]
+}
+
+function sub(raw: Record<string, unknown>, pascal: string, camel: string): Record<string, unknown> | undefined {
+  return (raw[pascal] ?? raw[camel]) as Record<string, unknown> | undefined
+}
+
+function normalizeComputer(raw: Record<string, unknown>): AutomateComputer {
+  const client = sub(raw, 'Client', 'client')
+  const location = sub(raw, 'Location', 'location')
+  const virusScanner = sub(raw, 'VirusScanner', 'virusScanner')
+  const totalMem = (prop(raw, 'TotalMemory', 'totalMemory') ?? 0) as number
+  const freeMem = (prop(raw, 'FreeMemory', 'freeMemory') ?? 0) as number
+  const uptimeMinutes = (prop(raw, 'SystemUptime', 'systemUptime') ?? 0) as number
 
   return {
-    id: Number(raw.Id ?? raw.id ?? 0),
-    computerName: raw.ComputerName ?? raw.computerName ?? '',
-    clientName: raw.Client?.Name ?? raw.client?.name ?? '',
-    clientId: Number(raw.Client?.Id ?? raw.client?.id ?? 0),
-    locationName: raw.Location?.Name ?? raw.location?.name ?? '',
-    status: raw.Status ?? raw.status ?? 'Offline',
-    operatingSystem: raw.OperatingSystemName ?? raw.operatingSystemName ?? '',
-    localIP: raw.LocalIPAddress ?? raw.localIPAddress ?? '',
-    lastContact: raw.RemoteAgentLastContact ?? raw.remoteAgentLastContact ?? '',
-    lastHeartbeat: raw.LastHeartbeat ?? raw.lastHeartbeat ?? '',
-    cpuUsage: raw.CpuUsage ?? raw.cpuUsage ?? 0,
+    id: Number(prop(raw, 'Id', 'id') ?? 0),
+    computerName: (prop(raw, 'ComputerName', 'computerName') ?? '') as string,
+    clientName: (client?.Name ?? client?.name ?? '') as string,
+    clientId: Number(client?.Id ?? client?.id ?? 0),
+    locationName: (location?.Name ?? location?.name ?? '') as string,
+    status: (prop(raw, 'Status', 'status') ?? 'Offline') as string,
+    operatingSystem: (prop(raw, 'OperatingSystemName', 'operatingSystemName') ?? '') as string,
+    localIP: (prop(raw, 'LocalIPAddress', 'localIPAddress') ?? '') as string,
+    lastContact: (prop(raw, 'RemoteAgentLastContact', 'remoteAgentLastContact') ?? '') as string,
+    lastHeartbeat: (prop(raw, 'LastHeartbeat', 'lastHeartbeat') ?? '') as string,
+    cpuUsage: (prop(raw, 'CpuUsage', 'cpuUsage') ?? 0) as number,
     totalMemoryGB: Math.round((totalMem / 1_073_741_824) * 10) / 10,
     freeMemoryGB: Math.round((freeMem / 1_073_741_824) * 10) / 10,
-    type: raw.Type ?? raw.type ?? 'Workstation',
-    isRebootNeeded: raw.IsRebootNeeded ?? raw.isRebootNeeded ?? false,
-    domain: raw.DomainName ?? raw.domainName ?? '',
-    lastUserName: raw.LastUserName ?? raw.lastUserName ?? '',
-    serialNumber: raw.SerialNumber ?? raw.serialNumber ?? '',
-    biosManufacturer: raw.BiosManufacturer ?? raw.biosManufacturer ?? '',
+    type: (prop(raw, 'Type', 'type') ?? 'Workstation') as string,
+    isRebootNeeded: (prop(raw, 'IsRebootNeeded', 'isRebootNeeded') ?? false) as boolean,
+    domain: (prop(raw, 'DomainName', 'domainName') ?? '') as string,
+    lastUserName: (prop(raw, 'LastUserName', 'lastUserName') ?? '') as string,
+    serialNumber: (prop(raw, 'SerialNumber', 'serialNumber') ?? '') as string,
+    biosManufacturer: (prop(raw, 'BiosManufacturer', 'biosManufacturer') ?? '') as string,
     systemUptimeDays: Math.round(uptimeMinutes / 1440),
-    antivirusName: raw.VirusScanner?.Name ?? raw.virusScanner?.name ?? '',
-    antivirusDefDate: raw.AntivirusDefinitionDate ?? raw.antivirusDefinitionDate ?? '',
-    windowsUpdateDate: raw.WindowsUpdateDate ?? raw.windowsUpdateDate ?? '',
-    tempFiles: raw.TempFiles ?? raw.tempFiles ?? '',
-    macAddress: raw.MACAddress ?? raw.macAddress ?? '',
+    antivirusName: (virusScanner?.Name ?? virusScanner?.name ?? '') as string,
+    antivirusDefDate: (prop(raw, 'AntivirusDefinitionDate', 'antivirusDefinitionDate') ?? '') as string,
+    windowsUpdateDate: (prop(raw, 'WindowsUpdateDate', 'windowsUpdateDate') ?? '') as string,
+    tempFiles: (prop(raw, 'TempFiles', 'tempFiles') ?? '') as string,
+    macAddress: (prop(raw, 'MACAddress', 'macAddress') ?? '') as string,
   }
 }
 
-function normalizeScript(raw: any): AutomateScript {
+function normalizeScript(raw: Record<string, unknown>): AutomateScript {
+  const folder = sub(raw, 'Folder', 'folder')
+  const params = (prop(raw, 'Parameters', 'parameters') ?? []) as unknown[]
   return {
-    id: Number(raw.Id ?? raw.id ?? 0),
-    name: raw.Name ?? raw.name ?? '',
-    description: raw.Comments ?? raw.comments ?? '',
-    folder: raw.FullFolderPath ?? raw.fullFolderPath ?? raw.Folder?.Name ?? '',
-    hasParameters: (raw.Parameters ?? raw.parameters ?? []).length > 0,
-    parameters: raw.Parameters ?? raw.parameters ?? [],
+    id: Number(prop(raw, 'Id', 'id') ?? 0),
+    name: (prop(raw, 'Name', 'name') ?? '') as string,
+    description: (prop(raw, 'Comments', 'comments') ?? '') as string,
+    folder: (prop(raw, 'FullFolderPath', 'fullFolderPath') ?? folder?.Name ?? '') as string,
+    hasParameters: params.length > 0,
+    parameters: params,
   }
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
