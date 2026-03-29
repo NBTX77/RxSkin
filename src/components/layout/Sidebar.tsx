@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   Sun,
@@ -127,6 +127,19 @@ export function Sidebar() {
   const { department, config, canSwitch, switchDepartment, allDepartments } = useDepartment()
   const [expandedSection, setExpandedSection] = useState<string | null>(pathname.startsWith('/ops') ? 'Ops' : null)
   const [isHovered, setIsHovered] = useState(false)
+  const [deptPopoverOpen, setDeptPopoverOpen] = useState(false)
+  const logoRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!deptPopoverOpen) return
+    const handler = (e: MouseEvent) => {
+      if (logoRef.current && !logoRef.current.contains(e.target as Node)) {
+        setDeptPopoverOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [deptPopoverOpen])
 
   const deptConfig = departmentNav[department]
   const navItems = deptConfig?.items || []
@@ -156,11 +169,22 @@ export function Sidebar() {
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Logo + Department Badge */}
-      <div className="flex flex-col px-2 py-3 border-b border-gray-200 dark:border-gray-800">
+      <div className="relative flex flex-col px-2 py-3 border-b border-gray-200 dark:border-gray-800">
         <div className={`flex items-center gap-3 ${isHovered ? 'px-3' : 'justify-center'}`}>
-          <div className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center flex-shrink-0 ${canSwitch ? 'cursor-pointer hover:ring-2 hover:ring-white/20' : ''}`}>
-            <span className="text-white font-bold text-sm">RX</span>
-          </div>
+          {canSwitch ? (
+            <button
+              ref={logoRef}
+              onClick={() => setDeptPopoverOpen(!deptPopoverOpen)}
+              className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-white/20 transition-shadow`}
+              aria-label="Switch department"
+            >
+              <span className="text-white font-bold text-sm">RX</span>
+            </button>
+          ) : (
+            <div className={`w-8 h-8 rounded-lg ${getColorBg(config.color)} flex items-center justify-center flex-shrink-0`}>
+              <span className="text-white font-bold text-sm">RX</span>
+            </div>
+          )}
           {isHovered && (
             <div className="flex-1 min-w-0">
               <p className="text-gray-900 dark:text-white font-semibold text-sm truncate">RX Skin</p>
@@ -173,6 +197,26 @@ export function Sidebar() {
             <p className={`text-xs font-medium px-2 py-1 rounded w-fit text-${config.color}-300 bg-${config.color}-900/40 truncate`}>
               {config.name} Department
             </p>
+          </div>
+        )}
+
+        {/* Department popover */}
+        {canSwitch && deptPopoverOpen && (
+          <div className="absolute top-14 left-2 z-50 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5">
+            {allDepartments.map(dept => (
+              <button
+                key={dept.code}
+                onClick={() => { switchDepartment(dept.code); setDeptPopoverOpen(false) }}
+                className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm transition-colors ${
+                  dept.code === department
+                    ? 'bg-blue-500/10 text-blue-400 font-medium'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <div className={`w-2 h-2 rounded-full ${getColorBg(dept.color)}`} />
+                {dept.name}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -280,28 +324,6 @@ export function Sidebar() {
           )
         })}
       </nav>
-
-      {/* Department Switcher (if user can switch) — only when expanded */}
-      {canSwitch && isHovered && (
-        <div className="px-3 py-3 border-t border-gray-200 dark:border-gray-800">
-          <div className="space-y-1 bg-gray-100 dark:bg-gray-800/50 rounded-lg p-2">
-            {allDepartments.map(dept => (
-              <button
-                key={dept.code}
-                onClick={() => switchDepartment(dept.code)}
-                className={`flex items-center gap-2 w-full px-3 py-2 rounded text-sm transition-colors ${
-                  dept.code === department
-                    ? 'bg-blue-600/20 text-blue-400 font-medium'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
-                }`}
-              >
-                <div className={`w-2 h-2 rounded-full ${getColorBg(dept.color)}`} />
-                {dept.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Bottom: minimal branding */}
       {isHovered && (
