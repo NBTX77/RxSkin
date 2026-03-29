@@ -2,10 +2,11 @@ import { auth } from '@/lib/auth/config'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 import { getCWCredentials } from '@/lib/cw/credentials'
 import { getTickets } from '@/lib/cw/client'
-import { getMockTickets } from '@/lib/mock-data'
 import type { Ticket } from '@/types'
 
 export const dynamic = 'force-dynamic'
+
+const EMPTY_FILTERS = { boards: [], companies: [], priorities: [], statuses: [], assignees: [] }
 
 /** Returns distinct values for board, company, priority, status, and assignedTo
  *  so the ticket list page can populate filter dropdowns. */
@@ -14,15 +15,13 @@ export async function GET() {
     const session = await auth()
     if (!session?.user) return apiErrors.unauthorized()
 
-    let tickets: Ticket[]
-
     const creds = getCWCredentials()
-    if (creds) {
-      // Fetch a large page to get good filter coverage
-      tickets = await getTickets(creds, { pageSize: 200 })
-    } else {
-      tickets = getMockTickets()
+    if (!creds) {
+      return Response.json(EMPTY_FILTERS)
     }
+
+    // Fetch a large page to get good filter coverage
+    const tickets: Ticket[] = await getTickets(creds, { pageSize: 200 })
 
     const boards = Array.from(new Set(tickets.map(t => t.board).filter(Boolean))).sort()
     const companies = Array.from(new Set(tickets.map(t => t.company).filter(Boolean))).sort()
