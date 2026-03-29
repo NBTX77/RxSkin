@@ -1,19 +1,31 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import type { Map as LeafletMap } from 'leaflet'
 import type { FleetTech } from '@/types/ops'
 import { MapMarker } from './MapMarker'
+
+const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
 
 interface FleetMapProps {
   techs: FleetTech[]
   onSelectTech: (tech: FleetTech) => void
 }
 
-/**
- * Helper component to auto-fit map bounds to all markers.
- */
+function useTheme(): 'dark' | 'light' {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  useEffect(() => {
+    const check = () => setTheme(document.documentElement.classList.contains('light') ? 'light' : 'dark')
+    check()
+    const observer = new MutationObserver(check)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+  return theme
+}
+
 function FitBounds({ techs }: { techs: FleetTech[] }) {
   const map = useMap()
   const hasSetInitialBounds = useRef(false)
@@ -33,22 +45,22 @@ function FitBounds({ techs }: { techs: FleetTech[] }) {
 
 export function FleetMap({ techs, onSelectTech }: FleetMapProps) {
   const mapRef = useRef<LeafletMap | null>(null)
+  const theme = useTheme()
 
-  // Default center: Austin, TX
   const defaultCenter: [number, number] = [30.2672, -97.7431]
 
   return (
     <MapContainer
       center={defaultCenter}
       zoom={11}
-      className="h-full w-full rounded-xl"
+      className="h-full w-full"
       ref={mapRef}
       zoomControl={true}
       style={{ minHeight: '400px' }}
     >
       <TileLayer
         attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        url={theme === 'light' ? TILE_LIGHT : TILE_DARK}
       />
       <FitBounds techs={techs} />
       {techs

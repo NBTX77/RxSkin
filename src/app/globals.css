@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Leaflet map styles */
+@import 'leaflet/dist/leaflet.css';
+
 /*
  * Theme system for RX Skin
  * Dark mode is the default. Light mode remaps gray scale + text colors.
@@ -173,4 +176,120 @@ html.light {
   & button.bg-blue-600 { color: #ffffff !important; }
   & button.bg-green-600 { color: #ffffff !important; }
   & .bg-blue-600 span, & .bg-blue-600 svg { color: #ffffff !important; }
+}
+
+/* ── Leaflet map overrides ── */
+
+/* Remove default Leaflet marker icon container styling */
+.custom-fleet-marker {
+  background: none !important;
+  border: none !important;
+}
+
+/* Dark mode popup */
+.leaflet-popup-content-wrapper {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.leaflet-popup-tip {
+  background: #1e293b;
+}
+.leaflet-popup-close-button {
+  color: #94a3b8 !important;
+}
+.leaflet-popup-close-button:hover {
+  color: #e2e8f0 !important;
+}
+
+/* Light mode popup */
+html.light .leaflet-popup-content-wrapper {
+  background: #ffffff;
+  color: #1e293b;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+html.light .leaflet-popup-tip {
+  background: #ffffff;
+}
+html.light .leaflet-popup-close-button {
+  color: #64748b !important;
+}
+
+/* Zoom controls */
+.leaflet-control-zoom a {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+.leaflet-control-zoom a:hover {
+  background: #334155 !important;
+}
+html.light .leaflet-control-zoom a {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+html.light .leaflet-control-zoom a:hover {
+  background: #f1f5f9 !important;
+}
+
+/* Attribution */
+.leaflet-control-attribution {
+  background: rgba(30, 41, 59, 0.8) !important;
+  color: #64748b !important;
+  font-size: 10px !important;
+}
+.leaflet-control-attribution a {
+  color: #94a3b8 !important;
+}
+html.light .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #94a3b8 !important;
+}
+html.light .leaflet-control-attribution a {
+  color: #64748b !important;
+}
+
+/* Fleet popup content */
+.fleet-popup-content {
+  min-width: 180px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+.fleet-popup-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #e2e8f0;
+}
+.fleet-popup-truck {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+.fleet-popup-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.fleet-speed-moving { color: #3fb950; }
+.fleet-speed-parked { color: #94a3b8; }
+.fleet-hos-green { color: #3fb950; }
+.fleet-hos-yellow { color: #d29922; }
+.fleet-hos-red { color: #f85149; }
+.fleet-popup-ticket {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 6px;
+  border-top: 1px solid #334155;
+  padding-top: 6px;
+}
+
+/* Light mode popup content */
+html.light .fleet-popup-name { color: #1e293b; }
+html.light .fleet-popup-truck { color: #64748b; }
+html.light .fleet-speed-parked { color: #94a3b8; }
+html.light .fleet-popup-ticket {
+  color: #64748b;
+  border-top-color: #e2e8f0;
 }

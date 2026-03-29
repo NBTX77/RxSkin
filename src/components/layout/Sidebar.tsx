@@ -188,17 +188,10 @@ export function Sidebar() {
           {isHovered && (
             <div className="flex-1 min-w-0 ml-3">
               <p className="text-gray-900 dark:text-white font-semibold text-sm truncate">RX Skin</p>
-              <p className="text-gray-500 text-xs truncate">ConnectWise Portal</p>
+              <p className={`text-xs font-medium truncate text-${config.color}-400`}>{config.label}</p>
             </div>
           )}
         </div>
-        {isHovered && (
-          <div className="ml-8 pl-3 mt-2">
-            <p className={`text-xs font-medium px-2 py-1 rounded w-fit text-${config.color}-300 bg-${config.color}-900/40 truncate`}>
-              {config.name}
-            </p>
-          </div>
-        )}
 
         {/* Department popover */}
         {canSwitch && deptPopoverOpen && (

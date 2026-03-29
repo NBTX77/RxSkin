@@ -65,26 +65,20 @@ export function MapMarker({ tech, onClick }: MapMarkerProps) {
         click: onClick,
       }}
     >
-      <Popup className="fleet-popup">
-        <div style={{ minWidth: '180px', color: '#e6edf3', fontFamily: 'system-ui' }}>
-          <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>
-            {tech.name}
-          </div>
-          <div style={{ fontSize: '12px', color: '#8b949e', marginBottom: '6px' }}>
-            {tech.truckName}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-            <span style={{ color: tech.speed > 0 ? '#3fb950' : '#8b949e' }}>
+      <Popup>
+        <div className="fleet-popup-content">
+          <div className="fleet-popup-name">{tech.name}</div>
+          <div className="fleet-popup-truck">{tech.truckName}</div>
+          <div className="fleet-popup-stats">
+            <span className={tech.speed > 0 ? 'fleet-speed-moving' : 'fleet-speed-parked'}>
               {tech.speed > 0 ? `${tech.speed} mph` : 'Parked'}
             </span>
-            <span style={{
-              color: tech.hosColor === 'red' ? '#f85149' : tech.hosColor === 'yellow' ? '#d29922' : '#3fb950'
-            }}>
+            <span className={`fleet-hos-${tech.hosColor}`}>
               HOS: {tech.hosRemaining}
             </span>
           </div>
           {tech.currentTicket && (
-            <div style={{ fontSize: '11px', color: '#8b949e', marginTop: '6px', borderTop: '1px solid #30363d', paddingTop: '6px' }}>
+            <div className="fleet-popup-ticket">
               #{tech.currentTicket.id} — {tech.currentTicket.summary}
             </div>
           )}
