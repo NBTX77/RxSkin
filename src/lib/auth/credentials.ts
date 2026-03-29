@@ -65,8 +65,8 @@ export async function getTenantCredentials(tenantId: string): Promise<CWCredenti
         privateKey: creds.privateKey ? decryptCredential(creds.privateKey) : '',
       }
     }
-  } catch {
-    // TenantCredential lookup failed — try Tenant table
+  } catch (err) {
+    console.warn('[Credentials] TenantCredential lookup failed (table may not exist), falling through to env vars', err instanceof Error ? err.message : err)
   }
 
   // Fallback: try Tenant table (legacy — credentials stored directly on tenant row)
@@ -81,8 +81,8 @@ export async function getTenantCredentials(tenantId: string): Promise<CWCredenti
         privateKey: decryptCredential(tenant.cwPrivateKey),
       }
     }
-  } catch {
-    // Tenant lookup failed — fall through to env var fallback
+  } catch (err) {
+    console.warn('[Credentials] Tenant table lookup failed, falling through to env vars', err instanceof Error ? err.message : err)
   }
 
   // Dev fallback to env vars (Phase 1 single-tenant mode)

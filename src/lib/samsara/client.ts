@@ -18,7 +18,7 @@ export interface SamsaraCredentials {
   baseUrl: string // https://api.samsara.com
 }
 
-class SamsaraApiError extends Error {
+export class SamsaraApiError extends Error {
   status: number
   constructor(status: number, detail: string) {
     super(`Samsara API error: ${status} — ${detail}`)

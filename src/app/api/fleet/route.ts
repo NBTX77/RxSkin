@@ -10,6 +10,8 @@ import { mergeFleetData, getMockFleetData } from '@/lib/fleet/merge'
 import { cachedFetch } from '@/lib/cache/bff-cache'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 import type { FleetData } from '@/types/ops'
+import type { SamsaraVehicleLocation, SamsaraDriver, SamsaraHosClock } from '@/types/ops'
+import type { Member, Ticket, ScheduleEntry } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,7 +47,7 @@ export async function GET() {
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString()
         const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString()
 
-        const [locations, drivers, hosClocks, members, tickets, scheduleEntries] = await Promise.all([
+        const results = await Promise.allSettled([
           getVehicleLocations(samsaraCreds),
           getDrivers(samsaraCreds),
           getHosClocks(samsaraCreds),
@@ -56,6 +58,20 @@ export async function GET() {
           }),
           getScheduleEntries(cwCreds, { start: startOfDay, end: endOfDay }),
         ])
+
+        const sourceNames = ['Samsara Locations', 'Samsara Drivers', 'Samsara HOS', 'CW Members', 'CW Tickets', 'CW Schedule']
+        results.forEach((result, idx) => {
+          if (result.status === 'rejected') {
+            console.warn(`[Fleet] ${sourceNames[idx]} fetch failed:`, result.reason)
+          }
+        })
+
+        const locations = results[0].status === 'fulfilled' ? results[0].value as SamsaraVehicleLocation[] : []
+        const drivers = results[1].status === 'fulfilled' ? results[1].value as SamsaraDriver[] : []
+        const hosClocks = results[2].status === 'fulfilled' ? results[2].value as SamsaraHosClock[] : []
+        const members = results[3].status === 'fulfilled' ? results[3].value as Member[] : []
+        const tickets = results[4].status === 'fulfilled' ? results[4].value as Ticket[] : []
+        const scheduleEntries = results[5].status === 'fulfilled' ? results[5].value as ScheduleEntry[] : []
 
         const merged = mergeFleetData({
           locations,
