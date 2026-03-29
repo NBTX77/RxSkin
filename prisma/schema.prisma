@@ -1,0 +1,384 @@
+// ============================================================
+// Prisma Schema — RX Skin
+// Run: npx prisma migrate dev --name init
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Tenants ──────────────────────────────────────────────────
+// Each tenant = one ConnectWise account/company
+// Phase 1: single tenant (RX Technology)
+// Phase 2: multi-tenant (one row per MSP client)
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique // used in URLs + cache keys
+
+  // ConnectWise credentials (encrypted at rest)
+  cwBaseUrl       String
+  cwCompanyId     String
+  cwClientId      String
+  cwPublicKey     String  // AES-256 encrypted
+  cwPrivateKey    String  // AES-256 encrypted
+
+  // Microsoft Graph credentials (Phase 2, nullable)
+  azureClientId     String?
+  azureClientSecret String? // AES-256 encrypted
+  azureTenantId     String?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users          User[]
+  auditLogs      AuditLog[]
+  settings       TenantSettings?
+  credentials    TenantCredential[]
+  projectCache   ProjectCache[]
+  companyCache   CompanyCache[]
+  cacheSyncState CacheSyncState[]
+
+  @@map("tenants")
+}
+
+// ── Users ─────────────────────────────────────────────────────
+// Portal users (technicians, admins, viewers)
+// Separate from CW members — maps via cwMemberId
+
+model User {
+  id           String   @id @default(cuid())
+  tenantId     String
+  email        String
+  name         String
+  role         UserRole @default(TECHNICIAN)
+  cwMemberId   String?  // CW member identifier for schedule association
+  passwordHash String?  // Nullable if SSO only
+  isActive     Boolean  @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  auditLogs   AuditLog[]
+  settings    UserSettings?
+  oauthTokens UserOAuthToken[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  TECHNICIAN
+  VIEWER
+}
+
+// ── Credential Vault (Tier 1 — Service Account Keys) ─────────
+// Per-tenant encrypted API credentials for all integration platforms.
+// One row per tenant+platform. Values encrypted with AES-256-GCM
+// using CREDENTIAL_ENCRYPTION_KEY env var.
+
+model TenantCredential {
+  id         String   @id @default(cuid())
+  tenantId   String
+  platform   String   // e.g. "connectwise", "automate", "control", "auvik", "meraki", "datto", "sentinelone", "passportal", "scalepad", "samsara"
+  label      String?  // Human-readable label (e.g. "CW Manage - Production")
+
+  // Encrypted credential fields (AES-256-GCM, base64-encoded)
+  credentials Json    // { baseUrl, publicKey, privateKey, clientId, ... } — shape varies by platform
+  iv          String  // Initialization vector for AES-256-GCM
+  authTag     String  // Authentication tag for AES-256-GCM
+
+  isActive   Boolean  @default(true)
+  testedAt   DateTime? // Last successful connection test
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, platform])
+  @@index([tenantId])
+  @@map("tenant_credentials")
+}
+
+// ── User OAuth Tokens (Tier 2 — Per-User Delegated Auth) ─────
+// Per-user OAuth2 tokens for Microsoft Graph, Webex, etc.
+// Auto-refreshed by BFF; encrypted at rest.
+
+model UserOAuthToken {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     String   // "microsoft" | "webex"
+  accessToken  String   // AES-256-GCM encrypted
+  refreshToken String?  // AES-256-GCM encrypted
+  iv           String   // Initialization vector
+  authTag      String   // Authentication tag
+  scopes       String   // Space-separated scopes granted
+  expiresAt    DateTime // Access token expiration
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("user_oauth_tokens")
+}
+
+// ── Ticket Cache ──────────────────────────────────────────────
+// Local cache of CW tickets for fast queries + offline resilience
+// Source of truth is always ConnectWise — this is a read cache
+
+model TicketCache {
+  id          String   @id @default(cuid())
+  tenantId    String
+  cwTicketId  Int      // ConnectWise ticket ID
+  summary     String
+  status      String
+  priority    String
+  board       String?
+  companyId   Int?
+  companyName String?
+  contactId   Int?
+  contactName String?
+  assignedTo  String?
+  assignedToId String?
+  budgetHours Float?
+  actualHours Float?
+  cwCreatedAt DateTime?
+  cwUpdatedAt DateTime?
+  cachedAt    DateTime @default(now())
+
+  @@unique([tenantId, cwTicketId])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("ticket_cache")
+}
+
+// ── Audit Log ─────────────────────────────────────────────────
+// Every create/update/delete action logged for compliance
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  tenantId     String
+  userId       String?
+  action       String   // e.g. "ticket.update", "schedule.create"
+  resourceType String   // e.g. "ticket", "schedule_entry"
+  resourceId   String   // CW ID or local ID
+  changes      Json?    // { before: {...}, after: {...} }
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  tenant Tenant  @relation(fields: [tenantId], references: [id])
+  user   User?   @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, resourceType, resourceId])
+  @@index([tenantId, userId])
+  @@map("audit_logs")
+}
+
+// ── User Settings ─────────────────────────────────────────────
+model UserSettings {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  defaultBoardId     Int?
+  defaultView        String   @default("week") // day | week | twoWeek | month
+  theme              String   @default("system") // light | dark | system
+  notificationPrefs  Json     @default("{}")
+  uiPreferences      Json     @default("{}")
+  updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_settings")
+}
+
+// ── Tenant Settings ───────────────────────────────────────────
+model TenantSettings {
+  id              String   @id @default(cuid())
+  tenantId        String   @unique
+  logoUrl         String?
+  primaryColor    String?
+  defaultTimezone String   @default("America/New_York")
+  businessHours   Json     @default("{}")
+  updatedAt       DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("tenant_settings")
+}
+
+// ── API Call Logs ──────────────────────────────────────────────
+// Every outbound API call from the BFF — feeds rate limit monitoring,
+// performance dashboards, and AI analysis.
+// No FK constraints for insert performance on high-volume table.
+
+model ApiCallLog {
+  id                   String   @id @default(cuid())
+  tenantId             String
+  platform             String   // "connectwise" | "samsara" | "automate" | "control" etc.
+  endpoint             String   // e.g. "/service/tickets" or "/fleet/vehicles"
+  method               String   @default("GET")
+  statusCode           Int?
+  responseTimeMs       Int?
+  cacheHit             Boolean  @default(false)
+  requestPayloadSize   Int?
+  responsePayloadSize  Int?
+  errorCode            String?
+  errorMessage         String?
+  userId               String?
+  createdAt            DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, platform])
+  @@index([tenantId, createdAt])
+  @@index([cacheHit])
+  @@map("api_call_logs")
+}
+
+// ── Analytics Events ──────────────────────────────────────────
+// Frontend user behavior tracking — page views, clicks, feature usage.
+// Feeds the Admin Advisor bot and usage analytics.
+// No FK constraints for insert performance on high-volume table.
+
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  tenantId    String
+  userId      String?
+  sessionId   String
+  eventType   String   // "page_view" | "click" | "feature_use" | "error" | "performance"
+  eventName   String   // e.g. "ticket_list_loaded", "kanban_card_dragged", "search_executed"
+  page        String?  // e.g. "/tickets", "/projects"
+  component   String?  // e.g. "TicketCard", "ProjectKanban"
+  metadata    Json     @default("{}")
+  department  String?  // dept code at time of event
+  viewport    String?  // e.g. "1920x1080", "375x812"
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, eventType])
+  @@index([tenantId, createdAt])
+  @@index([sessionId])
+  @@index([component])
+  @@map("analytics_events")
+}
+
+// ── UI Component Registry ─────────────────────────────────────
+// AI-readable component performance metadata. Updated by the
+// <Tracked> HOC wrapper. Allows AI to query "which components
+// are slow" or "which pages have errors" for targeted fixes.
+
+model UiComponent {
+  id               String    @id @default(cuid())
+  tenantId         String
+  componentName    String
+  pagePath         String
+  renderCount      Int       @default(0)
+  errorCount       Int       @default(0)
+  avgRenderTimeMs  Float?
+  lastRenderAt     DateTime?
+  lastErrorAt      DateTime?
+  lastErrorMessage String?
+  metadata         Json      @default("{}")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([tenantId, componentName, pagePath])
+  @@index([tenantId])
+  @@map("ui_components")
+}
+
+// ── Project Cache ─────────────────────────────────────────────
+// Persistent cache of CW projects for fast queries + offline resilience
+
+model ProjectCache {
+  id              String    @id @default(cuid())
+  tenantId        String
+  cwProjectId     Int
+  name            String
+  status          String?
+  statusId        Int?
+  department      String?
+  manager         String?
+  managerId       Int?
+  company         String?
+  companyId       Int?
+  budgetHours     Float?
+  actualHours     Float?
+  scheduledHours  Float?
+  billing         String?
+  estimatedStart  DateTime?
+  estimatedEnd    DateTime?
+  cwUpdatedAt     DateTime?
+  cachedAt        DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, cwProjectId])
+  @@index([tenantId])
+  @@index([tenantId, department])
+  @@map("project_cache")
+}
+
+// ── Company Cache ─────────────────────────────────────────────
+// Persistent cache of CW companies
+
+model CompanyCache {
+  id            String    @id @default(cuid())
+  tenantId      String
+  cwCompanyId   Int
+  name          String
+  identifier    String?
+  type          String?
+  status        String?
+  phone         String?
+  website       String?
+  city          String?
+  state         String?
+  cwUpdatedAt   DateTime?
+  cachedAt      DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, cwCompanyId])
+  @@index([tenantId])
+  @@map("company_cache")
+}
+
+// ── Cache Sync State ──────────────────────────────────────────
+// Tracks last sync time per entity type for cron jobs
+
+model CacheSyncState {
+  id             String   @id @default(cuid())
+  tenantId       String
+  entityType     String   // "tickets" | "projects" | "companies" | "members"
+  lastSyncAt     DateTime
+  recordCount    Int      @default(0)
+  syncDurationMs Int?
+  status         String   @default("success") // "success" | "error" | "running"
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, entityType])
+  @@map("cache_sync_state")
+}
