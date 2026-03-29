@@ -93,7 +93,7 @@ async function scalePadFetch<T>(
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Authorization': `Bearer ${creds.apiKey}`,
+        'x-api-key': creds.apiKey,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         ...options.headers,
