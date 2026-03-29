@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -128,6 +128,7 @@ const departmentNav: DepartmentNavConfig = {
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { department, config, canSwitch, switchDepartment, allDepartments } = useDepartment()
   const [expandedSection, setExpandedSection] = useState<string | null>(pathname.startsWith('/ops') ? 'Ops' : null)
   const [isHovered, setIsHovered] = useState(false)
@@ -190,12 +191,10 @@ export function Sidebar() {
               </div>
             )}
           </div>
-          {isHovered && (
-            <div className="flex-1 min-w-0 ml-3">
-              <p className="text-gray-900 dark:text-white font-semibold text-sm truncate">RX Skin</p>
-              <p className={`text-xs font-medium truncate text-${config.color}-400`}>{config.label}</p>
-            </div>
-          )}
+          <div className={`flex-1 min-w-0 ml-3 transition-opacity duration-150 ${isHovered ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
+            <p className="text-gray-900 dark:text-white font-semibold text-sm truncate">RX Skin</p>
+            <p className={`text-xs font-medium truncate text-${config.color}-400`}>{config.label}</p>
+          </div>
         </div>
 
         {/* Department popover */}
@@ -205,7 +204,13 @@ export function Sidebar() {
             {allDepartments.map(dept => (
               <button
                 key={dept.code}
-                onClick={() => { switchDepartment(dept.code); setDeptPopoverOpen(false) }}
+                onClick={() => {
+                  switchDepartment(dept.code)
+                  setDeptPopoverOpen(false)
+                  const newDeptConfig = departmentNav[dept.code]
+                  const defaultPage = newDeptConfig?.items[0]?.href ?? '/dashboard'
+                  router.push(defaultPage)
+                }}
                 className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm transition-colors ${
                   dept.code === department
                     ? 'bg-blue-500/10 text-blue-400 font-medium'
@@ -239,12 +244,10 @@ export function Sidebar() {
               <div className="w-8 flex items-center justify-center flex-shrink-0">
                 <Icon size={18} />
               </div>
-              {isHovered && (
-                <span className="flex-1 text-left truncate ml-1">
-                  {label}
-                  {badge && <span className="text-xs text-gray-500 ml-1">{badge}</span>}
-                </span>
-              )}
+              <span className={`flex-1 text-left truncate ml-1 transition-opacity duration-150 ${isHovered ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
+                {label}
+                {badge && <span className="text-xs text-gray-500 ml-1">{badge}</span>}
+              </span>
             </Link>
           )
         })}
@@ -271,12 +274,8 @@ export function Sidebar() {
                 <div className="w-8 flex items-center justify-center flex-shrink-0">
                   <SectionIcon size={18} />
                 </div>
-                {isHovered && (
-                  <>
-                    <span className="flex-1 text-left ml-1">{sectionName}</span>
-                    <ChevronDown size={14} className={`mr-2 transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
-                  </>
-                )}
+                <span className={`flex-1 text-left ml-1 transition-opacity duration-150 ${isHovered ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>{sectionName}</span>
+                <ChevronDown size={14} className={`mr-2 transition-all duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'} ${isHovered ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`} />
               </button>
 
               {isHovered && (
