@@ -30,7 +30,14 @@ const STATUS_STYLES: Record<string, string> = {
   'Closed': 'text-gray-500 bg-gray-500/10 border-gray-500/20',
 }
 
-// --- Part B: Rich text parser for CW notes ---
+const PRIORITY_OPTIONS = [
+  { label: 'Critical', color: 'text-red-500' },
+  { label: 'High', color: 'text-orange-500' },
+  { label: 'Medium', color: 'text-blue-500' },
+  { label: 'Low', color: 'text-gray-500' },
+]
+
+// --- Rich text parser for CW notes ---
 const HTML_ENTITIES: Record<string, string> = {
   '&amp;': '&',
   '&lt;': '<',
@@ -49,24 +56,19 @@ function renderNoteContent(raw: string): ReactNode[] {
   const lines = decoded.split('\n')
 
   return lines.map((line, lineIdx) => {
-    // Tokenize each line: bold, markdown links, raw URLs
     const tokens: ReactNode[] = []
-    // Regex: **bold** | [text](url) | raw URLs
     const pattern = /(\*\*(.+?)\*\*)|(\[([^\]]+)\]\((https?:\/\/[^\s)]+)\))|(https?:\/\/[^\s<]+)/g
     let lastIndex = 0
     let match: RegExpExecArray | null
 
     while ((match = pattern.exec(line)) !== null) {
-      // Push plain text before match
       if (match.index > lastIndex) {
         tokens.push(line.slice(lastIndex, match.index))
       }
 
       if (match[1]) {
-        // **bold**
         tokens.push(<strong key={`${lineIdx}-b-${match.index}`} className="font-semibold">{match[2]}</strong>)
       } else if (match[3]) {
-        // [text](url)
         tokens.push(
           <a
             key={`${lineIdx}-a-${match.index}`}
@@ -79,7 +81,6 @@ function renderNoteContent(raw: string): ReactNode[] {
           </a>
         )
       } else if (match[6]) {
-        // Raw URL
         tokens.push(
           <a
             key={`${lineIdx}-u-${match.index}`}
@@ -96,7 +97,6 @@ function renderNoteContent(raw: string): ReactNode[] {
       lastIndex = match.index + match[0].length
     }
 
-    // Remaining plain text
     if (lastIndex < line.length) {
       tokens.push(line.slice(lastIndex))
     }
@@ -122,6 +122,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
   const [activeTab, setActiveTab] = useState<'notes' | 'time'>('notes')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [showStatusMenu, setShowStatusMenu] = useState(false)
+  const [showPriorityMenu, setShowPriorityMenu] = useState(false)
   const [showTimeForm, setShowTimeForm] = useState(false)
   const [timeHours, setTimeHours] = useState(0.5)
   const [timeNotes, setTimeNotes] = useState('')
@@ -171,54 +172,102 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
   const statusStyle = STATUS_STYLES[ticket.status] ?? 'text-gray-600 dark:text-gray-400 bg-gray-500/10 border-gray-500/20'
   const totalTime = timeEntries.reduce((sum, e) => sum + e.hoursWorked, 0)
 
+  // Shared button base style
+  const btnBase = 'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5'
+  const btnDefault = `${btnBase} bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700`
+
   return (
     <div className="space-y-3">
-      {/* Back + Quick Actions Bar */}
-      <div className="flex items-center justify-between gap-3">
+      {/* Part A — Action buttons bar: all on the left with Back */}
+      <div className="flex items-center flex-wrap gap-2">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white transition-colors text-sm"
+          className={btnDefault}
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={13} />
           Back
         </button>
 
-        <div className="flex items-center gap-2">
+        {/* Divider */}
+        <div className="h-4 w-px bg-gray-300 dark:bg-gray-700" />
+
+        <button
+          onClick={() => ticket && startTimer(ticket.id, ticket.summary)}
+          disabled={timerRunning && timerTicketId === ticket?.id}
+          className={
+            timerRunning && timerTicketId === ticket?.id
+              ? `${btnBase} bg-blue-500/10 text-blue-500 border border-blue-500/20 cursor-default`
+              : btnDefault
+          }
+        >
+          <Timer size={13} />
+          {timerRunning && timerTicketId === ticket?.id ? 'Timer Running' : timerRunning ? 'Switch Timer' : 'Start Timer'}
+        </button>
+
+        <button className={btnDefault}>
+          <Calendar size={13} />
+          Schedule
+        </button>
+
+        <button className={btnDefault}>
+          <User size={13} />
+          Reassign
+        </button>
+
+        {/* Part D — Priority dropdown */}
+        <div className="relative">
           <button
-            onClick={() => ticket && startTimer(ticket.id, ticket.summary)}
-            disabled={timerRunning && timerTicketId === ticket?.id}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-              timerRunning && timerTicketId === ticket?.id
-                ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20 cursor-default'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
-            }`}
+            onClick={() => { setShowPriorityMenu(!showPriorityMenu); setShowStatusMenu(false) }}
+            className={btnDefault}
           >
-            <Timer size={13} />
-            {timerRunning && timerTicketId === ticket?.id ? 'Timer Running' : timerRunning ? 'Switch Timer' : 'Start Timer'}
+            <AlertCircle size={13} />
+            Priority
+            <ChevronDown size={11} />
           </button>
-          <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-700 hover:text-gray-900 dark:text-white transition-colors flex items-center gap-1.5">
-            <Calendar size={13} />
-            Schedule
-          </button>
-          <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-700 hover:text-gray-900 dark:text-white transition-colors flex items-center gap-1.5">
-            <User size={13} />
-            Reassign
-          </button>
-          <button
-            onClick={() => setShowClosePanel(true)}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-500/20 transition-colors flex items-center gap-1.5"
-          >
-            <CheckCircle2 size={13} />
-            Close Ticket
-          </button>
+          {showPriorityMenu && (
+            <div className="absolute left-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/50 rounded-lg shadow-lg py-1 min-w-[140px]">
+              {PRIORITY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.label}
+                  onClick={async () => {
+                    setShowPriorityMenu(false)
+                    setActionLoading('priority')
+                    await fetch(`/api/tickets/${ticketId}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify([
+                        { op: 'replace', path: '/priority', value: { name: opt.label } },
+                      ]),
+                    })
+                    queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
+                    setActionLoading(null)
+                  }}
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 ${
+                    ticket.priority === opt.label ? 'font-semibold' : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${PRIORITY_DOT[opt.label]}`} />
+                  <span className={ticket.priority === opt.label ? opt.color : ''}>{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
+
+        <button
+          onClick={() => setShowClosePanel(true)}
+          className={`${btnBase} bg-green-500/10 text-green-500 border border-green-500/20 hover:bg-green-500/20`}
+        >
+          <CheckCircle2 size={13} />
+          Close
+        </button>
       </div>
 
       {/* Main content: Split layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Left: Activity Feed (2/3 width) */}
         <div className="lg:col-span-2 space-y-3">
-          {/* Ticket header */}
+          {/* Part B — Ticket header with inline detail badges */}
           <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
             <div className="flex items-start gap-3">
               <span className={`inline-block w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${dotColor}`} />
@@ -228,9 +277,41 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border ${statusStyle}`}>
                     {ticket.status}
                   </span>
-                  <span className="text-xs text-gray-600 px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800">{ticket.priority}</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800">{ticket.priority}</span>
                 </div>
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-white leading-snug">{ticket.summary}</h1>
+                <h1 className="text-lg font-semibold text-gray-900 dark:text-white leading-snug mb-3">{ticket.summary}</h1>
+
+                {/* Inline detail badges */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                  <span className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                    <Tag size={12} />
+                    {ticket.board}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                    <Building2 size={12} />
+                    {ticket.company}
+                  </span>
+                  {ticket.contact && (
+                    <span className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                      <MessageSquare size={12} />
+                      {ticket.contact}
+                    </span>
+                  )}
+                  {ticket.assignedTo && (
+                    <span className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                      <User size={12} />
+                      {ticket.assignedTo}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                    <Calendar size={12} />
+                    {formatDate(ticket.createdAt)}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                    <Clock size={12} />
+                    {formatDate(ticket.updatedAt)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -247,12 +328,12 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Add a note... (Enter to send)"
                   rows={2}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700/50 text-gray-900 dark:text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
                 <div className="flex items-center justify-between mt-2">
                   <div className="flex items-center gap-2">
                     <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
-                      <input id="note-internal" type="checkbox" className="w-3 h-3 rounded border-gray-600 bg-gray-100 dark:bg-gray-800" />
+                      <input id="note-internal" type="checkbox" className="w-3 h-3 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800" />
                       Internal
                     </label>
                   </div>
@@ -270,7 +351,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                       setNewNote('')
                       setActionLoading(null)
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 transition-colors"
                   >
                     <Send size={12} />
                     {actionLoading === 'note' ? 'Sending...' : 'Add Note'}
@@ -285,7 +366,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
             <button
               onClick={() => setActiveTab('notes')}
               className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
-                activeTab === 'notes' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300'
+                activeTab === 'notes' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               Notes ({notes.length})
@@ -293,7 +374,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
             <button
               onClick={() => setActiveTab('time')}
               className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
-                activeTab === 'time' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300'
+                activeTab === 'time' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               Time ({timeEntries.length}) — {totalTime}h
@@ -377,24 +458,9 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           )}
         </div>
 
-        {/* Right: Metadata sidebar (1/3 width) */}
+        {/* Right: Sidebar (1/3 width) — 2 cards only: Time + Actions & Tools */}
         <div className="lg:sticky lg:top-20 lg:self-start space-y-3">
-          {/* Key info */}
-          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-4">
-            <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Details</h3>
-
-            <div className="space-y-3">
-              <DetailRow icon={<Tag size={14} />} label="Board" value={ticket.board} />
-              <DetailRow icon={<AlertCircle size={14} />} label="Priority" value={ticket.priority} />
-              <DetailRow icon={<Building2 size={14} />} label="Company" value={ticket.company} />
-              {ticket.contact && <DetailRow icon={<MessageSquare size={14} />} label="Contact" value={ticket.contact} />}
-              {ticket.assignedTo && <DetailRow icon={<User size={14} />} label="Assigned" value={ticket.assignedTo} />}
-              <DetailRow icon={<Calendar size={14} />} label="Created" value={formatDate(ticket.createdAt)} />
-              <DetailRow icon={<Clock size={14} />} label="Updated" value={formatDate(ticket.updatedAt)} />
-            </div>
-          </div>
-
-          {/* Hours */}
+          {/* Time summary */}
           <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
             <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Time</h3>
             <div className="grid grid-cols-2 gap-3">
@@ -422,21 +488,21 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
             )}
           </div>
 
-          {/* Quick actions */}
+          {/* Part C — Merged Actions & Tools card */}
           <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
-            <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Quick Actions</h3>
+            <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">Actions & Tools</h3>
             <div className="space-y-2">
               {/* Change Status */}
               <div className="relative">
                 <button
-                  onClick={() => setShowStatusMenu(!showStatusMenu)}
+                  onClick={() => { setShowStatusMenu(!showStatusMenu); setShowPriorityMenu(false) }}
                   disabled={actionLoading === 'status'}
                   className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors text-blue-400 hover:bg-blue-500/10 disabled:opacity-50"
                 >
                   {actionLoading === 'status' ? 'Updating...' : 'Change Status'}
                 </button>
                 {showStatusMenu && (
-                  <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-gray-100 dark:bg-gray-800 border border-gray-700 rounded-lg shadow-lg py-1">
+                  <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/50 rounded-lg shadow-lg py-1">
                     {['New', 'In Progress', 'Waiting on Client', 'Scheduled', 'Resolved', 'Closed'].map((status) => (
                       <button
                         key={status}
@@ -453,7 +519,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                           queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
                           setActionLoading(null)
                         }}
-                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
+                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
                           ticket.status === status ? 'text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'
                         }`}
                       >
@@ -492,7 +558,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                       value={timeNotes}
                       onChange={(e) => setTimeNotes(e.target.value)}
                       placeholder="Notes (optional)"
-                      className="w-full px-2 py-1 rounded bg-white dark:bg-gray-900 border border-gray-700 text-gray-900 dark:text-white text-xs placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                      className="w-full px-2 py-1 rounded bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700/50 text-gray-900 dark:text-white text-xs placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                     />
                     <button
                       onClick={async () => {
@@ -542,11 +608,14 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                 <ArrowUpCircle size={13} />
                 {actionLoading === 'escalate' ? 'Escalating...' : ticket.priority === 'Critical' ? 'Already Critical' : 'Escalate'}
               </button>
+
+              {/* Divider before remote tools */}
+              <div className="border-t border-gray-200 dark:border-gray-800 my-2" />
+
+              {/* Remote Tools (ScreenConnect + Automate) — rendered inline */}
+              <TicketActions ticket={ticket} inline />
             </div>
           </div>
-
-          {/* Remote Tools (ScreenConnect + Automate) */}
-          <TicketActions ticket={ticket} />
         </div>
       </div>
 
@@ -559,18 +628,6 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           setShowClosePanel(false)
         }}
       />
-    </div>
-  )
-}
-
-function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="flex items-center gap-2 text-xs text-gray-500">
-        {icon}
-        {label}
-      </span>
-      <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">{value}</span>
     </div>
   )
 }

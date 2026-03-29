@@ -13,6 +13,8 @@ import {
 
 interface TicketActionsProps {
   ticket: Ticket
+  /** When true, renders without the outer card wrapper (for embedding inside another card) */
+  inline?: boolean
 }
 
 type ActionMode = 'remote' | 'script' | 'info' | null
@@ -21,7 +23,7 @@ type ActionMode = 'remote' | 'script' | 'info' | null
  * TicketActions — the right-click / remote tools panel for a ticket.
  * Flow: Select action → Pick computer → Execute action.
  */
-export function TicketActions({ ticket }: TicketActionsProps) {
+export function TicketActions({ ticket, inline = false }: TicketActionsProps) {
   const [showPicker, setShowPicker] = useState(false)
   const [selectedComputer, setSelectedComputer] = useState<AutomateComputer | null>(null)
   const [actionMode, setActionMode] = useState<ActionMode>(null)
@@ -65,82 +67,95 @@ export function TicketActions({ ticket }: TicketActionsProps) {
     }
   }, [controlData])
 
-  return (
+  const toolsContent = (
     <>
-      {/* Remote Tools section in sidebar */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
-        <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">
-          Remote Tools
-        </h3>
-
-        {/* Selected computer display */}
-        {selectedComputer && (
-          <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-700">
-            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${selectedComputer.status === 'Online' ? 'bg-green-500' : 'bg-gray-600'}`} />
-            <span className="text-xs text-gray-900 dark:text-white font-medium truncate flex-1">{selectedComputer.computerName}</span>
-            <button
-              onClick={() => { setSelectedComputer(null); setActionMode(null) }}
-              className="text-[10px] text-gray-500 hover:text-gray-700 dark:text-gray-300 transition-colors"
-            >
-              Change
-            </button>
-          </div>
-        )}
-
-        {/* Action buttons */}
-        <div className="space-y-1.5">
-          {/* Remote Control */}
+      {/* Selected computer display */}
+      {selectedComputer && (
+        <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700/50">
+          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${selectedComputer.status === 'Online' ? 'bg-green-500' : 'bg-gray-600'}`} />
+          <span className="text-xs text-gray-900 dark:text-white font-medium truncate flex-1">{selectedComputer.computerName}</span>
           <button
-            onClick={() => {
-              if (selectedComputer && controlData?.launchUrl) {
-                launchRemote()
-              } else {
-                handleAction('remote')
-              }
-            }}
-            disabled={actionMode === 'remote' && controlLoading}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+            onClick={() => { setSelectedComputer(null); setActionMode(null) }}
+            className="text-[10px] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
-            {actionMode === 'remote' && controlLoading ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <ScreenShare size={14} />
-            )}
-            Remote Control
-            {selectedComputer && controlData?.launchUrl && (
-              <ExternalLink size={10} className="ml-auto text-gray-600" />
-            )}
-          </button>
-
-          {/* Run Script */}
-          <button
-            onClick={() => handleAction('script')}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium text-blue-400 hover:bg-blue-500/10 transition-colors"
-          >
-            <Play size={14} />
-            Run Script
-          </button>
-
-          {/* System Info */}
-          <button
-            onClick={() => handleAction('info')}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium text-purple-400 hover:bg-purple-500/10 transition-colors"
-          >
-            <Info size={14} />
-            System Info
-          </button>
-
-          {/* Pick Computer */}
-          <button
-            onClick={() => setShowPicker(true)}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <Monitor size={14} />
-            {selectedComputer ? 'Change Computer' : 'Select Computer'}
-            <ChevronDown size={12} className="ml-auto" />
+            Change
           </button>
         </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="space-y-1.5">
+        {/* Remote Control */}
+        <button
+          onClick={() => {
+            if (selectedComputer && controlData?.launchUrl) {
+              launchRemote()
+            } else {
+              handleAction('remote')
+            }
+          }}
+          disabled={actionMode === 'remote' && controlLoading}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+        >
+          {actionMode === 'remote' && controlLoading ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <ScreenShare size={14} />
+          )}
+          Remote Control
+          {selectedComputer && controlData?.launchUrl && (
+            <ExternalLink size={10} className="ml-auto text-gray-600" />
+          )}
+        </button>
+
+        {/* Run Script */}
+        <button
+          onClick={() => handleAction('script')}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium text-blue-400 hover:bg-blue-500/10 transition-colors"
+        >
+          <Play size={14} />
+          Run Script
+        </button>
+
+        {/* System Info */}
+        <button
+          onClick={() => handleAction('info')}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium text-purple-400 hover:bg-purple-500/10 transition-colors"
+        >
+          <Info size={14} />
+          System Info
+        </button>
+
+        {/* Pick Computer */}
+        <button
+          onClick={() => setShowPicker(true)}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        >
+          <Monitor size={14} />
+          {selectedComputer ? 'Change Computer' : 'Select Computer'}
+          <ChevronDown size={12} className="ml-auto" />
+        </button>
       </div>
+    </>
+  )
+
+  return (
+    <>
+      {inline ? (
+        /* Inline mode: no card wrapper, just the content */
+        <div>
+          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Remote Tools</p>
+          {toolsContent}
+        </div>
+      ) : (
+        /* Standalone mode: full card wrapper */
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+          <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">
+            Remote Tools
+          </h3>
+          {toolsContent}
+        </div>
+      )}
 
       {/* Computer Picker Panel */}
       <ComputerPicker
