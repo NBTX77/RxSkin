@@ -7,14 +7,16 @@ interface UseScheduleEntriesOptions {
   date: string // YYYY-MM-DD
   view: 'day' | 'week' | 'twoWeek' | 'month'
   memberId?: number
+  department?: string // RX dept code filter (e.g. 'IT', 'SI')
 }
 
-export function useScheduleEntries({ date, view, memberId }: UseScheduleEntriesOptions) {
+export function useScheduleEntries({ date, view, memberId, department }: UseScheduleEntriesOptions) {
   const params = new URLSearchParams({ date, view })
   if (memberId) params.set('memberId', String(memberId))
+  if (department && department !== 'all') params.set('department', department)
 
   return useQuery<ScheduleEntry[]>({
-    queryKey: ['schedule', 'entries', date, view, memberId],
+    queryKey: ['schedule', 'entries', date, view, memberId, department],
     queryFn: async () => {
       const res = await fetch(`/api/schedule?${params}`)
       if (!res.ok) throw new Error('Failed to fetch schedule entries')

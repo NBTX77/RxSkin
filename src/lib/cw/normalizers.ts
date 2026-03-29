@@ -143,6 +143,7 @@ export function normalizeProject(raw: Record<string, unknown>): Project {
 export function normalizeMember(raw: Record<string, unknown>): Member {
   const firstName = str(raw.firstName)
   const lastName = str(raw.lastName)
+  const cwDeptName = nested(raw.defaultDepartment, 'name') || undefined
   return {
     id: num(raw.id) ?? 0,
     identifier: str(raw.identifier),
@@ -152,5 +153,7 @@ export function normalizeMember(raw: Record<string, unknown>): Member {
     avatar: nestedNum(raw.photo, 'id')
       ? `/api/members/${num(raw.id)}/avatar`
       : undefined,
+    department: cwDeptToRxDept(cwDeptName),
+    defaultDepartment: cwDeptName,
   }
 }

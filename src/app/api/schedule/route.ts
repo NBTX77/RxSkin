@@ -3,16 +3,18 @@
 
 import { auth } from '@/lib/auth/config'
 import { getTenantCredentials } from '@/lib/auth/credentials'
-import { getScheduleEntries, createScheduleEntry } from '@/lib/cw/client'
+import { getScheduleEntries, createScheduleEntry, getMembers } from '@/lib/cw/client'
 import { cachedFetch, invalidateCache } from '@/lib/cache/bff-cache'
 import { deduplicatedFetch } from '@/lib/cache/dedup'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
 import { z } from 'zod'
-import type { ScheduleFilters } from '@/types'
+import type { ScheduleFilters, DepartmentCode, ScheduleEntry } from '@/types'
+import { isDepartmentCode } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
 const SCHEDULE_TTL_MS = 60 * 1000 // 60 seconds
+const MEMBERS_TTL_MS = 10 * 60 * 1000 // 10 minutes
 
 function isCWConfigured(): boolean {
   return !!(process.env.CW_BASE_URL && process.env.CW_PUBLIC_KEY && process.env.CW_PRIVATE_KEY)
@@ -64,6 +66,28 @@ function getDateRange(dateStr: string, view: string): { start: string; end: stri
   }
 }
 
+/**
+ * Get member IDs for a specific department.
+ * Uses cached members list and filters by department code.
+ */
+async function getMemberIdsForDepartment(
+  tenantId: string,
+  deptCode: DepartmentCode
+): Promise<Set<number>> {
+  const cacheKey = `${tenantId}:members:all`
+  const members = await cachedFetch(
+    cacheKey,
+    async () => {
+      const creds = await getTenantCredentials(tenantId)
+      return getMembers(creds)
+    },
+    MEMBERS_TTL_MS
+  )
+
+  const deptMembers = members.filter(m => m.department === deptCode)
+  return new Set(deptMembers.map(m => m.id))
+}
+
 export async function GET(request: Request) {
   try {
     const session = await auth()
@@ -72,6 +96,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const dateParam = searchParams.get('date') ?? new Date().toISOString().split('T')[0]
     const viewMode = searchParams.get('view') ?? 'week'
+    const departmentParam = searchParams.get('department') ?? undefined
 
     if (!isCWConfigured()) {
       return Response.json(
@@ -91,7 +116,7 @@ export async function GET(request: Request) {
 
     const cacheKey = `${tenantId}:schedule:${JSON.stringify(filters)}`
 
-    const entries = await deduplicatedFetch(cacheKey, () =>
+    let entries: ScheduleEntry[] = await deduplicatedFetch(cacheKey, () =>
       cachedFetch(
         cacheKey,
         async () => {
@@ -101,6 +126,15 @@ export async function GET(request: Request) {
         SCHEDULE_TTL_MS
       )
     )
+
+    // Filter by department if specified (server-side filtering by member department)
+    if (departmentParam && isDepartmentCode(departmentParam)) {
+      // LT sees everything — skip filtering
+      if (departmentParam !== 'LT') {
+        const deptMemberIds = await getMemberIdsForDepartment(tenantId, departmentParam)
+        entries = entries.filter(entry => deptMemberIds.has(entry.memberId))
+      }
+    }
 
     return Response.json(entries)
   } catch (error) {

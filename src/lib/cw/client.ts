@@ -406,7 +406,7 @@ export async function getCompanies(
 export async function getMembers(creds: CWCredentials): Promise<Member[]> {
   const params = new URLSearchParams()
   params.set('conditions', 'inactiveFlag=false')
-  params.set('fields', 'id,identifier,firstName,lastName,emailAddress,title,photo')
+  params.set('fields', 'id,identifier,firstName,lastName,emailAddress,title,photo,defaultDepartment')
   params.set('pageSize', '200')
 
   const raw = await cwFetch<Record<string, unknown>[]>(creds, `/system/members?${params}`)
