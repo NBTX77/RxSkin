@@ -68,8 +68,8 @@ const departmentNav: DepartmentNavConfig = {
     dashboardIcon: Sun,
     items: [
       { href: '/dashboard', label: 'My Day', icon: Sun },
-      { href: '/projects', label: 'Project Board', icon: FolderKanban },
       { href: '/tickets', label: 'Service Queue', icon: Ticket },
+      { href: '/projects', label: 'Project Board', icon: FolderKanban },
       { href: '/schedule', label: 'Job Scheduler', icon: Calendar },
       { href: '/dispatch', label: 'Dispatch', icon: LayoutGrid },
       { href: '/team', label: 'Team', icon: Users },
@@ -83,8 +83,9 @@ const departmentNav: DepartmentNavConfig = {
     dashboardIcon: Sun,
     items: [
       { href: '/dashboard', label: 'My Day', icon: Sun },
-      { href: '/companies', label: 'My Accounts', icon: Building2 },
+      { href: '/tickets', label: 'Tickets', icon: Ticket },
       { href: '/projects', label: 'Projects', icon: FolderKanban, badge: '(view)' },
+      { href: '/companies', label: 'My Accounts', icon: Building2 },
       { href: '/agreements', label: 'Agreements', icon: FileCheck },
       { href: '/opportunities', label: 'Opportunities', icon: TrendingUp },
       { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
@@ -97,11 +98,11 @@ const departmentNav: DepartmentNavConfig = {
     dashboardIcon: Sun,
     items: [
       { href: '/dashboard', label: 'My Day', icon: Sun },
+      { href: '/tickets', label: 'Procurement', icon: ShoppingCart },
       { href: '/projects', label: 'Projects', icon: FolderKanban, badge: '($)' },
       { href: '/invoices', label: 'Invoices', icon: DollarSign },
       { href: '/purchase-orders', label: 'Purchase Orders', icon: Package },
       { href: '/agreements', label: 'Agreements', icon: FileCheck },
-      { href: '/tickets', label: 'Procurement', icon: ShoppingCart },
       { href: '/ops/fleet-map', label: 'Fleet Map', icon: Map },
       { href: '/ops/analytics', label: 'Analytics', icon: BarChart3 },
       { href: '/settings', label: 'Settings', icon: Settings },
@@ -168,7 +169,7 @@ export function Sidebar() {
         isHovered ? 'w-52' : 'w-12'
       }`}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => { setIsHovered(false); setDeptPopoverOpen(false) }}
     >
       {/* Logo + Department Badge */}
       <div ref={deptRef} className="relative flex flex-col px-2 py-3 border-b border-gray-200 dark:border-gray-800">
