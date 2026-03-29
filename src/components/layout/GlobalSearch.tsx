@@ -107,7 +107,7 @@ export function GlobalSearch() {
 
       {/* Dialog */}
       <div role="dialog" aria-modal="true" aria-label="Global search" className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[101]">
-        <div className="bg-white dark:bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden">
           {/* Search input */}
           <div className="flex items-center px-4 gap-3 border-b border-gray-200 dark:border-gray-800">
             <Search size={18} className="text-gray-500 flex-shrink-0" />
@@ -121,7 +121,7 @@ export function GlobalSearch() {
               placeholder="Search tickets, companies, techs..."
               className="flex-1 py-3.5 bg-transparent text-gray-900 dark:text-white placeholder-gray-500 text-sm focus:outline-none"
             />
-            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 border border-gray-700">
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 border border-gray-200 dark:border-gray-700">
               ESC
             </kbd>
           </div>
