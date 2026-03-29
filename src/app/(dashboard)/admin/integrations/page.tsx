@@ -136,7 +136,7 @@ const platforms: PlatformDef[] = [
     id: 'smileback',
     name: 'SmileBack',
     tier: 1,
-    description: 'CSAT/NPS surveys — ticket, tech, and company satisfaction scores',
+    description: 'Customer satisfaction (CSAT) and NPS survey integration',
     fields: [
       { key: 'apiKey', label: 'API Key', type: 'password' },
       { key: 'webhookSecret', label: 'Webhook Secret (optional)', type: 'password' },

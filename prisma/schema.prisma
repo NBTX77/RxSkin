@@ -42,10 +42,11 @@ model Tenant {
   users          User[]
   auditLogs      AuditLog[]
   settings       TenantSettings?
-  credentials    TenantCredential[]
-  projectCache   ProjectCache[]
-  companyCache   CompanyCache[]
-  cacheSyncState CacheSyncState[]
+  credentials      TenantCredential[]
+  projectCache     ProjectCache[]
+  companyCache     CompanyCache[]
+  cacheSyncState   CacheSyncState[]
+  surveyResponses  SurveyResponse[]
 
   @@map("tenants")
 }
@@ -424,4 +425,33 @@ model UserFeedback {
   @@index([tenantId, page])
   @@index([tenantId, createdAt])
   @@map("user_feedback")
+}
+
+// ── Survey Responses (SmileBack CSAT/NPS) ─────────────────
+// Webhook-received survey responses from SmileBack.
+// Links to CW tickets via ticketId for per-ticket satisfaction.
+
+model SurveyResponse {
+  id            String   @id @default(cuid())
+  tenantId      String
+  type          String   // 'CSAT' or 'NPS'
+  ticketId      Int?
+  ticketTitle   String?
+  rating        String?  // 'Positive', 'Neutral', 'Negative' (CSAT)
+  score         Int?     // 0-10 (NPS)
+  comment       String?
+  company       String
+  contact       String
+  contactEmail  String
+  agents        String?  // comma-separated tech names
+  segment       String?  // board/department
+  permalink     String?
+  createdAt     DateTime @default(now())
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, ticketId])
+  @@index([tenantId, company])
+  @@index([tenantId, agents])
+  @@index([tenantId, createdAt])
+  @@map("survey_responses")
 }
