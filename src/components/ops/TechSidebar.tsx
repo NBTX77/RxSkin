@@ -10,11 +10,9 @@ interface TechSidebarProps {
   techs: FleetTech[]
   selectedTechId?: string
   onSelectTech: (tech: FleetTech) => void
-  /** When true, renders inline content only (no outer wrapper) — for overlay mode */
-  overlay?: boolean
 }
 
-export function TechSidebar({ techs, selectedTechId, onSelectTech, overlay }: TechSidebarProps) {
+export function TechSidebar({ techs, selectedTechId, onSelectTech }: TechSidebarProps) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<TechFilter>('all')
   const [mobileExpanded, setMobileExpanded] = useState(false)
@@ -60,6 +58,7 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech, overlay }: Te
 
     return result
   }, [techs, search, filter])
+
   // Compute counts for filter pills
   const counts = useMemo(() => ({
     all: techs.length,
@@ -132,15 +131,10 @@ export function TechSidebar({ techs, selectedTechId, onSelectTech, overlay }: Te
     </>
   )
 
-  // Overlay mode: render content directly (parent handles positioning)
-  if (overlay) {
-    return <div className="flex flex-col h-full p-3 overflow-hidden">{content}</div>
-  }
-
   return (
     <>
       {/* Desktop sidebar */}
-      <div className="hidden lg:flex flex-col w-[280px] flex-shrink-0 bg-gray-900 border-r border-gray-800 p-3 overflow-hidden">
+      <div className="hidden lg:flex flex-col w-[280px] flex-shrink-0 bg-gray-900 border-r border-gray-700/50 p-3 overflow-hidden">
         {content}
       </div>
 

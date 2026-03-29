@@ -51,11 +51,11 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
 ]
 
 const COLUMN_ACCENT: Record<string, string> = {
-  blue: 'border-t-2 border-t-blue-500/50',
-  orange: 'border-t-2 border-t-orange-500/50',
-  yellow: 'border-t-2 border-t-yellow-500/50',
-  cyan: 'border-t-2 border-t-cyan-500/50',
-  green: 'border-t-2 border-t-green-500/50',
+  blue: 'border-t-2 border-t-blue-500',
+  orange: 'border-t-2 border-t-orange-500',
+  yellow: 'border-t-2 border-t-yellow-500',
+  cyan: 'border-t-2 border-t-cyan-500',
+  green: 'border-t-2 border-t-green-500',
 }
 
 const COLUMN_HEADER_COLOR: Record<string, string> = {
@@ -72,7 +72,7 @@ export function ProjectKanban({
   onStatusChange,
 }: ProjectKanbanProps) {
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 px-4">
+    <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 px-2 sm:px-4">
       {KANBAN_COLUMNS.map((column) => {
         const columnProjects = projects.filter((p) =>
           column.statusFilter(p.status)
@@ -81,14 +81,14 @@ export function ProjectKanban({
         return (
           <div
             key={column.id}
-            className={`min-w-[280px] w-[280px] flex-shrink-0 bg-gray-900/50 rounded-xl border border-gray-800 p-3 ${COLUMN_ACCENT[column.color]}`}
+            className={`min-w-[260px] sm:min-w-[280px] w-[260px] sm:w-[280px] flex-shrink-0 bg-gray-900/80 rounded-xl border border-gray-700/50 p-3 ${COLUMN_ACCENT[column.color]}`}
           >
             {/* Column header */}
             <div className="flex items-center justify-between mb-3">
               <h3 className={`text-sm font-semibold ${COLUMN_HEADER_COLOR[column.color]}`}>
                 {column.name}
               </h3>
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-800 text-xs font-medium text-gray-300">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-800/80 text-xs font-medium text-gray-200">
                 {columnProjects.length}
               </span>
             </div>

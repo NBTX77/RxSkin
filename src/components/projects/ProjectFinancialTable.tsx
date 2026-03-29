@@ -34,7 +34,7 @@ export function ProjectFinancialTable({
     <div className="space-y-4">
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Total Budget</p>
           <p className="text-xl font-bold text-white">
             {Math.round(totalBudget).toLocaleString()}h
@@ -43,7 +43,7 @@ export function ProjectFinancialTable({
             {formatCurrency(totalBudget)} est. revenue
           </p>
         </div>
-        <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Total Actual</p>
           <p className="text-xl font-bold text-white">
             {Math.round(totalActual).toLocaleString()}h
@@ -51,7 +51,8 @@ export function ProjectFinancialTable({
           <p className="text-xs text-gray-500 mt-1">
             {formatCurrency(totalActual)} billed
           </p>
-        </div>        <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+        </div>
+        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Budget Utilization</p>
           <p
             className={`text-xl font-bold ${
@@ -75,7 +76,7 @@ export function ProjectFinancialTable({
             </span>
           </div>
         </div>
-        <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Over Budget</p>
           <p
             className={`text-xl font-bold ${
@@ -91,18 +92,19 @@ export function ProjectFinancialTable({
       </div>
 
       {/* Table */}
-      <div className="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl overflow-hidden">
         {/* Desktop table */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-800 text-left">
+              <tr className="border-b border-gray-700/50 text-left">
                 <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Project
                 </th>
                 <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Company
-                </th>                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-right">
+                </th>
+                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-right">
                   Budget
                 </th>
                 <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-right">
@@ -119,7 +121,7 @@ export function ProjectFinancialTable({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/50">
+            <tbody className="divide-y divide-gray-700/30">
               {projects.map((project) => {
                 const pct =
                   project.budgetHours > 0
@@ -145,7 +147,8 @@ export function ProjectFinancialTable({
                           {project.name}
                         </span>
                       </div>
-                    </td>                    <td className="px-4 py-3 text-gray-400 truncate max-w-[160px]">
+                    </td>
+                    <td className="px-4 py-3 text-gray-400 truncate max-w-[160px]">
                       {project.company}
                     </td>
                     <td className="px-4 py-3 text-right text-gray-300 font-mono">
@@ -181,7 +184,7 @@ export function ProjectFinancialTable({
         </div>
 
         {/* Mobile cards */}
-        <div className="md:hidden divide-y divide-gray-800/50">
+        <div className="md:hidden divide-y divide-gray-700/30">
           {projects.map((project) => {
             const pct =
               project.budgetHours > 0

@@ -54,6 +54,7 @@ export function ProjectPortfolioView({
     if (!deptMap.has(dept)) deptMap.set(dept, [])
     deptMap.get(dept)!.push(p)
   }
+
   const deptSummaries: DeptSummary[] = (['IT', 'SI', 'AM', 'GA'] as DepartmentCode[])
     .map((code) => {
       const deptProjects = deptMap.get(code) || []
@@ -91,17 +92,17 @@ export function ProjectPortfolioView({
     <div className="space-y-6">
       {/* Executive summary bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Total Projects</p>
           <p className="text-2xl font-bold text-white">{totalProjects}</p>
         </div>
-        <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Total Budget Hours</p>
           <p className="text-2xl font-bold text-white">
             {Math.round(totalBudget).toLocaleString()}
           </p>
         </div>
-        <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Overall Utilization</p>
           <p
             className={`text-2xl font-bold ${
@@ -115,11 +116,12 @@ export function ProjectPortfolioView({
             {Math.round(globalPct)}%
           </p>
         </div>
-        <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+        <div className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-1">Departments Active</p>
           <p className="text-2xl font-bold text-white">{deptSummaries.length}</p>
         </div>
       </div>
+
       {/* Department heatmap cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {deptSummaries.map((dept) => {
@@ -131,7 +133,7 @@ export function ProjectPortfolioView({
           return (
             <div
               key={dept.code}
-              className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 space-y-3"
+              className="bg-gray-900/80 border border-gray-700/50 rounded-xl p-4 space-y-3"
             >
               {/* Dept header */}
               <div className="flex items-center justify-between">

@@ -3,8 +3,10 @@
 // NEVER import this in client components — server-side only.
 // ============================================================
 
-import type { Ticket, TicketFilters, ScheduleEntry, ScheduleFilters, Company, Member, Project, ProjectFilters } from '@/types'
+import type { Ticket, TicketFilters, TicketNote, TimeEntry, ScheduleEntry, ScheduleFilters, Company, Member, Project, ProjectFilters } from '@/types'
 import { normalizeTicket, normalizeScheduleEntry, normalizeCompany, normalizeMember, normalizeProject } from './normalizers'
+import { logApiCall } from '@/lib/instrumentation/api-logger'
+import { getDefaultTenantId } from '@/lib/instrumentation/tenant-context'
 
 export interface CWCredentials {
   baseUrl: string
@@ -44,7 +46,7 @@ function buildAuthHeader(creds: CWCredentials): string {
 }
 
 /**
- * Core fetch wrapper with auth injection and error handling.
+ * Core fetch wrapper with auth injection, error handling, and instrumentation.
  */
 async function cwFetch<T>(
   creds: CWCredentials,
@@ -52,34 +54,74 @@ async function cwFetch<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${creds.baseUrl}${path}`
+  const method = (options.method ?? 'GET').toUpperCase()
+  const start = performance.now()
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Authorization': buildAuthHeader(creds),
-      'clientId': creds.clientId,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      ...options.headers,
-    },
-  })
+  let statusCode: number | undefined
+  let errorCode: string | undefined
+  let errorMessage: string | undefined
 
-  if (response.status === 429) {
-    const retryAfter = parseInt(response.headers.get('Retry-After') ?? '10', 10)
-    throw new RateLimitError(retryAfter)
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Authorization': buildAuthHeader(creds),
+        'clientId': creds.clientId,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...options.headers,
+      },
+    })
+
+    statusCode = response.status
+
+    if (response.status === 429) {
+      const retryAfter = parseInt(response.headers.get('Retry-After') ?? '10', 10)
+      throw new RateLimitError(retryAfter)
+    }
+
+    if (!response.ok) {
+      const body = await response.text()
+      throw new CWApiError(response.status, body)
+    }
+
+    // 204 No Content
+    if (response.status === 204) {
+      return null as T
+    }
+
+    return response.json() as Promise<T>
+  } catch (err) {
+    if (err instanceof RateLimitError) {
+      errorCode = 'RATE_LIMITED'
+      errorMessage = err.message
+    } else if (err instanceof CWApiError) {
+      statusCode = err.status
+      errorCode = 'API_ERROR'
+      errorMessage = err.detail?.slice(0, 500)
+    } else if (err instanceof Error) {
+      errorCode = 'NETWORK_ERROR'
+      errorMessage = err.message
+    }
+    throw err
+  } finally {
+    // Fire-and-forget logging — never blocks the response
+    const elapsed = Math.round(performance.now() - start)
+    getDefaultTenantId()
+      .then((tenantId) => {
+        logApiCall(
+          { tenantId, platform: 'connectwise', endpoint: path, method },
+          {
+            statusCode,
+            responseTimeMs: elapsed,
+            requestPayloadSize: options.body ? String(options.body).length : undefined,
+            errorCode,
+            errorMessage,
+          }
+        )
+      })
+      .catch(() => {}) // Swallow — instrumentation must never break the app
   }
-
-  if (!response.ok) {
-    const body = await response.text()
-    throw new CWApiError(response.status, body)
-  }
-
-  // 204 No Content
-  if (response.status === 204) {
-    return null as T
-  }
-
-  return response.json() as Promise<T>
 }
 
 // ── Tickets ───────────────────────────────────────────────────
@@ -160,6 +202,14 @@ export async function addTicketNote(
     method: 'POST',
     body: JSON.stringify({ text, internalAnalysisFlag: isInternal }),
   })
+}
+
+/** List time entries for a ticket. */
+export async function getTimeEntries(
+  creds: CWCredentials,
+  ticketId: number
+): Promise<Record<string, unknown>[]> {
+  return cwFetch(creds, `/time/entries?conditions=chargeToId=${ticketId} AND chargeToType="ServiceTicket"&orderBy=dateEntered desc&pageSize=50`)
 }
 
 // ── Schedule ──────────────────────────────────────────────────

@@ -38,6 +38,7 @@ export function ProjectsClient() {
   const [viewMode, setViewMode] = useState<ViewMode>(
     DEPT_DEFAULT_VIEW[department] || 'kanban'
   )
+
   // Update default view when department changes
   useEffect(() => {
     setViewMode(DEPT_DEFAULT_VIEW[department] || 'kanban')
@@ -104,6 +105,7 @@ export function ProjectsClient() {
       }
       return views
     }, [department])
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -114,7 +116,7 @@ export function ProjectsClient() {
 
         {/* View mode toggles */}
         {availableViews.length > 1 && (
-          <div className="flex items-center gap-1 bg-gray-900/50 border border-gray-800 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-gray-900/80 border border-gray-700/50 rounded-lg p-1">
             {availableViews.map(({ mode, icon: Icon, label }) => (
               <button
                 key={mode}
@@ -146,10 +148,10 @@ export function ProjectsClient() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search projects..."
-            className="w-full pl-9 pr-4 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-colors"
+            className="w-full pl-9 pr-4 py-2 bg-gray-900/80 border border-gray-700/50 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-colors"
           />
         </div>
-        <button className="flex items-center gap-1.5 px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-400 hover:text-white hover:border-gray-700 transition-colors">
+        <button className="flex items-center gap-1.5 px-3 py-2 bg-gray-900/80 border border-gray-700/50 rounded-lg text-sm text-gray-400 hover:text-white hover:border-gray-600 transition-colors">
           <SlidersHorizontal size={14} />
           <span className="hidden sm:inline">Filter</span>
         </button>
@@ -157,6 +159,7 @@ export function ProjectsClient() {
           {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
         </span>
       </div>
+
       {/* Error state */}
       {error && (
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">

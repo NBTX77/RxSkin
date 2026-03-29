@@ -1,69 +1,35 @@
 // GET /api/tickets/[id]/time-entries — List time entries for a ticket
 
 import { auth } from '@/lib/auth/config'
+import { getTenantCredentials } from '@/lib/auth/credentials'
+import { getTimeEntries } from '@/lib/cw/client'
+import { cachedFetch } from '@/lib/cache/bff-cache'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
-import { getCWCredentials } from '@/lib/cw/credentials'
 import { getMockTimeEntries } from '@/lib/mock-data'
-import type { CWCredentials } from '@/lib/cw/client'
 import type { TimeEntry } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
-function str(val: unknown): string {
-  return typeof val === 'string' ? val : ''
+const TIME_ENTRIES_TTL_MS = 30 * 1000 // 30 seconds
+
+function isCWConfigured(): boolean {
+  return !!(process.env.CW_BASE_URL && process.env.CW_PUBLIC_KEY && process.env.CW_PRIVATE_KEY)
 }
 
-function num(val: unknown): number {
-  return typeof val === 'number' ? val : 0
-}
-
-function nested(obj: unknown, key: string): string {
-  if (obj && typeof obj === 'object') return str((obj as Record<string, unknown>)[key])
-  return ''
-}
-
-function nestedNum(obj: unknown, key: string): number {
-  if (obj && typeof obj === 'object') return num((obj as Record<string, unknown>)[key])
-  return 0
-}
-
+/** Normalize raw CW time entry to our TimeEntry shape. */
 function normalizeTimeEntry(raw: Record<string, unknown>, ticketId: number): TimeEntry {
+  const member = raw.member as Record<string, unknown> | undefined
   return {
-    id: num(raw.id),
+    id: (raw.id as number) ?? 0,
     ticketId,
-    memberId: nestedNum(raw.member, 'id'),
-    memberName: nested(raw.member, 'name') || nested(raw.member, 'identifier'),
-    hoursWorked: typeof raw.actualHours === 'number' ? raw.actualHours : num(raw.hoursDebit),
-    workType: nested(raw.workType, 'name') || undefined,
-    notes: str(raw.notes) || str(raw.internalNotes) || undefined,
-    billable: str(raw.billableOption) !== 'DoNotBill',
-    date: str(raw.timeStart) || str(raw.dateEntered),
+    memberId: member ? (member.id as number) ?? 0 : 0,
+    memberName: member ? (member.name as string) ?? 'Unknown' : 'Unknown',
+    hoursWorked: (raw.actualHours as number) ?? (raw.hoursDebit as number) ?? 0,
+    workType: (raw.workType as Record<string, unknown>)?.name as string ?? undefined,
+    notes: (raw.notes as string) ?? (raw.internalNotes as string) ?? undefined,
+    billable: (raw.billableOption as string) === 'Billable' || (raw.addToDetailDescriptionFlag as boolean) === true,
+    date: (raw.dateEntered as string) ?? (raw.timeStart as string) ?? new Date().toISOString(),
   }
-}
-
-async function getCWTimeEntries(creds: CWCredentials, ticketId: number): Promise<TimeEntry[]> {
-  const params = new URLSearchParams()
-  params.set('conditions', `chargeToId=${ticketId} AND chargeToType="ServiceTicket"`)
-  params.set('fields', 'id,member,actualHours,hoursDebit,workType,notes,internalNotes,billableOption,timeStart,dateEntered')
-  params.set('pageSize', '100')
-  params.set('orderBy', 'timeStart desc')
-
-  const url = `${creds.baseUrl}/time/entries?${params}`
-  const raw = `${creds.companyId}+${creds.publicKey}:${creds.privateKey}`
-  const authHeader = `Basic ${Buffer.from(raw).toString('base64')}`
-
-  const res = await fetch(url, {
-    headers: {
-      'Authorization': authHeader,
-      'clientId': creds.clientId,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-  })
-
-  if (!res.ok) return []
-  const data = await res.json() as Record<string, unknown>[]
-  return data.map(r => normalizeTimeEntry(r, ticketId))
 }
 
 export async function GET(
@@ -77,14 +43,26 @@ export async function GET(
     const ticketId = parseInt(params.id, 10)
     if (isNaN(ticketId)) return apiErrors.badRequest('Invalid ticket ID')
 
-    const creds = getCWCredentials()
-    if (creds) {
-      const entries = await getCWTimeEntries(creds, ticketId)
-      return Response.json(entries)
-    } else {
+    // Mock data fallback when CW not configured
+    if (!isCWConfigured()) {
       const entries = getMockTimeEntries(ticketId)
       return Response.json(entries)
     }
+
+    const { tenantId } = session.user
+    const cacheKey = `${tenantId}:tickets:${ticketId}:time-entries`
+
+    const entries = await cachedFetch(
+      cacheKey,
+      async () => {
+        const creds = await getTenantCredentials(tenantId)
+        const rawEntries = await getTimeEntries(creds, ticketId)
+        return rawEntries.map((e) => normalizeTimeEntry(e, ticketId))
+      },
+      TIME_ENTRIES_TTL_MS
+    )
+
+    return Response.json(entries)
   } catch (error) {
     return handleApiError(error)
   }
