@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth/config'
 import {
   getScalePadCredentials,
+  getScalePadClient,
   getClientHardwareAssets,
   getClientHardwareLifecycles,
   getClientSaaSAssets,
@@ -30,6 +31,7 @@ export async function GET(
     const creds = getScalePadCredentials()
 
     const [
+      clientResult,
       hardwareResult,
       lifecyclesResult,
       saasResult,
@@ -37,6 +39,7 @@ export async function GET(
       contractsResult,
       initiativesResult,
     ] = await Promise.allSettled([
+      getScalePadClient(creds, clientId),
       getClientHardwareAssets(creds, clientId),
       getClientHardwareLifecycles(creds, clientId),
       getClientSaaSAssets(creds, clientId),
@@ -46,6 +49,10 @@ export async function GET(
     ])
 
     // Client functions already normalize — extract settled values
+    if (clientResult.status === 'rejected') {
+      throw clientResult.reason
+    }
+    const client = clientResult.value
     const hardware = hardwareResult.status === 'fulfilled' ? hardwareResult.value : []
     const lifecycles = lifecyclesResult.status === 'fulfilled' ? lifecyclesResult.value : []
     const saas = saasResult.status === 'fulfilled' ? saasResult.value : []
@@ -83,6 +90,7 @@ export async function GET(
     }
 
     return Response.json({
+      client,
       healthScore,
       hardwareCount: hardware.length,
       expiredWarrantyCount,
