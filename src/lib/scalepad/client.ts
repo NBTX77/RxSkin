@@ -173,7 +173,7 @@ async function scalePadFetchAllPages(
 export async function getScalePadClients(
   creds: ScalePadCredentials
 ): Promise<CBRClient[]> {
-  const raw = await scalePadFetchAllPages('/v1/clients', creds)
+  const raw = await scalePadFetchAllPages('/core/v1/clients', creds)
   return raw.map(normalizeClient)
 }
 
@@ -185,7 +185,7 @@ export async function getScalePadClient(
   clientId: string
 ): Promise<CBRClient> {
   const response = await scalePadFetch<{ data: Record<string, unknown> }>(
-    `/v1/clients/${clientId}`,
+    `/core/v1/clients/${clientId}`,
     creds
   )
   return normalizeClient(response.data)
@@ -194,14 +194,13 @@ export async function getScalePadClient(
 // ── Hardware Assets ────────────────────────────────────────────
 
 /**
- * Get hardware assets, optionally filtered by client ID (client-side filter).
- * ScalePad does not support a client_id query param on this endpoint.
+ * Get hardware assets, optionally filtered by client ID (client-side).
  */
 export async function getClientHardwareAssets(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRHardwareAsset[]> {
-  const raw = await scalePadFetchAllPages('/v1/hardware_assets', creds)
+  const raw = await scalePadFetchAllPages('/core/v1/assets/hardware', creds)
   const assets = raw.map(normalizeHardwareAsset)
   return clientId ? assets.filter((a) => a.clientId === clientId) : assets
 }
@@ -210,13 +209,12 @@ export async function getClientHardwareAssets(
 
 /**
  * Get hardware lifecycle/warranty data, optionally filtered by client (client-side).
- * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientHardwareLifecycles(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRHardwareLifecycle[]> {
-  const raw = await scalePadFetchAllPages('/v1/hardware_lifecycles', creds)
+  const raw = await scalePadFetchAllPages('/lifecycle-manager/v1/assets/hardware/lifecycles', creds)
   const lifecycles = raw.map(normalizeHardwareLifecycle)
   return clientId ? lifecycles.filter((l) => l.clientId === clientId) : lifecycles
 }
@@ -225,13 +223,12 @@ export async function getClientHardwareLifecycles(
 
 /**
  * Get SaaS/license assets, optionally filtered by client ID (client-side).
- * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientSaaSAssets(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRSaaSAsset[]> {
-  const raw = await scalePadFetchAllPages('/v1/saas_assets', creds)
+  const raw = await scalePadFetchAllPages('/core/v1/assets/saas', creds)
   const assets = raw.map(normalizeSaaSAsset)
   return clientId ? assets.filter((a) => a.clientId === clientId) : assets
 }
@@ -240,13 +237,12 @@ export async function getClientSaaSAssets(
 
 /**
  * Get opportunities, optionally filtered by client ID (client-side).
- * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientOpportunities(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBROpportunity[]> {
-  const raw = await scalePadFetchAllPages('/v1/opportunities', creds)
+  const raw = await scalePadFetchAllPages('/core/v1/opportunities', creds)
   const opportunities = raw.map(normalizeOpportunity)
   return clientId ? opportunities.filter((o) => o.clientId === clientId) : opportunities
 }
@@ -255,13 +251,12 @@ export async function getClientOpportunities(
 
 /**
  * Get contracts, optionally filtered by client ID (client-side).
- * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientContracts(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRContract[]> {
-  const raw = await scalePadFetchAllPages('/v1/contracts', creds)
+  const raw = await scalePadFetchAllPages('/core/v1/service/contracts', creds)
   const contracts = raw.map(normalizeContract)
   return clientId ? contracts.filter((c) => c.clientId === clientId) : contracts
 }
@@ -270,13 +265,12 @@ export async function getClientContracts(
 
 /**
  * Get initiatives, optionally filtered by client ID (client-side).
- * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientInitiatives(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRInitiative[]> {
-  const raw = await scalePadFetchAllPages('/v1/initiatives', creds)
+  const raw = await scalePadFetchAllPages('/lifecycle-manager/v1/initiatives', creds)
   const initiatives = raw.map(normalizeInitiative)
   return clientId ? initiatives.filter((i) => i.clientId === clientId) : initiatives
 }
@@ -285,13 +279,12 @@ export async function getClientInitiatives(
 
 /**
  * Get action items, optionally filtered by client ID (client-side).
- * ScalePad does not support a client_id query param on this endpoint.
  */
 export async function getClientActionItems(
   creds: ScalePadCredentials,
   clientId?: string
 ): Promise<CBRActionItem[]> {
-  const raw = await scalePadFetchAllPages('/v1/action_items', creds)
+  const raw = await scalePadFetchAllPages('/lifecycle-manager/v1/action-items', creds)
   const items = raw.map(normalizeActionItem)
   return clientId ? items.filter((a) => a.clientId === clientId) : items
 }
