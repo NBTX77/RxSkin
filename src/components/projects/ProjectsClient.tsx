@@ -7,8 +7,7 @@ import { ProjectFinancialTable } from './ProjectFinancialTable'
 import { ProjectPortfolioView } from './ProjectPortfolioView'
 import { ProjectListReadOnly } from './ProjectListReadOnly'
 import { ProjectDetailOverlay } from './ProjectDetailOverlay'
-import { ProjectCard } from './ProjectCard'
-import { Search, SlidersHorizontal, FolderKanban, Table2, LayoutGrid, CheckCircle2, Target, AlertCircle, Clock, DollarSign } from 'lucide-react'
+import { Search, SlidersHorizontal, FolderKanban, Table2, LayoutGrid, Target, AlertCircle, CheckCircle2, Clock, DollarSign } from 'lucide-react'
 import { KPICard } from '@/components/ui/KPICard'
 import { KPIStrip } from '@/components/ui/KPIStrip'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
@@ -34,18 +33,10 @@ export function ProjectsClient() {
   const [viewMode, setViewMode] = useState<ViewMode>(
     DEPT_DEFAULT_VIEW[department] || 'kanban'
   )
-  const [showCompleted, setShowCompleted] = useState(false)
-
-  // Update default view and reset showCompleted when department changes
+  // Update default view when department changes
   useEffect(() => {
     setViewMode(DEPT_DEFAULT_VIEW[department] || 'kanban')
-    setShowCompleted(false)
   }, [department])
-
-  // Reset showCompleted when switching view modes
-  useEffect(() => {
-    setShowCompleted(false)
-  }, [viewMode])
 
   // Fetch projects
   useEffect(() => {
@@ -86,16 +77,6 @@ export function ProjectsClient() {
     )
   }, [projects, search])
 
-  // Split projects into active (non-completed) and completed for kanban view
-  const activeProjects = useMemo(
-    () => filteredProjects.filter((p) => !p.status.includes('50')),
-    [filteredProjects]
-  )
-  const completedProjects = useMemo(
-    () => filteredProjects.filter((p) => p.status.includes('50')),
-    [filteredProjects]
-  )
-
   // Available views depend on department
   const availableViews: { mode: ViewMode; icon: typeof FolderKanban; label: string }[] =
     useMemo(() => {
@@ -120,8 +101,8 @@ export function ProjectsClient() {
     }, [department])
 
   // KPI computations from project data
-  const activeProjectCount = activeProjects.length
-  const completedProjectCount = completedProjects.length
+  const activeProjectCount = filteredProjects.filter((p) => !p.status.includes('50')).length
+  const completedProjectCount = filteredProjects.filter((p) => p.status.includes('50')).length
   const overBudgetCount = filteredProjects.filter(
     (p) => p.budgetHours > 0 && p.actualHours > p.budgetHours
   ).length
@@ -141,7 +122,7 @@ export function ProjectsClient() {
         </KPIStrip>
       )}
 
-      {/* Toolbar: search + filter + completed toggle + view toggles + count */}
+      {/* Toolbar: search + filter + view toggles + count */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[180px] max-w-md">
           <Search
@@ -160,26 +141,6 @@ export function ProjectsClient() {
           <SlidersHorizontal size={14} />
           <span className="hidden sm:inline">Filter</span>
         </button>
-
-        {/* Show Completed toggle — kanban view only */}
-        {viewMode === 'kanban' && (
-          <button
-            onClick={() => setShowCompleted((prev) => !prev)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-              showCompleted
-                ? 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800'
-                : 'bg-white dark:bg-gray-900/80 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700/50 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600'
-            }`}
-          >
-            <CheckCircle2 size={14} />
-            <span className="hidden sm:inline">Completed</span>
-            {!showCompleted && completedProjects.length > 0 && (
-              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-[10px] font-semibold">
-                {completedProjects.length}
-              </span>
-            )}
-          </button>
-        )}
 
         {/* View mode toggles */}
         {availableViews.length > 1 && (
@@ -232,41 +193,11 @@ export function ProjectsClient() {
               <div className="-mx-4 lg:-mx-6 overflow-x-auto">
                 <div className="px-4 lg:px-6">
                   <ProjectKanban
-                    projects={activeProjects}
+                    projects={filteredProjects}
                     onProjectClick={setSelectedProjectId}
                   />
                 </div>
               </div>
-
-              {/* Completed projects grid — shown when toggle is active */}
-              {showCompleted && completedProjects.length > 0 && (
-                <div className="mt-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 size={16} className="text-green-600 dark:text-green-400" />
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                      Completed
-                    </h3>
-                    <span className="text-xs text-gray-500">
-                      ({completedProjects.length})
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {completedProjects.map((project) => (
-                      <ProjectCard
-                        key={project.id}
-                        project={project}
-                        onClick={() => setSelectedProjectId(project.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {showCompleted && completedProjects.length === 0 && (
-                <div className="mt-4 text-center py-8">
-                  <p className="text-sm text-gray-500">No completed projects</p>
-                </div>
-              )}
             </ErrorBoundary>
           )}
 
