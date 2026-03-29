@@ -7,9 +7,9 @@
 
 ## Current Status
 
-**Last Completed Phase:** Phase 1A + Phase 1B + Phase 3 UI Polish + Codebase Review
-**Active Priorities:** Credential Vault, Azure AD integration, Graph/Webex BFF routes
-**Overall Progress:** ~50% of full vision
+**Last Completed Phase:** Phase 17 — SmileBack CSAT/NPS Integration
+**Active Priorities:** Phase 18 Meraki, Phase 19 M365, Credential Vault, Azure AD
+**Overall Progress:** ~55% of full vision
 
 ---
 
@@ -246,23 +246,23 @@ Architecture fully designed (2026-03-28). Research document: `RX-Skin-Middleware
 
 ---
 
-## Phase 17 — SmileBack CSAT/NPS Integration (Planned — 2026-03-29)
+## Phase 17 — SmileBack CSAT/NPS Integration ✅ Complete (2026-03-29)
 
 **Goal:** Integrate SmileBack customer satisfaction data (CSAT + NPS) throughout the dashboard. Surface on tickets, per-tech, per-company, executive dashboard, and Account Management CBR views.
 
 | Task | Description | Status |
 |------|------------|--------|
-| Task 68 | SmileBack BFF client + types + normalizers | Pending |
-| Task 69 | SmileBack BFF API routes (5 endpoints + batch) | Pending |
-| Task 70 | SmileBack React hooks (TanStack Query) | Pending |
-| Task 71 | Ticket detail — survey response card | Pending |
-| Task 72 | Ticket list — survey badge icons | Pending |
-| Task 73 | Executive dashboard — CSAT/NPS KPI cards + charts | Pending |
-| Task 74 | Tech performance — CSAT per tech on /team + My Day | Pending |
-| Task 75 | CBR dashboard — per-client CSAT/NPS for AMs | Pending |
-| Task 76 | SmileBack webhook receiver + local DB cache | Pending |
-| Task 77 | Admin integration card (Credential Vault) | Pending |
-| Task 78 | Deploy + update all documentation | Pending |
+| Task 68 | SmileBack BFF client + types + normalizers | ✅ Done |
+| Task 69 | SmileBack BFF API routes (5 endpoints + batch) | ✅ Done |
+| Task 70 | SmileBack React hooks (TanStack Query) | ✅ Done |
+| Task 71 | Ticket detail — survey response card | ✅ Done |
+| Task 72 | Ticket list — survey badge icons | ✅ Done |
+| Task 73 | Executive dashboard — CSAT/NPS KPI cards + charts | ✅ Done |
+| Task 74 | Tech performance — CSAT per tech on /team + My Day | ✅ Done |
+| Task 75 | CBR dashboard — per-client CSAT/NPS for AMs | ✅ Done |
+| Task 76 | SmileBack webhook receiver + local DB cache | ✅ Done |
+| Task 77 | Admin integration card (Credential Vault) | ✅ Done |
+| Task 78 | Deploy + update all documentation | ✅ Done |
 
 ### Key Design Decisions
 - SmileBack API is **read-only** — data flows SmileBack → RX Skin (never the other way)
