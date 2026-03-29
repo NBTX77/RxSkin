@@ -6,10 +6,12 @@ import { queryKeys } from '@/lib/query-keys'
 import type { Ticket, TicketFilters } from '@/types'
 import { useState, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { AlertCircle, RefreshCw, Search, LayoutGrid, List, Ticket as TicketIcon, GripVertical, Clock, CheckCircle2, Zap, Hourglass } from 'lucide-react'
+import { AlertCircle, RefreshCw, Search, LayoutGrid, List, Ticket as TicketIcon, GripVertical, Clock, CheckCircle2, Zap, Hourglass, Smile, Meh, Frown } from 'lucide-react'
 import { KPICard } from '@/components/ui/KPICard'
 import { KPIStrip } from '@/components/ui/KPIStrip'
 import { TicketCard } from './TicketCard'
+import { useTicketSurveyBatch } from '@/hooks/useSmileBack'
+import type { SmileBackTicketSurvey } from '@/lib/smileback/types'
 import Link from 'next/link'
 import { getPriorityBadgeStyle, getStatusBadgeStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
 import { TicketCardSkeleton } from '@/components/ui/TicketCardSkeleton'
@@ -68,6 +70,11 @@ export function TicketListClient() {
     enabled: !!tenantId,
     staleTime: 30 * 1000,
   })
+
+  // Fetch SmileBack surveys for the first 50 tickets
+  const ticketIds = (tickets ?? []).slice(0, 50).map(t => t.id)
+  const { data: surveyData } = useTicketSurveyBatch(ticketIds)
+  const surveys: Record<string, SmileBackTicketSurvey> = surveyData?.surveys ?? {}
 
   function handleSearch(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -205,7 +212,7 @@ export function TicketListClient() {
       {viewMode === 'cards' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {tickets?.map((ticket) => (
-            <TicketCard key={ticket.id} ticket={ticket} />
+            <TicketCard key={ticket.id} ticket={ticket} survey={surveys[String(ticket.id)] ?? null} />
           ))}
           {tickets?.length === 0 && (
             <div className="col-span-full">
@@ -215,7 +222,7 @@ export function TicketListClient() {
         </div>
       ) : (
         /* Virtualized table view with sortable columns */
-        <VirtualizedTicketTable tickets={tickets ?? []} columns={columns} setColumns={setColumns} />
+        <VirtualizedTicketTable tickets={tickets ?? []} columns={columns} setColumns={setColumns} surveys={surveys} />
       )}
     </div>
   )
@@ -253,7 +260,18 @@ function SortableColumnHeader({ column }: { column: ColumnDef }) {
 
 // ── Cell Renderer ────────────────────────────────────
 
-function TicketCell({ columnId, ticket }: { columnId: string; ticket: Ticket }) {
+function SurveyIcon({ rating }: { rating: 'Positive' | 'Neutral' | 'Negative' }) {
+  switch (rating) {
+    case 'Positive':
+      return <span title="Customer rated: Positive"><Smile size={14} className="text-emerald-500 inline ml-1.5 flex-shrink-0" /></span>
+    case 'Neutral':
+      return <span title="Customer rated: Neutral"><Meh size={14} className="text-yellow-500 inline ml-1.5 flex-shrink-0" /></span>
+    case 'Negative':
+      return <span title="Customer rated: Negative"><Frown size={14} className="text-red-500 inline ml-1.5 flex-shrink-0" /></span>
+  }
+}
+
+function TicketCell({ columnId, ticket, survey }: { columnId: string; ticket: Ticket; survey?: SmileBackTicketSurvey | null }) {
   const priorityStyle = getPriorityBadgeStyle(ticket.priority)
   const statusStyle = getStatusBadgeStyle(ticket.status)
 
@@ -278,6 +296,7 @@ function TicketCell({ columnId, ticket }: { columnId: string; ticket: Ticket }) 
           <span className="text-gray-900 dark:text-gray-100 font-medium truncate group-hover:text-blue-600 dark:group-hover:text-white">
             {ticket.summary}
           </span>
+          {survey && <SurveyIcon rating={survey.rating} />}
           {ticket.assignedTo && (
             <span className="hidden sm:inline text-gray-400 dark:text-gray-500 text-xs flex-shrink-0 ml-auto">
               {ticket.assignedTo}
@@ -300,10 +319,12 @@ function VirtualizedTicketTable({
   tickets,
   columns,
   setColumns,
+  surveys,
 }: {
   tickets: Ticket[]
   columns: ColumnDef[]
   setColumns: React.Dispatch<React.SetStateAction<ColumnDef[]>>
+  surveys: Record<string, SmileBackTicketSurvey>
 }) {
   const parentRef = useRef<HTMLDivElement>(null)
 
@@ -378,7 +399,7 @@ function VirtualizedTicketTable({
               >
                 {columns.map(col => (
                   <div key={col.id} className={`px-4 ${col.width} ${col.visibility ?? ''} min-w-0`}>
-                    <TicketCell columnId={col.id} ticket={ticket} />
+                    <TicketCell columnId={col.id} ticket={ticket} survey={surveys[String(ticket.id)] ?? null} />
                   </div>
                 ))}
               </div>

@@ -2,7 +2,7 @@
 
 import { memo } from 'react'
 import type { Ticket } from '@/types'
-import { Clock, User, Building2, MessageSquare } from 'lucide-react'
+import { Clock, User, Building2, MessageSquare, Smile, Meh, Frown } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 import { PRIORITY_BORDER_COLORS, PRIORITY_DOT_COLORS, getStatusBadgeStyle, BADGE_BASE_CLASSES } from '@/lib/ui/badgeStyles'
@@ -18,6 +18,7 @@ function timeAgo(dateStr: string): string {
 interface TicketCardProps {
   ticket: Ticket
   compact?: boolean
+  survey?: { rating: 'Positive' | 'Neutral' | 'Negative' } | null
 }
 
 const PRIORITY_HOVER_SHADOW: Record<string, string> = {
@@ -25,7 +26,18 @@ const PRIORITY_HOVER_SHADOW: Record<string, string> = {
   High: 'hover:shadow-orange-500/10',
 }
 
-export const TicketCard = memo(function TicketCard({ ticket, compact = false }: TicketCardProps) {
+function SurveyRatingIcon({ rating }: { rating: 'Positive' | 'Neutral' | 'Negative' }) {
+  switch (rating) {
+    case 'Positive':
+      return <span title="Customer rated: Positive"><Smile size={14} className="text-emerald-500" /></span>
+    case 'Neutral':
+      return <span title="Customer rated: Neutral"><Meh size={14} className="text-yellow-500" /></span>
+    case 'Negative':
+      return <span title="Customer rated: Negative"><Frown size={14} className="text-red-500" /></span>
+  }
+}
+
+export const TicketCard = memo(function TicketCard({ ticket, compact = false, survey }: TicketCardProps) {
   const borderColor = PRIORITY_BORDER_COLORS[ticket.priority] ?? 'border-l-gray-600'
   const statusStyle = getStatusBadgeStyle(ticket.status)
   const dotColor = PRIORITY_DOT_COLORS[ticket.priority] ?? 'bg-gray-500'
@@ -64,6 +76,7 @@ export const TicketCard = memo(function TicketCard({ ticket, compact = false }: 
             <span className={`inline-flex items-center ${BADGE_BASE_CLASSES} ${statusStyle}`}>
               {ticket.status}
             </span>
+            {survey && <SurveyRatingIcon rating={survey.rating} />}
           </div>
           <p className="text-[15px] text-gray-800 dark:text-gray-100 font-medium leading-snug line-clamp-2 group-hover:text-gray-900 dark:text-white transition-colors">
             {ticket.summary}

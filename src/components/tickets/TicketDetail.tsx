@@ -7,10 +7,11 @@ import type { Ticket, TicketNote, TimeEntry } from '@/types'
 import { QuickClosePanel } from './QuickClosePanel'
 import { TicketActions } from '@/components/remote/TicketActions'
 import { useTimeTracker } from '@/contexts/TimeTrackerContext'
+import { useTicketSurvey } from '@/hooks/useSmileBack'
 import {
   ArrowLeft, Clock, Building2, User, MessageSquare, Send,
   CheckCircle2, Calendar, AlertCircle, Timer, Tag, ArrowUpCircle,
-  ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp, Smile, Meh, Frown, ExternalLink,
 } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
@@ -128,6 +129,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
   const [timeNotes, setTimeNotes] = useState('')
   const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set())
   const { startTimer, activeTicketId: timerTicketId, isRunning: timerRunning } = useTimeTracker()
+  const { data: surveyData } = useTicketSurvey(ticketId)
 
   const { data: ticket, isLoading: ticketLoading } = useQuery<Ticket>({
     queryKey: ['ticket', ticketId],
@@ -315,6 +317,57 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
               </div>
             </div>
           </div>
+
+          {/* SmileBack Survey Response */}
+          {surveyData?.survey && (() => {
+            const survey = surveyData.survey as { rating: 'Positive' | 'Neutral' | 'Negative'; comment?: string | null; contact?: string; createdAt?: string; permalink?: string }
+            const ratingStyles: Record<string, { icon: typeof Smile; color: string; borderColor: string }> = {
+              Positive: { icon: Smile, color: 'text-emerald-500', borderColor: 'border-l-emerald-500' },
+              Neutral: { icon: Meh, color: 'text-yellow-500', borderColor: 'border-l-yellow-500' },
+              Negative: { icon: Frown, color: 'text-red-500', borderColor: 'border-l-red-500' },
+            }
+            const ratingConfig = ratingStyles[survey.rating] ?? { icon: Meh, color: 'text-gray-500', borderColor: 'border-l-gray-500' }
+            const RatingIcon = ratingConfig.icon
+            return (
+              <div className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl p-4 border-l-4 ${ratingConfig.borderColor}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  {/* Left: Icon + Rating */}
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <RatingIcon size={24} className={ratingConfig.color} />
+                    <div>
+                      <p className={`text-sm font-medium ${ratingConfig.color}`}>{survey.rating}</p>
+                      <p className="text-xs text-gray-500">Customer Feedback</p>
+                    </div>
+                  </div>
+
+                  {/* Right: Contact + Date + Link */}
+                  <div className="flex items-center gap-2 sm:ml-auto flex-shrink-0">
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500">{survey.contact}</p>
+                      <p className="text-xs text-gray-500">{survey.createdAt ? formatDate(survey.createdAt) : ''}</p>
+                    </div>
+                    {survey.permalink && (
+                      <a
+                        href={survey.permalink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      >
+                        <ExternalLink size={14} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Comment quote block */}
+                {survey.comment && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 border-l-2 border-gray-300 dark:border-gray-600 pl-3 mt-3 italic">
+                    {survey.comment}
+                  </p>
+                )}
+              </div>
+            )
+          })()}
 
           {/* Add note inline */}
           <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">

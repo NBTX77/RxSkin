@@ -7,7 +7,7 @@
 // Contracts, and Initiatives.
 // ============================================================
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
@@ -17,9 +17,14 @@ import {
   Lightbulb,
   RefreshCw,
   AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  SmilePlus,
 } from 'lucide-react'
 import { KPICard } from '@/components/ui/KPICard'
 import { useCBRClientOverview } from '@/hooks/useCBRData'
+import { useCompanyCSAT } from '@/hooks/useSmileBack'
 import type { HealthFactor } from '@/types/cbr'
 import { ClientHealthScore } from './ClientHealthScore'
 import { HardwareHealthReport } from './HardwareHealthReport'
@@ -30,7 +35,7 @@ import { InitiativesTimeline } from './InitiativesTimeline'
 
 // ── Types ───────────────────────────────────────────────────
 
-type TabKey = 'overview' | 'hardware' | 'licenses' | 'opportunities' | 'contracts' | 'initiatives'
+type TabKey = 'overview' | 'hardware' | 'licenses' | 'opportunities' | 'contracts' | 'initiatives' | 'satisfaction'
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'overview', label: 'Overview' },
@@ -39,6 +44,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'opportunities', label: 'Opportunities' },
   { key: 'contracts', label: 'Contracts' },
   { key: 'initiatives', label: 'Initiatives' },
+  { key: 'satisfaction', label: 'Satisfaction' },
 ]
 
 // ── Score Color ─────────────────────────────────────────────
@@ -98,6 +104,24 @@ export function CBRClientDetail({ clientId }: { clientId: string }) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
   const { data, isLoading, isError, error, refetch } = useCBRClientOverview(clientId)
+  const { data: csatData } = useCompanyCSAT()
+
+  // Match client to SmileBack company CSAT (case-insensitive includes)
+  const clientName = data?.client?.name ?? ''
+  const clientCSAT = useMemo(() => {
+    if (!csatData?.companies || !clientName) return null
+    const lower = clientName.toLowerCase()
+    const exact = csatData.companies.find(
+      (c: { companyName: string }) => c.companyName.toLowerCase() === lower
+    )
+    if (exact) return exact
+    return csatData.companies.find(
+      (c: { companyName: string }) =>
+        c.companyName.toLowerCase().includes(lower) || lower.includes(c.companyName.toLowerCase())
+    ) ?? null
+  }, [csatData?.companies, clientName])
+
+  const csatPercent = clientCSAT?.csatPercent ?? null
 
   if (isLoading) return <DetailSkeleton />
 
@@ -147,6 +171,7 @@ export function CBRClientDetail({ clientId }: { clientId: string }) {
               score={healthScore.overall}
               grade={healthScore.grade ?? scoreToGrade(healthScore.overall)}
               size="lg"
+              csatPercent={csatPercent}
             />
             <div className="text-center sm:text-left">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -194,7 +219,7 @@ export function CBRClientDetail({ clientId }: { clientId: string }) {
         {/* TAB CONTENT */}
         <div>
           {activeTab === 'overview' && (
-            <OverviewTab factors={healthScore.factors} />
+            <OverviewTab factors={healthScore.factors} csatPercent={csatPercent} />
           )}
           {activeTab === 'hardware' && (
             <HardwareHealthReport clientId={clientId} />
@@ -211,6 +236,9 @@ export function CBRClientDetail({ clientId }: { clientId: string }) {
           {activeTab === 'initiatives' && (
             <InitiativesTimeline clientId={clientId} />
           )}
+          {activeTab === 'satisfaction' && (
+            <SatisfactionTab csatPercent={csatPercent} recentTrend={clientCSAT?.recentTrend ?? null} totalReviews={clientCSAT?.totalReviews ?? 0} npsScore={clientCSAT?.npsScore ?? null} />
+          )}
         </div>
       </div>
     </div>
@@ -219,7 +247,7 @@ export function CBRClientDetail({ clientId }: { clientId: string }) {
 
 // ── Overview Tab ────────────────────────────────────────────
 
-function OverviewTab({ factors }: { factors: HealthFactor[] }) {
+function OverviewTab({ factors, csatPercent }: { factors: HealthFactor[]; csatPercent: number | null }) {
   if (!factors || factors.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
@@ -228,7 +256,26 @@ function OverviewTab({ factors }: { factors: HealthFactor[] }) {
     )
   }
 
+  const csatColorClass =
+    csatPercent !== null
+      ? csatPercent >= 90
+        ? 'text-emerald-600 dark:text-emerald-400'
+        : csatPercent >= 70
+          ? 'text-yellow-600 dark:text-yellow-400'
+          : 'text-red-600 dark:text-red-400'
+      : ''
+
   return (
+    <div className="space-y-4">
+      {csatPercent !== null && (
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 flex items-center gap-3">
+          <SmilePlus className="w-5 h-5 text-blue-500" />
+          <span className="text-sm font-medium text-gray-900 dark:text-white">Client Satisfaction</span>
+          <span className={`text-sm font-bold ml-auto ${csatColorClass}`}>
+            CSAT: {csatPercent.toFixed(0)}%
+          </span>
+        </div>
+      )}
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {factors.map(factor => {
         const pct = factor.weight > 0 ? Math.round((factor.score / factor.weight) * 100) : 0
@@ -268,6 +315,99 @@ function OverviewTab({ factors }: { factors: HealthFactor[] }) {
           </div>
         )
       })}
+    </div>
+    </div>
+  )
+}
+
+// ── Satisfaction Tab ────────────────────────────────────────
+
+function SatisfactionTab({
+  csatPercent,
+  recentTrend,
+  totalReviews,
+  npsScore,
+}: {
+  csatPercent: number | null
+  recentTrend: 'up' | 'down' | 'stable' | null
+  totalReviews: number
+  npsScore: number | null
+}) {
+  if (csatPercent === null) {
+    return (
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+        No SmileBack data available for this client.
+      </div>
+    )
+  }
+
+  const csatColorClass =
+    csatPercent >= 90
+      ? 'text-emerald-600 dark:text-emerald-400'
+      : csatPercent >= 70
+        ? 'text-yellow-600 dark:text-yellow-400'
+        : 'text-red-600 dark:text-red-400'
+
+  const TrendIcon =
+    recentTrend === 'up'
+      ? TrendingUp
+      : recentTrend === 'down'
+        ? TrendingDown
+        : Minus
+
+  const trendColor =
+    recentTrend === 'up'
+      ? 'text-emerald-500'
+      : recentTrend === 'down'
+        ? 'text-red-500'
+        : 'text-gray-400'
+
+  const trendLabel =
+    recentTrend === 'up' ? 'Trending up' : recentTrend === 'down' ? 'Trending down' : 'Stable'
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* CSAT Score Card */}
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-6 flex flex-col items-center justify-center">
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+          CSAT Score
+        </p>
+        <p className={`text-5xl font-bold ${csatColorClass}`}>
+          {csatPercent.toFixed(0)}%
+        </p>
+        <div className="flex items-center gap-1.5 mt-3">
+          <TrendIcon className={`w-4 h-4 ${trendColor}`} />
+          <span className={`text-sm font-medium ${trendColor}`}>{trendLabel}</span>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          Based on {totalReviews} survey{totalReviews !== 1 ? 's' : ''} (last 90 days)
+        </p>
+      </div>
+
+      {/* NPS Score Card */}
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-6 flex flex-col items-center justify-center">
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+          NPS Score
+        </p>
+        {npsScore !== null ? (
+          <>
+            <p className={`text-5xl font-bold ${
+              npsScore >= 50
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : npsScore >= 0
+                  ? 'text-yellow-600 dark:text-yellow-400'
+                  : 'text-red-600 dark:text-red-400'
+            }`}>
+              {npsScore}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+              {npsScore >= 50 ? 'Excellent' : npsScore >= 0 ? 'Good' : 'Needs Improvement'}
+            </p>
+          </>
+        ) : (
+          <p className="text-sm text-gray-500 dark:text-gray-400">No NPS data available</p>
+        )}
+      </div>
     </div>
   )
 }

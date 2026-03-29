@@ -4,7 +4,8 @@
 // ExecutiveDashboard — RX Skin
 // Leadership Team (LT) executive dashboard with KPIs,
 // department performance, project health matrix, utilization,
-// and recent highlights. Wired to live ConnectWise data.
+// recent highlights, and customer satisfaction (CSAT/NPS).
+// Wired to live ConnectWise + SmileBack data.
 // ============================================================
 
 import { useState } from 'react'
@@ -17,6 +18,8 @@ import {
   YAxis,
   Tooltip,
   ReferenceLine,
+  PieChart,
+  Pie,
 } from 'recharts'
 import {
   TrendingUp,
@@ -29,9 +32,14 @@ import {
   Info,
   AlertTriangle,
   RefreshCw,
+  Smile,
+  ThumbsUp,
+  Minus,
+  ThumbsDown,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { KPICard } from '@/components/ui/KPICard'
+import { SectionHeader } from '@/components/ui/SectionHeader'
 import { ProjectDetailOverlay } from '@/components/projects/ProjectDetailOverlay'
 import {
   useExecutiveData,
@@ -39,6 +47,7 @@ import {
   type ProjectHealthEntry,
   type ExecutiveHighlight,
 } from '@/hooks/useExecutiveData'
+import { useCSATOverview, useNPSOverview } from '@/hooks/useSmileBack'
 
 // --------------- Types ---------------
 
@@ -235,6 +244,8 @@ export function ExecutiveDashboard() {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
 
   const { data, isLoading, isError, error, refetch } = useExecutiveData()
+  const { data: csatData } = useCSATOverview()
+  const { data: npsData } = useNPSOverview()
 
   if (isLoading) return <DashboardSkeleton />
   if (isError) return <DashboardError error={error as Error} onRetry={() => refetch()} />
@@ -247,6 +258,18 @@ export function ExecutiveDashboard() {
     name: u.name,
     utilization: u.utilization,
   }))
+
+  // CSAT/NPS derived values
+  const csatConfigured = csatData?.configured !== false
+  const npsConfigured = npsData?.configured !== false
+  const csatSummary = csatData?.summary as { totalReviews: number; positive: number; neutral: number; negative: number; csatPercent: number; withComments: number } | undefined
+  const npsSummary = npsData?.summary as { totalResponses: number; promoters: number; passives: number; detractors: number; npsScore: number } | undefined
+  const csatReviews = (csatData?.reviews ?? []) as Array<{ id: string; rating: 'Positive' | 'Neutral' | 'Negative'; comment: string | null; company: string; createdAt: string }>
+
+  const csatPercent = csatSummary?.csatPercent ?? 0
+  const npsScore = npsSummary?.npsScore ?? 0
+  const csatValueDisplay = csatConfigured && csatSummary ? `${Math.round(csatPercent)}%` : '\u2014'
+  const npsValueDisplay = npsConfigured && npsSummary ? `${npsScore >= 0 ? '+' : ''}${Math.round(npsScore)}` : '\u2014'
 
   return (
     <div className="flex-1 overflow-auto" data-feedback-component="ExecutiveDashboard">
@@ -265,7 +288,7 @@ export function ExecutiveDashboard() {
         </div>
 
         {/* KPI STRIP */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2">
           {kpis.map((kpi) => {
             const IconComponent = KPI_ICON_MAP[kpi.label] ?? Info
             const colorClass = KPI_COLOR_MAP[kpi.label] ?? 'bg-gray-500'
@@ -280,14 +303,28 @@ export function ExecutiveDashboard() {
               />
             )
           })}
+          {/* CSAT KPI */}
+          <KPICard
+            icon={Smile}
+            color="bg-emerald-500"
+            label="CSAT Score"
+            value={csatValueDisplay}
+            subtitle={csatConfigured && csatSummary ? `${csatSummary.totalReviews} reviews` : undefined}
+          />
+          {/* NPS KPI */}
+          <KPICard
+            icon={TrendingUp}
+            color="bg-cyan-500"
+            label="NPS Score"
+            value={npsValueDisplay}
+            subtitle={npsConfigured && npsSummary ? `${npsSummary.totalResponses} responses` : undefined}
+          />
         </div>
 
         {/* DEPARTMENT PERFORMANCE CARDS */}
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-            Department Performance
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <SectionHeader title="Department Performance" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
             {departments.map((dept) => (
               <DepartmentCard
                 key={dept.id}
@@ -302,10 +339,8 @@ export function ExecutiveDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           {/* LEFT: PROJECT HEALTH MATRIX */}
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Project Health Matrix
-            </h2>
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 sm:p-6">
+            <SectionHeader title="Project Health Matrix" />
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 sm:p-6 mt-4">
               <div className="space-y-6">
                 {projectHealth.it.length > 0 && (
                   <ProjectSection
@@ -371,10 +406,8 @@ export function ExecutiveDashboard() {
           <div className="space-y-6 lg:space-y-8">
             {/* Utilization Chart */}
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                Utilization by Department
-              </h2>
-              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 sm:p-6">
+              <SectionHeader title="Utilization by Department" />
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 sm:p-6 mt-4">
                 {utilizationChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={utilizationChartData}>
@@ -423,10 +456,8 @@ export function ExecutiveDashboard() {
 
             {/* Recent Highlights */}
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                Recent Highlights
-              </h2>
-              <div className="space-y-2">
+              <SectionHeader title="Recent Highlights" />
+              <div className="space-y-2 mt-4">
                 {highlights.map((highlight) => (
                   <HighlightCard key={highlight.id} highlight={highlight} />
                 ))}
@@ -434,6 +465,24 @@ export function ExecutiveDashboard() {
             </div>
           </div>
         </div>
+
+        {/* CUSTOMER SATISFACTION SECTION */}
+        {(!csatConfigured && !npsConfigured) ? (
+          <SmileBackNotConfigured />
+        ) : (
+          <>
+            <SectionHeader title="Customer Satisfaction" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* LEFT: CSAT Breakdown Pie */}
+              <CSATBreakdownCard summary={csatSummary} configured={csatConfigured} />
+              {/* RIGHT: NPS Distribution */}
+              <NPSDistributionCard summary={npsSummary} configured={npsConfigured} />
+            </div>
+
+            {/* Recent Feedback Mini-Table */}
+            <RecentFeedbackTable reviews={csatReviews.slice(0, 5)} configured={csatConfigured} />
+          </>
+        )}
       </div>
 
       {/* Project Detail Overlay */}
@@ -585,6 +634,257 @@ function ProjectSection({
             </div>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+// --------------- Sub-component: SmileBack Not Configured ---------------
+
+function SmileBackNotConfigured() {
+  return (
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl p-6 flex items-center gap-4">
+      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex-shrink-0">
+        <Smile className="w-6 h-6 text-gray-400" />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-gray-900 dark:text-white">
+          Customer Satisfaction Metrics
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          Connect SmileBack in Admin &rarr; Integrations for CSAT and NPS metrics.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// --------------- Sub-component: CSAT Breakdown Card ---------------
+
+const CSAT_PIE_COLORS = ['#10b981', '#eab308', '#ef4444'] // emerald, yellow, red
+
+interface CSATBreakdownCardProps {
+  summary?: { totalReviews: number; positive: number; neutral: number; negative: number; csatPercent: number; withComments: number }
+  configured: boolean
+}
+
+function CSATBreakdownCard({ summary, configured }: CSATBreakdownCardProps) {
+  if (!configured || !summary || summary.totalReviews === 0) {
+    return (
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl p-4 flex items-center justify-center min-h-[280px]">
+        <p className="text-sm text-gray-500 dark:text-gray-400">No CSAT data available</p>
+      </div>
+    )
+  }
+
+  const pieData = [
+    { name: 'Positive', value: summary.positive },
+    { name: 'Neutral', value: summary.neutral },
+    { name: 'Negative', value: summary.negative },
+  ]
+
+  return (
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl p-4">
+      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">CSAT Breakdown</h3>
+      <div className="flex items-center justify-center">
+        <div className="relative">
+          <ResponsiveContainer width={200} height={200}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={90}
+                paddingAngle={2}
+                dataKey="value"
+                stroke="none"
+              >
+                {pieData.map((_, index) => (
+                  <Cell key={`csat-cell-${index}`} fill={CSAT_PIE_COLORS[index]} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+          {/* Center text overlay */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              {Math.round(summary.csatPercent)}%
+            </span>
+            <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide">CSAT</span>
+          </div>
+        </div>
+      </div>
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-4 mt-3 text-xs">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+          <span className="text-gray-600 dark:text-gray-400">Positive ({summary.positive})</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+          <span className="text-gray-600 dark:text-gray-400">Neutral ({summary.neutral})</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+          <span className="text-gray-600 dark:text-gray-400">Negative ({summary.negative})</span>
+        </div>
+      </div>
+      <p className="text-center text-[10px] text-gray-500 mt-2">
+        {summary.totalReviews} total reviews &middot; {summary.withComments} with comments
+      </p>
+    </div>
+  )
+}
+
+// --------------- Sub-component: NPS Distribution Card ---------------
+
+const NPS_BAR_COLORS = { promoters: '#10b981', passives: '#9CA3AF', detractors: '#ef4444' }
+
+interface NPSDistributionCardProps {
+  summary?: { totalResponses: number; promoters: number; passives: number; detractors: number; npsScore: number }
+  configured: boolean
+}
+
+function NPSDistributionCard({ summary, configured }: NPSDistributionCardProps) {
+  if (!configured || !summary || summary.totalResponses === 0) {
+    return (
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl p-4 flex items-center justify-center min-h-[280px]">
+        <p className="text-sm text-gray-500 dark:text-gray-400">No NPS data available</p>
+      </div>
+    )
+  }
+
+  const total = summary.totalResponses
+  const promoterPct = total > 0 ? Math.round((summary.promoters / total) * 100) : 0
+  const passivePct = total > 0 ? Math.round((summary.passives / total) * 100) : 0
+  const detractorPct = total > 0 ? Math.round((summary.detractors / total) * 100) : 0
+  const npsSign = summary.npsScore >= 0 ? '+' : ''
+
+  return (
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl p-4">
+      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">NPS Distribution</h3>
+
+      {/* Large NPS Score */}
+      <div className="text-center mb-4">
+        <span className="text-4xl font-bold text-gray-900 dark:text-white">
+          {npsSign}{Math.round(summary.npsScore)}
+        </span>
+        <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-1">Net Promoter Score</p>
+      </div>
+
+      {/* Horizontal stacked bar */}
+      <div className="w-full h-6 rounded-full overflow-hidden flex bg-gray-100 dark:bg-gray-800">
+        {promoterPct > 0 && (
+          <div
+            className="h-full flex items-center justify-center text-[10px] font-semibold text-white"
+            style={{ width: `${promoterPct}%`, backgroundColor: NPS_BAR_COLORS.promoters }}
+            title={`Promoters: ${promoterPct}%`}
+          >
+            {promoterPct > 10 ? `${promoterPct}%` : ''}
+          </div>
+        )}
+        {passivePct > 0 && (
+          <div
+            className="h-full flex items-center justify-center text-[10px] font-semibold text-white"
+            style={{ width: `${passivePct}%`, backgroundColor: NPS_BAR_COLORS.passives }}
+            title={`Passives: ${passivePct}%`}
+          >
+            {passivePct > 10 ? `${passivePct}%` : ''}
+          </div>
+        )}
+        {detractorPct > 0 && (
+          <div
+            className="h-full flex items-center justify-center text-[10px] font-semibold text-white"
+            style={{ width: `${detractorPct}%`, backgroundColor: NPS_BAR_COLORS.detractors }}
+            title={`Detractors: ${detractorPct}%`}
+          >
+            {detractorPct > 10 ? `${detractorPct}%` : ''}
+          </div>
+        )}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-4 mt-4 text-xs">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+          <span className="text-gray-600 dark:text-gray-400">Promoters 9-10 ({summary.promoters})</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-gray-400" />
+          <span className="text-gray-600 dark:text-gray-400">Passives 7-8 ({summary.passives})</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+          <span className="text-gray-600 dark:text-gray-400">Detractors 0-6 ({summary.detractors})</span>
+        </div>
+      </div>
+      <p className="text-center text-[10px] text-gray-500 mt-2">
+        {total} total responses
+      </p>
+    </div>
+  )
+}
+
+// --------------- Sub-component: Recent Feedback Table ---------------
+
+interface RecentFeedbackTableProps {
+  reviews: Array<{ id: string; rating: 'Positive' | 'Neutral' | 'Negative'; comment: string | null; company: string; createdAt: string }>
+  configured: boolean
+}
+
+const RATING_ICONS: Record<string, { icon: LucideIcon; color: string }> = {
+  Positive: { icon: ThumbsUp, color: 'text-emerald-500' },
+  Neutral: { icon: Minus, color: 'text-yellow-500' },
+  Negative: { icon: ThumbsDown, color: 'text-red-500' },
+}
+
+function RecentFeedbackTable({ reviews, configured }: RecentFeedbackTableProps) {
+  if (!configured || reviews.length === 0) return null
+
+  return (
+    <div>
+      <SectionHeader title="Recent Feedback" />
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl overflow-hidden mt-4">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 dark:border-gray-800">
+              <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-10">Rating</th>
+              <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-500 dark:text-gray-400">Company</th>
+              <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-500 dark:text-gray-400 hidden sm:table-cell">Comment</th>
+              <th className="text-right px-4 py-2.5 text-xs font-medium text-gray-500 dark:text-gray-400 w-24">Date</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            {reviews.map((review) => {
+              const ratingInfo = RATING_ICONS[review.rating] ?? RATING_ICONS.Neutral
+              const RatingIcon = ratingInfo.icon
+              const commentTruncated = review.comment
+                ? review.comment.length > 80
+                  ? review.comment.slice(0, 80).trim() + '...'
+                  : review.comment
+                : '\u2014'
+              const dateStr = new Date(review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+
+              return (
+                <tr key={review.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                  <td className="px-4 py-2.5">
+                    <RatingIcon className={`w-4 h-4 ${ratingInfo.color}`} />
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-900 dark:text-white font-medium truncate max-w-[160px]">
+                    {review.company}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-600 dark:text-gray-400 hidden sm:table-cell">
+                    {commentTruncated}
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-gray-500 dark:text-gray-400 text-xs">
+                    {dateStr}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   )

@@ -9,6 +9,9 @@ export interface TechWorkload {
   capacity: number
   entries: ScheduleEntry[]
   utilization: number // 0-100+ percentage
+  csatPercent?: number | null  // CSAT score from SmileBack (0-100)
+  csatReviews?: number         // number of reviews
+  csatTrend?: 'up' | 'down' | 'stable'
 }
 
 export interface WorkloadSummary {
@@ -16,4 +19,6 @@ export interface WorkloadSummary {
   avgUtilization: number
   overbookedCount: number
   availableCount: number
+  teamCSAT?: number | null  // average CSAT % across all techs with reviews
+  teamCSATReviews?: number  // total review count across all techs
 }

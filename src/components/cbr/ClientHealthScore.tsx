@@ -10,6 +10,7 @@ interface ClientHealthScoreProps {
   score: number
   grade: 'A' | 'B' | 'C' | 'D' | 'F'
   size?: 'sm' | 'md' | 'lg'
+  csatPercent?: number | null
 }
 
 function getGradeColor(score: number): string {
@@ -19,7 +20,7 @@ function getGradeColor(score: number): string {
   return '#ef4444' // red
 }
 
-export function ClientHealthScore({ score, grade, size = 'lg' }: ClientHealthScoreProps) {
+export function ClientHealthScore({ score, grade, size = 'lg', csatPercent }: ClientHealthScoreProps) {
   const color = getGradeColor(score)
   const dimensions = size === 'lg' ? 120 : size === 'md' ? 80 : 56
   const strokeWidth = size === 'lg' ? 8 : size === 'md' ? 6 : 4
@@ -29,49 +30,64 @@ export function ClientHealthScore({ score, grade, size = 'lg' }: ClientHealthSco
   const scoreFontSize = size === 'lg' ? 'text-3xl' : size === 'md' ? 'text-xl' : 'text-sm'
   const gradeFontSize = size === 'lg' ? 'text-sm' : size === 'md' ? 'text-xs' : 'text-[10px]'
 
+  const csatColor =
+    csatPercent != null && csatPercent < 75
+      ? 'text-yellow-600 dark:text-yellow-400'
+      : 'text-gray-600 dark:text-gray-400'
+
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: dimensions, height: dimensions }}>
-      <svg
-        width={dimensions}
-        height={dimensions}
-        className="-rotate-90"
-        aria-hidden="true"
-      >
-        {/* Background ring */}
-        <circle
-          cx={dimensions / 2}
-          cy={dimensions / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          className="text-gray-200 dark:text-gray-700"
-        />
-        {/* Progress ring */}
-        <circle
-          cx={dimensions / 2}
-          cy={dimensions / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={circumference - progress}
-          strokeLinecap="round"
-          className="transition-all duration-700 ease-out"
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`${scoreFontSize} font-bold text-gray-900 dark:text-white leading-none`}>
-          {score}
-        </span>
-        <span
-          className={`${gradeFontSize} font-semibold leading-tight mt-0.5`}
-          style={{ color }}
+    <div className="inline-flex flex-col items-center gap-1.5">
+      <div className="relative inline-flex items-center justify-center" style={{ width: dimensions, height: dimensions }}>
+        <svg
+          width={dimensions}
+          height={dimensions}
+          className="-rotate-90"
+          aria-hidden="true"
         >
-          {grade}
-        </span>
+          {/* Background ring */}
+          <circle
+            cx={dimensions / 2}
+            cy={dimensions / 2}
+            r={radius}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            className="text-gray-200 dark:text-gray-700"
+          />
+          {/* Progress ring */}
+          <circle
+            cx={dimensions / 2}
+            cy={dimensions / 2}
+            r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference - progress}
+            strokeLinecap="round"
+            className="transition-all duration-700 ease-out"
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className={`${scoreFontSize} font-bold text-gray-900 dark:text-white leading-none`}>
+            {score}
+          </span>
+          <span
+            className={`${gradeFontSize} font-semibold leading-tight mt-0.5`}
+            style={{ color }}
+          >
+            {grade}
+          </span>
+        </div>
       </div>
+      {csatPercent != null && (
+        <span className={`text-xs font-medium ${csatColor}`}>
+          CSAT: {csatPercent.toFixed(0)}%
+          {csatPercent < 75 && (
+            <span className="ml-1 text-yellow-500" title="CSAT below 75%">&#9888;</span>
+          )}
+        </span>
+      )}
     </div>
   )
 }

@@ -1,14 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { CalendarDays, LayoutGrid, List, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTeamWorkload } from '@/hooks/useTeamWorkload'
+import { useTechCSAT } from '@/hooks/useSmileBack'
 import { WorkloadSummary } from './WorkloadSummary'
 import { TechWorkloadCard } from './TechWorkloadCard'
 import type { DepartmentCode } from '@/types'
 import { DEPARTMENTS } from '@/types'
+import type { TechWorkload as TechWorkloadType } from '@/types/team'
 
 type ViewMode = 'grid' | 'list'
+
+interface TechCSATEntry {
+  techName: string
+  csatPercent: number
+  totalReviews: number
+  recentTrend: 'up' | 'down' | 'stable'
+}
 
 function formatDateDisplay(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
@@ -34,6 +43,47 @@ export function TeamWorkload() {
     date,
     departmentFilter || undefined
   )
+
+  const { data: csatData } = useTechCSAT()
+  const csatTechs: TechCSATEntry[] = useMemo(() => csatData?.techs ?? [], [csatData])
+
+  // Merge CSAT data into tech workload entries using case-insensitive partial matching
+  const techsWithCSAT: TechWorkloadType[] = useMemo(() => {
+    if (csatTechs.length === 0) return techs
+
+    return techs.map(tech => {
+      const techNameLower = tech.name.toLowerCase()
+      const match = csatTechs.find(ct => {
+        const csatNameLower = ct.techName.toLowerCase()
+        return csatNameLower.includes(techNameLower) || techNameLower.includes(csatNameLower)
+      })
+      if (match) {
+        return {
+          ...tech,
+          csatPercent: match.csatPercent,
+          csatReviews: match.totalReviews,
+          csatTrend: match.recentTrend,
+        }
+      }
+      return tech
+    })
+  }, [techs, csatTechs])
+
+  // Compute team-wide CSAT average for summary
+  const enrichedSummary = useMemo(() => {
+    const techsWithReviews = csatTechs.filter(t => t.totalReviews > 0)
+    if (techsWithReviews.length === 0) return { ...summary, teamCSAT: null, teamCSATReviews: 0 }
+
+    const totalReviews = techsWithReviews.reduce((sum, t) => sum + t.totalReviews, 0)
+    // Weighted average by review count
+    const weightedCSAT = techsWithReviews.reduce((sum, t) => sum + t.csatPercent * t.totalReviews, 0) / totalReviews
+
+    return {
+      ...summary,
+      teamCSAT: Math.round(weightedCSAT * 100) / 100,
+      teamCSATReviews: totalReviews,
+    }
+  }, [summary, csatTechs])
 
   return (
     <div className="p-4 lg:p-6 space-y-6 pb-20 lg:pb-6" data-feedback-component="TeamWorkload">
@@ -131,7 +181,7 @@ export function TeamWorkload() {
       </p>
 
       {/* Summary KPIs */}
-      <WorkloadSummary summary={summary} isLoading={isLoading} />
+      <WorkloadSummary summary={enrichedSummary} isLoading={isLoading} />
 
       {/* Error state */}
       {isError && (
@@ -178,7 +228,7 @@ export function TeamWorkload() {
                   : 'flex flex-col gap-3'
               }
             >
-              {techs.map(tech => (
+              {techsWithCSAT.map(tech => (
                 <TechWorkloadCard key={tech.id} tech={tech} />
               ))}
             </div>

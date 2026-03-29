@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, Clock, Ticket } from 'lucide-react'
+import { ChevronDown, Clock, Ticket, Smile } from 'lucide-react'
 import type { TechWorkload } from '@/types/team'
 import type { DepartmentCode } from '@/types'
 
@@ -31,6 +31,12 @@ const DEPT_COLORS: Record<DepartmentCode, { bg: string; text: string; badge: str
     text: 'text-purple-700 dark:text-purple-300',
     badge: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800',
   },
+}
+
+function getCSATColor(csatPercent: number): string {
+  if (csatPercent >= 90) return 'text-emerald-500'
+  if (csatPercent >= 70) return 'text-yellow-500'
+  return 'text-red-500'
 }
 
 function getCapacityColor(utilization: number): string {
@@ -92,7 +98,7 @@ export function TechWorkloadCard({ tech }: TechWorkloadCardProps) {
                 {tech.department}
               </span>
             </div>
-            {/* Hours + entries count */}
+            {/* Hours + entries count + CSAT */}
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-xs text-gray-500 dark:text-gray-500">
                 {tech.scheduledHours} / {tech.capacity} hrs
@@ -100,7 +106,22 @@ export function TechWorkloadCard({ tech }: TechWorkloadCardProps) {
               <span className="text-xs text-gray-400 dark:text-gray-600">
                 {tech.entries.length} {tech.entries.length === 1 ? 'entry' : 'entries'}
               </span>
-            </div>
+              {tech.csatPercent != null && tech.csatReviews != null && tech.csatReviews > 0 ? (
+                <span className="flex items-center gap-1 ml-auto">
+                  <Smile size={12} className={getCSATColor(tech.csatPercent)} />
+                  <span className={`text-xs font-semibold ${getCSATColor(tech.csatPercent)}`}>
+                    {tech.csatPercent}%
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-500">
+                    ({tech.csatReviews})
+                  </span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 ml-auto">
+                  <Smile size={12} className="text-gray-400 dark:text-gray-600" />
+                  <span className="text-xs text-gray-400 dark:text-gray-600">&mdash;</span>
+                </span>
+              )}</div>
           </div>
 
           {/* Expand indicator */}

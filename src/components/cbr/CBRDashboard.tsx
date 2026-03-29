@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { KPICard } from '@/components/ui/KPICard'
 import { useCBRClients } from '@/hooks/useCBRData'
+import { useCompanyCSAT } from '@/hooks/useSmileBack'
 import type { CBRClient } from '@/types/cbr'
 
 // ── Health Grade Badge ──────────────────────────────────────
@@ -43,6 +44,23 @@ function HealthGradeBadge({ grade }: { grade: string }) {
   )
 }
 
+function CSATBadge({ percent }: { percent: number | null }) {
+  if (percent === null) {
+    return <span className="text-xs text-gray-400">--</span>
+  }
+  const colorClass =
+    percent >= 90
+      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+      : percent >= 70
+        ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
+        : 'bg-red-500/10 text-red-600 dark:text-red-400'
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${colorClass}`}>
+      {percent.toFixed(0)}%
+    </span>
+  )
+}
+
 // ── Helpers ─────────────────────────────────────────────────
 
 function getHealthGrade(lifecycle: string): string {
@@ -56,12 +74,17 @@ function getHealthGrade(lifecycle: string): string {
   return 'C' // default
 }
 
-type SortKey = 'name' | 'healthGrade' | 'deviceCount' | 'lastUpdated'
+type SortKey = 'name' | 'healthGrade' | 'deviceCount' | 'csat' | 'lastUpdated'
 type SortDir = 'asc' | 'desc'
 
 const GRADE_ORDER: Record<string, number> = { A: 1, B: 2, C: 3, D: 4, F: 5 }
 
-function sortClients(clients: CBRClient[], key: SortKey, dir: SortDir): CBRClient[] {
+function sortClients(
+  clients: CBRClient[],
+  key: SortKey,
+  dir: SortDir,
+  csatMap?: Map<string, number>,
+): CBRClient[] {
   return [...clients].sort((a, b) => {
     let cmp = 0
     switch (key) {
@@ -77,6 +100,12 @@ function sortClients(clients: CBRClient[], key: SortKey, dir: SortDir): CBRClien
       case 'deviceCount':
         cmp = a.hardwareAssetCount - b.hardwareAssetCount
         break
+      case 'csat': {
+        const csatA = csatMap?.get(a.name.toLowerCase()) ?? -1
+        const csatB = csatMap?.get(b.name.toLowerCase()) ?? -1
+        cmp = csatA - csatB
+        break
+      }
       case 'lastUpdated':
         cmp = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
         break
@@ -180,6 +209,7 @@ function CBRError({ message, onRetry }: { message: string; onRetry: () => void }
 export function CBRDashboard() {
   const router = useRouter()
   const { data, isLoading, isError, error, refetch } = useCBRClients()
+  const { data: csatData } = useCompanyCSAT()
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
@@ -193,14 +223,37 @@ export function CBRDashboard() {
     }
   }
 
+  // Build a map from lowercase company name → csatPercent for matching
+  const csatMap = useMemo(() => {
+    const map = new Map<string, number>()
+    if (csatData?.companies) {
+      for (const c of csatData.companies) {
+        map.set(c.companyName.toLowerCase(), c.csatPercent)
+      }
+    }
+    return map
+  }, [csatData?.companies])
+
+  // Find CSAT for a client by case-insensitive includes match
+  const getClientCSAT = (clientName: string): number | null => {
+    const lower = clientName.toLowerCase()
+    // Exact match first
+    if (csatMap.has(lower)) return csatMap.get(lower)!
+    // Fuzzy: SmileBack company name includes ScalePad client name, or vice versa
+    for (const [sbName, pct] of Array.from(csatMap.entries())) {
+      if (sbName.includes(lower) || lower.includes(sbName)) return pct
+    }
+    return null
+  }
+
   const filteredClients = useMemo(() => {
     if (!data?.clients) return []
     const q = search.toLowerCase()
     const filtered = q
       ? data.clients.filter(c => c.name.toLowerCase().includes(q))
       : data.clients
-    return sortClients(filtered, sortKey, sortDir)
-  }, [data?.clients, search, sortKey, sortDir])
+    return sortClients(filtered, sortKey, sortDir, csatMap)
+  }, [data?.clients, search, sortKey, sortDir, csatMap])
 
   // Compute aggregate KPIs
   const totalDevices = useMemo(() => data?.clients.reduce((sum, c) => sum + c.hardwareAssetCount, 0) ?? 0, [data?.clients])
@@ -264,6 +317,7 @@ export function CBRDashboard() {
                   {([
                     ['name', 'Name'],
                     ['healthGrade', 'Health'],
+                    ['csat', 'CSAT'],
                     ['deviceCount', 'Devices'],
                     ['lastUpdated', 'Last Updated'],
                   ] as [SortKey, string][]).map(([key, label]) => (
@@ -293,6 +347,9 @@ export function CBRDashboard() {
                     <td className="px-4 py-3">
                       <HealthGradeBadge grade={getHealthGrade(client.lifecycle)} />
                     </td>
+                    <td className="px-4 py-3">
+                      <CSATBadge percent={getClientCSAT(client.name)} />
+                    </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
                       {client.hardwareAssetCount}
                     </td>
@@ -303,7 +360,7 @@ export function CBRDashboard() {
                 ))}
                 {filteredClients.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                       {search ? 'No clients match your search.' : 'No clients found.'}
                     </td>
                   </tr>
@@ -329,7 +386,10 @@ export function CBRDashboard() {
                     {client.hardwareAssetCount} devices &middot; {client.contactCount} contacts
                   </p>
                 </div>
-                <span className="text-xs text-gray-400">{formatDate(client.updatedAt)}</span>
+                <div className="flex flex-col items-end gap-1">
+                  <CSATBadge percent={getClientCSAT(client.name)} />
+                  <span className="text-xs text-gray-400">{formatDate(client.updatedAt)}</span>
+                </div>
               </div>
             ))}
             {filteredClients.length === 0 && (

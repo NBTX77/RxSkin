@@ -1,6 +1,6 @@
 'use client'
 
-import { Users, BarChart3, AlertTriangle, UserCheck } from 'lucide-react'
+import { Users, BarChart3, AlertTriangle, UserCheck, Smile } from 'lucide-react'
 import { KPICard } from '@/components/ui/KPICard'
 import type { WorkloadSummary as WorkloadSummaryType } from '@/types/team'
 
@@ -10,10 +10,19 @@ interface WorkloadSummaryProps {
 }
 
 export function WorkloadSummary({ summary, isLoading }: WorkloadSummaryProps) {
+  const csatColor =
+    summary.teamCSAT != null && summary.teamCSAT >= 90
+      ? 'bg-emerald-500'
+      : summary.teamCSAT != null && summary.teamCSAT >= 70
+        ? 'bg-yellow-500'
+        : summary.teamCSAT != null
+          ? 'bg-red-500'
+          : 'bg-gray-400'
+
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
             className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-lg p-4 animate-pulse"
@@ -41,7 +50,7 @@ export function WorkloadSummary({ summary, isLoading }: WorkloadSummaryProps) {
     summary.availableCount > 0 ? 'bg-green-500' : 'bg-gray-400'
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
       <KPICard
         icon={Users}
         color="bg-blue-500"
@@ -65,6 +74,13 @@ export function WorkloadSummary({ summary, isLoading }: WorkloadSummaryProps) {
         color={availableColor}
         label="Available"
         value={summary.availableCount}
+      />
+      <KPICard
+        icon={Smile}
+        color={csatColor}
+        label="Team CSAT"
+        value={summary.teamCSAT != null ? `${summary.teamCSAT}%` : '--'}
+        subtitle={summary.teamCSATReviews ? `${summary.teamCSATReviews} reviews` : undefined}
       />
     </div>
   )
