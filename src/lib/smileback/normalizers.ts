@@ -27,12 +27,6 @@ function num(raw: Record<string, unknown>, key: string, fallback = 0): number {
   return typeof v === 'number' ? v : fallback
 }
 
-/** Safely read a boolean from a raw object. */
-function bool(raw: Record<string, unknown>, key: string, fallback = false): boolean {
-  const v = raw[key]
-  return typeof v === 'boolean' ? v : fallback
-}
-
 /** Normalize a rating string to the expected union type. */
 function normalizeRating(val: unknown): 'Positive' | 'Neutral' | 'Negative' {
   if (typeof val !== 'string') return 'Neutral'
@@ -49,20 +43,26 @@ function normalizeRating(val: unknown): 'Positive' | 'Neutral' | 'Negative' {
  * Handles snake_case → camelCase field mapping with safe defaults.
  */
 export function normalizeCSATReview(raw: Record<string, unknown>): SmileBackCSATReview {
+  const ticket = raw.ticket as Record<string, unknown> | undefined
+  const contact = raw.contact as Record<string, unknown> | undefined
+  const company = raw.company as Record<string, unknown> | undefined
+  const agents = ticket?.agents as string[] | undefined
+  const segment = ticket?.segment as Record<string, unknown> | undefined
+
   return {
-    id: str(raw, 'id') || str(raw, 'review_id') || String(raw.id ?? ''),
+    id: String(raw.id ?? ''),
     rating: normalizeRating(raw.rating),
     comment: typeof raw.comment === 'string' ? raw.comment : null,
-    company: str(raw, 'company') || str(raw, 'company_name'),
-    contact: str(raw, 'contact') || str(raw, 'contact_name'),
-    contactEmail: str(raw, 'contact_email') || str(raw, 'contactEmail'),
-    ticketId: str(raw, 'ticket_id') || str(raw, 'ticketId') || String(raw.ticket_id ?? ''),
-    ticketTitle: str(raw, 'ticket_title') || str(raw, 'ticketTitle'),
-    ticketAgents: str(raw, 'ticket_agents') || str(raw, 'ticketAgents'),
-    ticketSegment: str(raw, 'ticket_segment') || str(raw, 'ticketSegment'),
-    permalink: str(raw, 'permalink') || str(raw, 'url'),
-    hasMarketingPermission: bool(raw, 'has_marketing_permission') || bool(raw, 'hasMarketingPermission'),
-    createdAt: str(raw, 'created_at') || str(raw, 'createdAt') || new Date().toISOString(),
+    company: (company?.name as string) ?? '',
+    contact: (contact?.name as string) ?? '',
+    contactEmail: (contact?.email as string) ?? '',
+    ticketId: String(ticket?.id ?? ''),
+    ticketTitle: (ticket?.title as string) ?? '',
+    ticketAgents: agents?.join(', ') ?? '',
+    ticketSegment: (segment?.name as string) ?? '',
+    permalink: str(raw, 'permalink'),
+    hasMarketingPermission: false,
+    createdAt: str(raw, 'rated_on') || new Date().toISOString(),
   }
 }
 
@@ -73,16 +73,20 @@ export function normalizeCSATReview(raw: Record<string, unknown>): SmileBackCSAT
  * Handles snake_case → camelCase field mapping with safe defaults.
  */
 export function normalizeNPSResponse(raw: Record<string, unknown>): SmileBackNPSResponse {
+  const contact = raw.contact as Record<string, unknown> | undefined
+  const firstName = (contact?.first_name as string) ?? ''
+  const lastName = (contact?.last_name as string) ?? ''
+
   return {
-    id: str(raw, 'id') || str(raw, 'response_id') || String(raw.id ?? ''),
+    id: String(raw.id ?? ''),
     score: Math.max(0, Math.min(10, num(raw, 'score'))),
     comment: typeof raw.comment === 'string' ? raw.comment : null,
-    company: str(raw, 'company') || str(raw, 'company_name'),
-    contact: str(raw, 'contact') || str(raw, 'contact_name'),
-    contactEmail: str(raw, 'contact_email') || str(raw, 'contactEmail'),
-    campaign: str(raw, 'campaign') || str(raw, 'campaign_name'),
-    hasMarketingPermission: bool(raw, 'has_marketing_permission') || bool(raw, 'hasMarketingPermission'),
-    createdAt: str(raw, 'created_at') || str(raw, 'createdAt') || new Date().toISOString(),
+    company: (contact?.company as string) ?? '',
+    contact: `${firstName} ${lastName}`.trim(),
+    contactEmail: (contact?.email as string) ?? '',
+    campaign: str(raw, 'campaign_name'),
+    hasMarketingPermission: false,
+    createdAt: str(raw, 'created_at') || new Date().toISOString(),
   }
 }
 

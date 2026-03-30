@@ -4,7 +4,7 @@
 
 import { auth } from '@/lib/auth/config'
 import { apiErrors, handleApiError } from '@/lib/api/errors'
-import { smileBackClient } from '@/lib/smileback/client'
+import { smileBackClient, SmileBackApiError } from '@/lib/smileback/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,6 +43,15 @@ export async function GET(request: Request) {
 
     return Response.json({ responses, summary, configured: true })
   } catch (error) {
+    if (error instanceof SmileBackApiError) {
+      console.error('[SmileBack] API error, returning empty data:', error.message)
+      return Response.json({
+        responses: [],
+        summary: { totalResponses: 0, promoters: 0, passives: 0, detractors: 0, npsScore: 0 },
+        configured: true,
+        error: error.message,
+      })
+    }
     return handleApiError(error)
   }
 }

@@ -26,7 +26,7 @@ import {
 // ── Constants ────────────────────────────────────────────────
 
 const SMILEBACK_BASE_URL = 'https://app.smileback.io'
-const SMILEBACK_TOKEN_PATH = '/api/v1/auth/token'
+const SMILEBACK_TOKEN_PATH = '/api/token/'
 const RATE_LIMIT_MAX = 100
 const RATE_LIMIT_WINDOW_MS = 60_000
 const MAX_RETRIES = 3
@@ -129,16 +129,31 @@ async function getAccessToken(): Promise<string> {
 
   const clientId = process.env.SMILEBACK_CLIENT_ID ?? ''
   const clientSecret = process.env.SMILEBACK_CLIENT_SECRET ?? ''
+  const username = process.env.SMILEBACK_USERNAME ?? ''
+  const password = process.env.SMILEBACK_PASSWORD ?? ''
+
+  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+  const body = new URLSearchParams({
+    grant_type: 'password',
+    username,
+    password,
+    scope: 'read read_recent',
+  })
 
   const response = await fetch(`${SMILEBACK_BASE_URL}${SMILEBACK_TOKEN_PATH}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ client_id: clientId, client_secret: clientSecret }),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `Basic ${basicAuth}`,
+      Accept: 'application/json',
+    },
+    body: body.toString(),
   })
 
   if (!response.ok) {
-    const body = await response.text()
-    throw new SmileBackApiError(response.status, `Auth failed: ${body}`)
+    const bodyText = await response.text()
+    console.error(`[SmileBack] Auth failed ${response.status}: ${bodyText}`)
+    throw new SmileBackApiError(response.status, `Auth failed: ${bodyText}`)
   }
 
   const data = (await response.json()) as {
@@ -155,6 +170,14 @@ async function getAccessToken(): Promise<string> {
   return cachedToken.accessToken
 }
 
+// ── Paginated Response Shape ─────────────────────────────────
+
+interface SmileBackPagedResponse<T> {
+  count: number
+  next: string | null
+  results: T[]
+}
+
 // ── SmileBack Client ─────────────────────────────────────────
 
 class SmileBackClient {
@@ -168,7 +191,12 @@ class SmileBackClient {
    * Check whether SmileBack API credentials are configured.
    */
   isConfigured(): boolean {
-    return !!(process.env.SMILEBACK_CLIENT_ID && process.env.SMILEBACK_CLIENT_SECRET)
+    return !!(
+      process.env.SMILEBACK_CLIENT_ID &&
+      process.env.SMILEBACK_CLIENT_SECRET &&
+      process.env.SMILEBACK_USERNAME &&
+      process.env.SMILEBACK_PASSWORD
+    )
   }
 
   // ── Core Fetch ───────────────────────────────────────────
@@ -297,6 +325,48 @@ class SmileBackClient {
     }
   }
 
+  // ── Paginated Fetch ──────────────────────────────────────
+
+  /**
+   * Fetch all pages from a v3 paginated endpoint.
+   * Follows the `next` URL until exhausted.
+   */
+  private async fetchPaginated<T>(
+    path: string,
+    params?: Record<string, string | undefined>
+  ): Promise<T[]> {
+    const allResults: T[] = []
+
+    const initialParams: Record<string, string | undefined> = {
+      limit: '1000',
+      offset: '0',
+      ...params,
+    }
+
+    let currentPath: string | null = path
+    let currentParams: Record<string, string | undefined> | undefined = initialParams
+
+    while (currentPath !== null) {
+      const rawPage = await this.instrumentedFetch<unknown>(currentPath, currentParams)
+      const page = rawPage as SmileBackPagedResponse<T>
+
+      allResults.push(...page.results)
+
+      if (page.next) {
+        const nextUrl = new URL(page.next)
+        currentPath = nextUrl.pathname
+        currentParams = {}
+        nextUrl.searchParams.forEach((value, key) => {
+          currentParams![key] = value
+        })
+      } else {
+        currentPath = null
+      }
+    }
+
+    return allResults
+  }
+
   // ── Public Methods ───────────────────────────────────────
 
   /**
@@ -315,16 +385,14 @@ class SmileBackClient {
       date_from: params?.dateFrom,
       date_to: params?.dateTo,
       rating: params?.rating,
-      page_size: params?.pageSize?.toString(),
-      page: params?.page?.toString(),
     }
 
     const cacheKey = buildCacheKey('csat:reviews', queryParams)
     const cached = getCached<SmileBackCSATReview[]>(cacheKey)
     if (cached) return cached
 
-    const raw = await this.instrumentedFetch<Record<string, unknown>[]>(
-      '/api/v1/csat/reviews',
+    const raw = await this.fetchPaginated<Record<string, unknown>>(
+      '/api/v3/reviews/',
       queryParams
     )
 
@@ -347,16 +415,14 @@ class SmileBackClient {
       campaign_id: params?.campaignId,
       date_from: params?.dateFrom,
       date_to: params?.dateTo,
-      page_size: params?.pageSize?.toString(),
-      page: params?.page?.toString(),
     }
 
     const cacheKey = buildCacheKey('nps:responses', queryParams)
     const cached = getCached<SmileBackNPSResponse[]>(cacheKey)
     if (cached) return cached
 
-    const raw = await this.instrumentedFetch<Record<string, unknown>[]>(
-      '/api/v1/nps/responses',
+    const raw = await this.fetchPaginated<Record<string, unknown>>(
+      '/api/v3/nps-responses/',
       queryParams
     )
 
@@ -373,8 +439,8 @@ class SmileBackClient {
     const cached = getCached<SmileBackTicketSurvey | null>(cacheKey)
     if (cached !== null) return cached
 
-    const raw = await this.instrumentedFetch<Record<string, unknown>[]>(
-      '/api/v1/csat/reviews',
+    const raw = await this.fetchPaginated<Record<string, unknown>>(
+      '/api/v3/reviews/',
       { ticket_id: ticketId.toString() }
     )
 
