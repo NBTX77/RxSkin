@@ -122,7 +122,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         ) {
           clearRateLimit(ip)
           return {
-            id: 'dev-user-1',
+            id: 'clrxadmin001',
             email: parsed.data.email,
             name: 'Travis Brown',
             tenantId: process.env.TENANT_ID ?? process.env.DEV_TENANT_ID ?? 'rx-technology',
